@@ -1,132 +1,120 @@
-/* Version: #6 /
-/ === GENERELT === */
+/* Version: #8 */
+// === STATE ===
+let allSongs = [];
+let players = [];
+let gameSettings = {
+    songsPerPlayer: 5
+};
 
-{
-box-sizing: border-box;
-margin: 0;
-padding: 0;
+// === DOM ELEMENTS ===
+const gameSetupScreen = document.getElementById('game-setup');
+const gameScreen = document.getElementById('game-screen');
+const gameOverScreen = document.getElementById('game-over');
+
+const playerSetupForm = document.getElementById('player-setup-form');
+const playerNameInput = document.getElementById('player-name-input');
+const playerColorInput = document.getElementById('player-color-input');
+const playersListDiv = document.getElementById('players-list');
+const songCountSelect = document.getElementById('song-count-select');
+const startGameBtn = document.getElementById('start-game-btn');
+
+
+// === FUNCTIONS ===
+
+/**
+ * Laster sanger fra songs.json-filen
+ */
+async function loadSongs() {
+    try {
+        const response = await fetch('songs.json');
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        allSongs = await response.json();
+        console.log('Sanger lastet inn:', allSongs);
+    } catch (error) {
+        console.error('Kunne ikke laste sangfilen:', error);
+        gameSetupScreen.innerHTML = '<h1>Feil</h1><p>Kunne ikke laste inn sangdata. Sjekk at filen songs.json finnes og er korrekt formatert.</p>';
+    }
 }
 
-body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-background-color: #121212;
-color: #ffffff;
-display: flex;
-justify-content: center;
-align-items: center;
-min-height: 100vh;
-text-align: center;
+/**
+ * Viser spillerne i listen på oppsett-skjermen
+ */
+function renderPlayers() {
+    playersListDiv.innerHTML = ''; // Tømmer listen først
+    players.forEach(player => {
+        const playerElement = document.createElement('div');
+        playerElement.className = 'player-item';
+
+        const colorDot = document.createElement('div');
+        colorDot.className = 'player-color-dot';
+        colorDot.style.backgroundColor = player.color;
+
+        const playerName = document.createElement('span');
+        playerName.className = 'player-name';
+        playerName.textContent = player.name;
+
+        playerElement.appendChild(colorDot);
+        playerElement.appendChild(playerName);
+        playersListDiv.appendChild(playerElement);
+    });
+
+    // Aktiverer startknappen hvis det er minst én spiller
+    startGameBtn.disabled = players.length === 0;
 }
 
-#app-container {
-width: 100%;
-max-width: 600px;
-padding: 20px;
-background-color: #1e1e1e;
-border-radius: 8px;
-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+/**
+ * Legger til en ny spiller i `players`-arrayet
+ * @param {Event} event - Skjemaets submit-event
+ */
+function handleAddPlayer(event) {
+    event.preventDefault(); // Forhindrer at siden lastes på nytt
+    const name = playerNameInput.value.trim();
+    const color = playerColorInput.value;
+
+    if (name) {
+        const newPlayer = {
+            name: name,
+            color: color,
+            score: 0
+        };
+        players.push(newPlayer);
+        renderPlayers();
+
+        // Nullstill input-feltene
+        playerNameInput.value = '';
+        playerNameInput.focus();
+    }
 }
 
-h1 {
-color: #1DB954; /* Spotify-grønn */
-margin-bottom: 20px;
+/**
+ * Starter selve spillet
+ */
+function startGame() {
+    console.log("Starter spill med disse spillerne:", players);
+    
+    // Lagre valgt antall sanger
+    gameSettings.songsPerPlayer = songCountSelect.value === 'Infinity' ? Infinity : parseInt(songCountSelect.value, 10);
+    console.log("Spillinnstillinger:", gameSettings);
+
+    // Bytt til spill-skjermen
+    gameSetupScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
 }
 
-h2 {
-margin-top: 30px;
-margin-bottom: 15px;
-border-bottom: 1px solid #444;
-padding-bottom: 10px;
-}
 
-h3 {
-margin-top: 20px;
-margin-bottom: 10px;
-text-align: left;
-}
+// === INITIALIZATION ===
 
-/* === SKJEMA OG KNAPPER === */
-input[type="text"], select {
-padding: 10px;
-border-radius: 5px;
-border: 1px solid #555;
-background-color: #333;
-color: #fff;
-font-size: 16px;
-margin: 5px;
-}
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Quiz-appen er klar!');
+    loadSongs();
 
-input[type="color"] {
-height: 42px;
-padding: 5px;
-border: none;
-background-color: transparent;
-vertical-align: middle;
-}
+    // Legg til event listeners
+    playerSetupForm.addEventListener('submit', handleAddPlayer);
+    startGameBtn.addEventListener('click', startGame);
 
-button {
-padding: 10px 20px;
-border-radius: 20px;
-border: none;
-background-color: #1DB954;
-color: #fff;
-font-weight: bold;
-font-size: 16px;
-cursor: pointer;
-transition: background-color 0.2s;
-}
-
-button:hover {
-background-color: #1ed760;
-}
-
-button:disabled {
-background-color: #555;
-cursor: not-allowed;
-}
-
-#player-setup-form {
-display: flex;
-justify-content: center;
-align-items: center;
-}
-
-#start-game-btn {
-margin-top: 30px;
-width: 100%;
-padding: 15px;
-font-size: 18px;
-}
-
-/* === SPILLERLISTE === */
-#players-list {
-display: flex;
-flex-direction: column;
-gap: 10px;
-}
-
-.player-item {
-display: flex;
-align-items: center;
-background-color: #282828;
-padding: 10px;
-border-radius: 5px;
-}
-
-.player-color-dot {
-width: 20px;
-height: 20px;
-border-radius: 50%;
-margin-right: 15px;
-border: 2px solid #fff;
-}
-
-.player-name {
-font-size: 18px;
-}
-
-/* === UTILITIES === /
-.hidden {
-display: none;
-}
-/ Version: #6 */
+    // Initialiser spillerlisten (som er tom)
+    renderPlayers();
+});
+/* Version: #8 */
