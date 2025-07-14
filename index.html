@@ -2,8 +2,38 @@
     <!-- SKJERM 1: SPILL-OPPSETT (Vises som standard) -->
     <div id="game-setup">
         <h1>Spotify Årstalls-Quiz</h1>
-        <p>Gjør klar for å teste musikkunnskapene!</p>
-        <!-- Innhold for spill-oppsett kommer her -->
+        
+        <!-- Seksjon for å legge til spillere -->
+        <div id="player-setup-section">
+            <h2>Legg til spillere</h2>
+            <form id="player-setup-form">
+                <input type="text" id="player-name-input" placeholder="Spillernavn" required>
+                <input type="color" id="player-color-input" value="#1DB954">
+                <button type="submit">Legg til</button>
+            </form>
+        </div>
+
+        <!-- Liste over spillere som er lagt til -->
+        <div id="players-list-container">
+            <h3>Spillere:</h3>
+            <div id="players-list">
+                <!-- Spiller-elementer blir lagt til her av JavaScript -->
+            </div>
+        </div>
+
+        <!-- Seksjon for spillinnstillinger -->
+        <div id="game-options-section">
+            <h2>Innstillinger</h2>
+            <label for="song-count-select">Antall sanger per spiller:</label>
+            <select id="song-count-select">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="Infinity">Uendelig</option>
+            </select>
+        </div>
+
+        <button id="start-game-btn" disabled>Start Spill</button>
     </div>
 
     <!-- SKJERM 2: SELVE SPILLET (Skjult som standard) -->
