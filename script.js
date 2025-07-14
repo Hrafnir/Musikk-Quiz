@@ -1,4 +1,4 @@
-/* Version: #23 */
+/* Version: #24 */
 // === STATE ===
 let allSongs = [];
 let players = [];
@@ -148,8 +148,13 @@ function startNextRound() {
 
     console.log(`Runde ${currentRound + 1}: ${currentPlayer.name} sin tur. Sang: ${currentSong.title}`);
 
+    // KORRIGERT: Lagt til en tydelig instruksjon til brukeren.
     roundContainerDiv.innerHTML = `
         <h2>${currentPlayer.name}, din tur!</h2>
+        
+        <div style="padding: 10px; border: 1px solid #555; border-radius: 5px; margin: 15px 0;">
+            <p><strong>VIKTIG:</strong> Klikk knappen under og bytt <strong>umiddelbart</strong> tilbake til denne fanen for å unngå å se sangtittelen!</p>
+        </div>
         
         <button id="play-song-btn" class="play-song-btn">Spill av sang på Spotify</button>
         
@@ -163,7 +168,6 @@ function startNextRound() {
     `;
 
     document.getElementById('play-song-btn').addEventListener('click', () => {
-        // KORRIGERT: Endret fra '_blank' til et navngitt mål for å gjenbruke fanen.
         window.open(`https://open.spotify.com/track/${currentSong.spotifyId}`, 'spotify_player_tab');
     });
 
@@ -201,4 +205,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPlayers();
 });
-/* Version: #23 */
+/* Version: #24 */
