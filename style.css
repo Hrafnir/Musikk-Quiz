@@ -1,4 +1,4 @@
-/* Version: #12 */
+/* Version: #16 */
 /* === GENERELT === */
 * {
     box-sizing: border-box;
@@ -146,9 +146,31 @@ button:disabled {
     transform: scale(1.15);
 }
 
+/* === SPILLSKJERM === */
+#scoreboard {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.scoreboard-player {
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    min-width: 100px;
+}
+
+#round-container {
+    padding: 20px;
+    background-color: #282828;
+    border-radius: 8px;
+}
+
 
 /* === UTILITIES === */
 .hidden {
     display: none;
 }
-/* Version: #12 */
+/* Version: #16 */
