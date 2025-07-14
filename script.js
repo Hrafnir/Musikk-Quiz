@@ -1,44 +1,132 @@
-/* Version: #4 */
-// === STATE ===
-// Her vil vi lagre all informasjon om spillets tilstand
-let allSongs = [];
-let players = [];
-let gameSettings = {};
+/* Version: #6 /
+/ === GENERELT === */
 
-// === DOM ELEMENTS ===
-// Her lagrer vi referanser til HTML-elementer vi trenger
-// (Kommer i neste steg)
-
-// === FUNCTIONS ===
-/**
-
-Laster sanger fra songs.json-filen
-*/
-async function loadSongs() {
-try {
-const response = await fetch('songs.json');
-if (!response.ok) {
-// -- KORRIGERT LINJE --
-// Byttet ut backticks (`) med vanlige apostrofer (') for bedre kompatibilitet.
-throw new Error('HTTP error! status: ' + response.status);
-}
-allSongs = await response.json();
-console.log('Sanger lastet inn:', allSongs);
-} catch (error) {
-console.error('Kunne ikke laste sangfilen:', error);
-// Vis en feilmelding til brukeren i HTML
-const setupScreen = document.getElementById('game-setup');
-setupScreen.innerHTML = '<h1>Feil</h1><p>Kunne ikke laste inn sangdata. Sjekk at filen songs.json finnes og er korrekt formatert.</p>';
-}
+{
+box-sizing: border-box;
+margin: 0;
+padding: 0;
 }
 
-// === INITIALIZATION ===
-/**
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+background-color: #121212;
+color: #ffffff;
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+text-align: center;
+}
 
-Kjøres når siden er lastet inn
-/
-document.addEventListener('DOMContentLoaded', () => {
-console.log('Quiz-appen er klar!');
-loadSongs();
-});
-/ Version: #4 */
+#app-container {
+width: 100%;
+max-width: 600px;
+padding: 20px;
+background-color: #1e1e1e;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+color: #1DB954; /* Spotify-grønn */
+margin-bottom: 20px;
+}
+
+h2 {
+margin-top: 30px;
+margin-bottom: 15px;
+border-bottom: 1px solid #444;
+padding-bottom: 10px;
+}
+
+h3 {
+margin-top: 20px;
+margin-bottom: 10px;
+text-align: left;
+}
+
+/* === SKJEMA OG KNAPPER === */
+input[type="text"], select {
+padding: 10px;
+border-radius: 5px;
+border: 1px solid #555;
+background-color: #333;
+color: #fff;
+font-size: 16px;
+margin: 5px;
+}
+
+input[type="color"] {
+height: 42px;
+padding: 5px;
+border: none;
+background-color: transparent;
+vertical-align: middle;
+}
+
+button {
+padding: 10px 20px;
+border-radius: 20px;
+border: none;
+background-color: #1DB954;
+color: #fff;
+font-weight: bold;
+font-size: 16px;
+cursor: pointer;
+transition: background-color 0.2s;
+}
+
+button:hover {
+background-color: #1ed760;
+}
+
+button:disabled {
+background-color: #555;
+cursor: not-allowed;
+}
+
+#player-setup-form {
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+#start-game-btn {
+margin-top: 30px;
+width: 100%;
+padding: 15px;
+font-size: 18px;
+}
+
+/* === SPILLERLISTE === */
+#players-list {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+
+.player-item {
+display: flex;
+align-items: center;
+background-color: #282828;
+padding: 10px;
+border-radius: 5px;
+}
+
+.player-color-dot {
+width: 20px;
+height: 20px;
+border-radius: 50%;
+margin-right: 15px;
+border: 2px solid #fff;
+}
+
+.player-name {
+font-size: 18px;
+}
+
+/* === UTILITIES === /
+.hidden {
+display: none;
+}
+/ Version: #6 */
