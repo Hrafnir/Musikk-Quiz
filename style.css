@@ -1,4 +1,4 @@
-/* Version: #16 */
+/* Version: #20 */
 /* === GENERELT === */
 * {
     box-sizing: border-box;
@@ -45,7 +45,7 @@ h3 {
 }
 
 /* === SKJEMA OG KNAPPER === */
-input[type="text"], select {
+input[type="text"], input[type="number"], select {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #555;
@@ -160,6 +160,7 @@ button:disabled {
     border-radius: 8px;
     font-weight: bold;
     min-width: 100px;
+    color: #000; /* Mørk tekst for bedre lesbarhet på farget bakgrunn */
 }
 
 #round-container {
@@ -168,9 +169,27 @@ button:disabled {
     border-radius: 8px;
 }
 
+/* === RUNDE-INNHOLD === */
+#guess-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#guess-form input {
+    width: 100%;
+}
+
+.play-song-btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
 
 /* === UTILITIES === */
 .hidden {
     display: none;
 }
-/* Version: #16 */
+/* Version: #20 */
