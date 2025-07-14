@@ -1,4 +1,4 @@
-/* Version: #22 */
+/* Version: #23 */
 // === STATE ===
 let allSongs = [];
 let players = [];
@@ -121,28 +121,18 @@ function buildGamePlaylist() {
     console.log("Spilleliste laget:", gamePlaylist);
 }
 
-/**
- * Behandler spillerens svar
- * @param {Event} event 
- */
 function processAnswer(event) {
-    event.preventDefault(); // Forhindrer at siden lastes på nytt
+    event.preventDefault(); 
     
-    // Hent gjetningene fra skjemaet
     const yearGuess = document.getElementById('year-guess').value;
     const artistGuess = document.getElementById('artist-guess').value;
     const titleGuess = document.getElementById('title-guess').value;
 
     console.log("Svar mottatt:", { year: yearGuess, artist: artistGuess, title: titleGuess });
 
-    // Her vil vi legge til poengberegning og visning av resultater
-    // For nå, la oss bare gå til neste runde
-    
-    // Oppdater hvem sin tur det er for neste runde
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
     currentRound++;
     
-    // Start neste runde
     startNextRound();
 }
 
@@ -150,7 +140,6 @@ function startNextRound() {
     if (currentRound >= gamePlaylist.length) {
         console.log("Spill over!");
         roundContainerDiv.innerHTML = '<h2>Spillet er ferdig!</h2>';
-        // Senere: bytt til game-over skjerm
         return;
     }
 
@@ -159,7 +148,6 @@ function startNextRound() {
 
     console.log(`Runde ${currentRound + 1}: ${currentPlayer.name} sin tur. Sang: ${currentSong.title}`);
 
-    // Bygg HTML for runden
     roundContainerDiv.innerHTML = `
         <h2>${currentPlayer.name}, din tur!</h2>
         
@@ -174,10 +162,9 @@ function startNextRound() {
         </form>
     `;
 
-    // Legg til event listeners for de nye elementene
     document.getElementById('play-song-btn').addEventListener('click', () => {
-        // Åpne Spotify i en ny fane
-        window.open(`https://open.spotify.com/track/${currentSong.spotifyId}`, '_blank');
+        // KORRIGERT: Endret fra '_blank' til et navngitt mål for å gjenbruke fanen.
+        window.open(`https://open.spotify.com/track/${currentSong.spotifyId}`, 'spotify_player_tab');
     });
 
     document.getElementById('guess-form').addEventListener('submit', processAnswer);
@@ -214,4 +201,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPlayers();
 });
-/* Version: #22 */
+/* Version: #23 */
