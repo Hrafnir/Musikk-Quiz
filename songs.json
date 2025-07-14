@@ -1,0 +1,62 @@
+[
+    {
+      "artist": "Queen",
+      "title": "Bohemian Rhapsody",
+      "year": 1975,
+      "spotifyId": "7tFiyTwD0nx5a1eklYtX2J",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273e33d9fd7b275865955152862",
+      "duration_ms": 354320,
+      "genres": ["rock", "70s", "classic rock"],
+      "trivia": "Sangen hadde ingen refreng og var på toppen av listene i Storbritannia i ni uker."
+    },
+    {
+      "artist": "a-ha",
+      "title": "Take on Me",
+      "year": 1985,
+      "spotifyId": "2WfaOiMkCvy7F5fcp2zZ8L",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273426a02509a7cb965b5314639",
+      "duration_ms": 225280,
+      "genres": ["pop", "80s", "synth-pop", "new wave"],
+      "trivia": "Musikkvideoen, som brukte rotoscoping, vant seks priser på MTV Video Music Awards i 1986."
+    },
+    {
+      "artist": "Nirvana",
+      "title": "Smells Like Teen Spirit",
+      "year": 1991,
+      "spotifyId": "4CeeEOM32jQcH3eN9Q2dGj",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273d28f42775f1c9a7383a48e78",
+      "duration_ms": 301920,
+      "genres": ["rock", "90s", "grunge", "alternative rock"],
+      "trivia": "Tittelen kom fra en setning Kathleen Hanna, vokalist i Bikini Kill, spraymalte på veggen til Kurt Cobain: 'Kurt smells like Teen Spirit'."
+    },
+    {
+      "artist": "Eminem",
+      "title": "Lose Yourself",
+      "year": 2002,
+      "spotifyId": "5Z01UMd7Ze1vJib7nKERmd",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273b3e36392523c236053914a6b",
+      "duration_ms": 320826,
+      "genres": ["hip-hop", "00s", "rap"],
+      "trivia": "Dette var den første rap-sangen som vant en Oscar for 'Beste Originale Sang'."
+    },
+    {
+      "artist": "Lady Gaga",
+      "title": "Bad Romance",
+      "year": 2009,
+      "spotifyId": "0SiywuOBRcynK0uKGWdCnn",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273024b4559a4a431c93a18b577",
+      "duration_ms": 294573,
+      "genres": ["pop", "00s", "dance-pop", "electropop"],
+      "trivia": "Musikkvideoen var den mest sette videoen på YouTube i en periode og vant en Grammy for 'Best Short Form Music Video'."
+    },
+    {
+      "artist": "Billie Eilish",
+      "title": "bad guy",
+      "year": 2019,
+      "spotifyId": "2Fxmhks0bxGSBdJ92vM42m",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27350a3143b42c2e4245f559815",
+      "duration_ms": 194087,
+      "genres": ["pop", "10s", "electropop"],
+      "trivia": "Sangen vant to Grammy Awards: 'Record of the Year' og 'Song of the Year' i 2020."
+    }
+]
