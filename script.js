@@ -1,4 +1,4 @@
-/* Version: #24 */
+/* Version: #28 */
 // === STATE ===
 let allSongs = [];
 let players = [];
@@ -99,47 +99,101 @@ function handleAddPlayer(event) {
 
 // --- Spill-funksjoner ---
 
-function renderScoreboard() {
-    scoreboardDiv.innerHTML = '';
-    players.forEach(player => {
-        const playerScoreDiv = document.createElement('div');
-        playerScoreDiv.className = 'scoreboard-player';
-        playerScoreDiv.style.backgroundColor = player.color;
-        const playerName = document.createTextNode(`${player.name}: `);
-        const playerScore = document.createElement('strong');
-        playerScore.textContent = player.score;
-        playerScoreDiv.appendChild(playerName);
-        playerScoreDiv.appendChild(playerScore);
-        scoreboardDiv.appendChild(playerScoreDiv);
+/**
+ * Normaliserer en tekststreng for sammenligning.
+ * Fjerner store bokstaver, spesialtegn og vanlige ord som "the".
+ * @param {string} text 
+ * @returns {string}
+ */
+function normalizeText(text) {
+    if (typeof text !== 'string') return '';
+    return text
+        .toLowerCase()
+        .replace(/^(the|en|et|a)\s+/i, '') // Fjerner vanlige artikler i starten
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g,"") // Fjerner tegnsetting
+        .replace(/\s+/g, ''); // Fjerner mellomrom
+}
+
+function showRoundResult(points, guesses) {
+    const currentSong = gamePlaylist[currentRound];
+    const { year, artist, title } = currentSong;
+    const { yearGuess, artistGuess, titleGuess } = guesses;
+
+    roundContainerDiv.innerHTML = `
+        <div id="result-view">
+            <img src="${currentSong.albumArtUrl}" alt="Album cover for ${title}" class="result-album-art">
+            <h2 class="result-title">${artist} - ${title} (${year})</h2>
+            <p class="result-trivia">Trivia: ${currentSong.trivia}</p>
+            <hr>
+            <h3>Din poengsum denne runden: ${points.total}</h3>
+            <div class="result-details">
+                <p>Årstall: ${points.year} p (Du gjettet ${yearGuess || 'ingenting'})</p>
+                <p>Artist: ${points.artist} p (Du gjettet '${artistGuess || 'ingenting'}')</p>
+                <p>Tittel: ${points.title} p (Du gjettet '${titleGuess || 'ingenting'}')</p>
+            </div>
+            <button id="next-round-btn">Neste runde</button>
+        </div>
+    `;
+
+    document.getElementById('next-round-btn').addEventListener('click', () => {
+        // Oppdater hvem sin tur det er for neste runde
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        currentRound++;
+        startNextRound();
     });
 }
 
-function buildGamePlaylist() {
-    const totalSongsNeeded = gameSettings.songsPerPlayer === Infinity ? allSongs.length : players.length * gameSettings.songsPerPlayer;
-    const shuffledSongs = [...allSongs].sort(() => 0.5 - Math.random());
-    gamePlaylist = shuffledSongs.slice(0, totalSongsNeeded);
-    console.log("Spilleliste laget:", gamePlaylist);
-}
 
 function processAnswer(event) {
     event.preventDefault(); 
     
-    const yearGuess = document.getElementById('year-guess').value;
+    const yearGuess = parseInt(document.getElementById('year-guess').value, 10);
     const artistGuess = document.getElementById('artist-guess').value;
     const titleGuess = document.getElementById('title-guess').value;
 
-    console.log("Svar mottatt:", { year: yearGuess, artist: artistGuess, title: titleGuess });
+    const currentSong = gamePlaylist[currentRound];
+    const currentPlayer = players[currentPlayerIndex];
 
-    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-    currentRound++;
-    
-    startNextRound();
+    let points = { year: 0, artist: 0, title: 0, total: 0 };
+
+    // 1. Beregn poeng for årstall
+    const yearDiff = Math.abs(yearGuess - currentSong.year);
+    if (!isNaN(yearDiff)) {
+        if (yearDiff === 0) points.year = 5;
+        else if (yearDiff === 1) points.year = 4;
+        else if (yearDiff === 2) points.year = 3;
+        else if (yearDiff === 3) points.year = 2;
+        else if (yearDiff === 4) points.year = 1;
+    }
+
+    // 2. Beregn poeng for artist
+    if (normalizeText(artistGuess) === normalizeText(currentSong.artist)) {
+        points.artist = 5;
+    }
+
+    // 3. Beregn poeng for tittel
+    if (normalizeText(titleGuess) === normalizeText(currentSong.title)) {
+        points.title = 5;
+    }
+
+    // 4. Kalkuler total og oppdater spillerens poengsum
+    points.total = points.year + points.artist + points.title;
+    currentPlayer.score += points.total;
+
+    console.log(`${currentPlayer.name} fikk ${points.total} poeng. Ny score: ${currentPlayer.score}`);
+
+    // Oppdater poengtavlen umiddelbart
+    renderScoreboard();
+
+    // Vis resultatskjermen
+    showRoundResult(points, { yearGuess, artistGuess, titleGuess });
 }
 
 function startNextRound() {
     if (currentRound >= gamePlaylist.length) {
         console.log("Spill over!");
         roundContainerDiv.innerHTML = '<h2>Spillet er ferdig!</h2>';
+        // Senere: bytt til game-over skjerm
         return;
     }
 
@@ -148,7 +202,6 @@ function startNextRound() {
 
     console.log(`Runde ${currentRound + 1}: ${currentPlayer.name} sin tur. Sang: ${currentSong.title}`);
 
-    // KORRIGERT: Lagt til en tydelig instruksjon til brukeren.
     roundContainerDiv.innerHTML = `
         <h2>${currentPlayer.name}, din tur!</h2>
         
@@ -175,6 +228,12 @@ function startNextRound() {
 }
 
 function startGame() {
+    // Nullstill spilltilstand fra forrige runde
+    gamePlaylist = [];
+    currentRound = 0;
+    currentPlayerIndex = 0;
+    players.forEach(p => p.score = 0);
+
     console.log("Starter spill med disse spillerne:", players);
     gameSettings.songsPerPlayer = songCountSelect.value === 'Infinity' ? Infinity : parseInt(songCountSelect.value, 10);
     console.log("Spillinnstillinger:", gameSettings);
@@ -205,4 +264,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPlayers();
 });
-/* Version: #24 */
+/* Version: #28 */
