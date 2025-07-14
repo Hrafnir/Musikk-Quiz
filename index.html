@@ -1,4 +1,4 @@
-<!-- Version: #11 -->
+<!-- Version: #15 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -10,11 +10,10 @@
 <body>
 
     <div id="app-container">
-        <!-- SKJERM 1: SPILL-OPPSETT (Vises som standard) -->
+        <!-- SKJERM 1: SPILL-OPPSETT -->
         <div id="game-setup">
             <h1>Spotify Årstalls-Quiz</h1>
             
-            <!-- Seksjon for å legge til spillere -->
             <div id="player-setup-section">
                 <h2>Legg til spillere</h2>
                 <form id="player-setup-form">
@@ -22,19 +21,14 @@
                     <input type="color" id="player-color-input" value="#1DB954">
                     <button type="submit">Legg til</button>
                 </form>
-                <!-- NYTT: Beholder for fargepalett -->
                 <div id="color-palette"></div>
             </div>
 
-            <!-- Liste over spillere som er lagt til -->
             <div id="players-list-container">
                 <h3>Spillere:</h3>
-                <div id="players-list">
-                    <!-- Spiller-elementer blir lagt til her av JavaScript -->
-                </div>
+                <div id="players-list"></div>
             </div>
 
-            <!-- Seksjon for spillinnstillinger -->
             <div id="game-options-section">
                 <h2>Innstillinger</h2>
                 <label for="song-count-select">Antall sanger per spiller:</label>
@@ -49,13 +43,20 @@
             <button id="start-game-btn" disabled>Start Spill</button>
         </div>
 
-        <!-- SKJERM 2: SELVE SPILLET (Skjult som standard) -->
+        <!-- SKJERM 2: SELVE SPILLET -->
         <div id="game-screen" class="hidden">
-            <h2>Spillet er i gang!</h2>
-            <!-- Innhold for selve spillet kommer her -->
+            <!-- Poengtavle -->
+            <div id="scoreboard">
+                <!-- Poeng for hver spiller blir lagt til her av JavaScript -->
+            </div>
+
+            <!-- Område for selve runden -->
+            <div id="round-container">
+                <!-- Innhold for hver runde (hvem sin tur, input, etc.) kommer her -->
+            </div>
         </div>
 
-        <!-- SKJERM 3: SPILL-SLUTT (Skjult som standard) -->
+        <!-- SKJERM 3: SPILL-SLUTT -->
         <div id="game-over" class="hidden">
             <h2>Spillet er over!</h2>
             <!-- Innhold for poengoversikt kommer her -->
@@ -65,4 +66,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #11 -->
+<!-- Version: #15 -->
