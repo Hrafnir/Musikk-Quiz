@@ -1,0 +1,35 @@
+<!-- Version: #43 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sang-Verifiserer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app-container">
+        <h1>Sang-Verifiserer</h1>
+        <p>Dette verktøyet laster inn <code>songs.json</code> og lar deg sjekke hver enkelt sang for feil, spesielt ødelagte albumcover-lenker.</p>
+
+        <div id="verifier-controls" style="margin: 20px 0;">
+            <label for="song-selector" style="margin-right: 10px;">Velg en sang for å teste:</label>
+            <select id="song-selector">
+                <option value="">Laster sanger...</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <div id="song-display-area" style="margin-top: 20px; min-height: 400px;">
+            <!-- Informasjon om valgt sang vises her -->
+            <p>Velg en sang fra listen over for å se detaljer.</p>
+        </div>
+
+    </div>
+
+    <script src="verifier.js"></script>
+</body>
+</html>
+<!-- Version: #43 -->
