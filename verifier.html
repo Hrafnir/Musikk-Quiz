@@ -1,4 +1,4 @@
-<!-- Version: #46 -->
+<!-- Version: #48 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -13,11 +13,13 @@
         <h1>Sang-Verifiserer</h1>
         <p>Dette verktøyet laster inn <code>songs.json</code> og lar deg sjekke hver enkelt sang for feil, spesielt ødelagte albumcover-lenker.</p>
 
-        <div id="verifier-controls" style="margin: 20px 0;">
-            <label for="song-selector" style="margin-right: 10px;">Velg en sang for å teste:</label>
+        <div id="verifier-controls" style="margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <label for="song-selector">Velg en sang:</label>
             <select id="song-selector">
                 <option value="">Laster sanger...</option>
             </select>
+            <!-- NYTT: "Neste sang"-knapp -->
+            <button id="next-song-btn">Neste Sang →</button>
         </div>
 
         <hr>
@@ -27,7 +29,6 @@
             <p>Velg en sang fra listen over for å se detaljer.</p>
         </div>
 
-        <!-- NYTT: Seksjon for feilrapportering og logg -->
         <div id="log-section" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
             <h2>Feil-logg</h2>
             <p>Når du flagger en feil, blir den lagt til her. Kopier teksten og send den til meg.</p>
@@ -43,4 +44,4 @@
     <script src="verifier.js"></script>
 </body>
 </html>
-<!-- Version: #46 -->
+<!-- Version: #48 -->
