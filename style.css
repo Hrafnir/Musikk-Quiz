@@ -1,4 +1,4 @@
-/* Version: #20 */
+/* Version: #29 */
 /* === GENERELT === */
 * {
     box-sizing: border-box;
@@ -42,6 +42,12 @@ h3 {
     margin-top: 20px;
     margin-bottom: 10px;
     text-align: left;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 20px 0;
 }
 
 /* === SKJEMA OG KNAPPER === */
@@ -160,7 +166,7 @@ button:disabled {
     border-radius: 8px;
     font-weight: bold;
     min-width: 100px;
-    color: #000; /* Mørk tekst for bedre lesbarhet på farget bakgrunn */
+    color: #000;
 }
 
 #round-container {
@@ -187,9 +193,46 @@ button:disabled {
     margin-bottom: 20px;
 }
 
+/* === RESULTATVISNING === */
+.result-album-art {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.result-title {
+    color: #1DB954;
+    border-bottom: none;
+    margin-top: 0;
+}
+
+.result-trivia {
+    font-style: italic;
+    color: #b3b3b3;
+    margin-top: 10px;
+}
+
+.result-details {
+    text-align: left;
+    margin: 15px 0;
+}
+
+.result-details p {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+#next-round-btn {
+    margin-top: 20px;
+    width: 100%;
+}
 
 /* === UTILITIES === */
 .hidden {
     display: none;
 }
-/* Version: #20 */
+/* Version: #29 */
