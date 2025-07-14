@@ -1,4 +1,4 @@
-<!-- Version: #43 -->
+<!-- Version: #46 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -27,9 +27,20 @@
             <p>Velg en sang fra listen over for å se detaljer.</p>
         </div>
 
+        <!-- NYTT: Seksjon for feilrapportering og logg -->
+        <div id="log-section" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
+            <h2>Feil-logg</h2>
+            <p>Når du flagger en feil, blir den lagt til her. Kopier teksten og send den til meg.</p>
+            <div style="margin: 15px 0;">
+                <button id="generate-log-btn">Generer Logg</button>
+                <button id="clear-log-btn" style="background-color: #FF4136;">Tøm Logg</button>
+            </div>
+            <textarea id="log-output" rows="10" style="width: 100%; background-color: #333; color: #fff; padding: 10px; border-radius: 5px;"></textarea>
+        </div>
+
     </div>
 
     <script src="verifier.js"></script>
 </body>
 </html>
-<!-- Version: #43 -->
+<!-- Version: #46 -->
