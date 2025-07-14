@@ -1,4 +1,4 @@
-/* Version: #18 */
+/* Version: #22 */
 // === STATE ===
 let allSongs = [];
 let players = [];
@@ -46,7 +46,6 @@ async function loadSongs() {
         }
         allSongs = await response.json();
         console.log('Sanger lastet inn:', allSongs);
-        // NÅR SANGENE ER LASTET: Oppdater knappens status
         renderPlayers(); 
     } catch (error) {
         console.error('Kunne ikke laste sangfilen:', error);
@@ -55,7 +54,7 @@ async function loadSongs() {
 }
 
 function populateColorPalette() {
-    colorPaletteDiv.innerHTML = ''; // Tøm for sikkerhets skyld
+    colorPaletteDiv.innerHTML = '';
     PRESET_COLORS.forEach(color => {
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
@@ -67,9 +66,6 @@ function populateColorPalette() {
     });
 }
 
-/**
- * Viser spillerne OG sjekker om startknappen skal være aktiv
- */
 function renderPlayers() {
     playersListDiv.innerHTML = '';
     players.forEach(player => {
@@ -85,7 +81,6 @@ function renderPlayers() {
         playerElement.appendChild(playerName);
         playersListDiv.appendChild(playerElement);
     });
-    // KORRIGERT: Knappen er kun aktiv hvis vi har BÅDE spillere OG sanger
     startGameBtn.disabled = players.length === 0 || allSongs.length === 0;
 }
 
@@ -110,7 +105,6 @@ function renderScoreboard() {
         const playerScoreDiv = document.createElement('div');
         playerScoreDiv.className = 'scoreboard-player';
         playerScoreDiv.style.backgroundColor = player.color;
-        // Bruker textContent for sikkerhet, og legger til strong-element manuelt
         const playerName = document.createTextNode(`${player.name}: `);
         const playerScore = document.createElement('strong');
         playerScore.textContent = player.score;
@@ -127,12 +121,36 @@ function buildGamePlaylist() {
     console.log("Spilleliste laget:", gamePlaylist);
 }
 
+/**
+ * Behandler spillerens svar
+ * @param {Event} event 
+ */
+function processAnswer(event) {
+    event.preventDefault(); // Forhindrer at siden lastes på nytt
+    
+    // Hent gjetningene fra skjemaet
+    const yearGuess = document.getElementById('year-guess').value;
+    const artistGuess = document.getElementById('artist-guess').value;
+    const titleGuess = document.getElementById('title-guess').value;
+
+    console.log("Svar mottatt:", { year: yearGuess, artist: artistGuess, title: titleGuess });
+
+    // Her vil vi legge til poengberegning og visning av resultater
+    // For nå, la oss bare gå til neste runde
+    
+    // Oppdater hvem sin tur det er for neste runde
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    currentRound++;
+    
+    // Start neste runde
+    startNextRound();
+}
+
 function startNextRound() {
-    // Sjekk om spillet er over
     if (currentRound >= gamePlaylist.length) {
-        // Logikk for å avslutte spillet kommer her senere
         console.log("Spill over!");
         roundContainerDiv.innerHTML = '<h2>Spillet er ferdig!</h2>';
+        // Senere: bytt til game-over skjerm
         return;
     }
 
@@ -141,11 +159,28 @@ function startNextRound() {
 
     console.log(`Runde ${currentRound + 1}: ${currentPlayer.name} sin tur. Sang: ${currentSong.title}`);
 
+    // Bygg HTML for runden
     roundContainerDiv.innerHTML = `
         <h2>${currentPlayer.name}, din tur!</h2>
-        <p>Gjør deg klar...</p>
+        
+        <button id="play-song-btn" class="play-song-btn">Spill av sang på Spotify</button>
+        
+        <form id="guess-form">
+            <p>Hvilket år, artist og tittel?</p>
+            <input type="number" id="year-guess" placeholder="Årstall (f.eks. 1995)" required>
+            <input type="text" id="artist-guess" placeholder="Artist" required>
+            <input type="text" id="title-guess" placeholder="Tittel" required>
+            <button type="submit">Lever svar</button>
+        </form>
     `;
-    // Her vil vi senere legge til input-felt og start-knapp for sangen
+
+    // Legg til event listeners for de nye elementene
+    document.getElementById('play-song-btn').addEventListener('click', () => {
+        // Åpne Spotify i en ny fane
+        window.open(`https://open.spotify.com/track/${currentSong.spotifyId}`, '_blank');
+    });
+
+    document.getElementById('guess-form').addEventListener('submit', processAnswer);
 }
 
 function startGame() {
@@ -179,4 +214,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPlayers();
 });
-/* Version: #18 */
+/* Version: #22 */
