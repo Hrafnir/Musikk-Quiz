@@ -1,4 +1,4 @@
-/* Version: #3 */
+/* Version: #4 */
 // === STATE ===
 // Her vil vi lagre all informasjon om spillets tilstand
 let allSongs = [];
@@ -18,7 +18,9 @@ async function loadSongs() {
 try {
 const response = await fetch('songs.json');
 if (!response.ok) {
-throw new Error(HTTP error! status: ${response.status});
+// -- KORRIGERT LINJE --
+// Byttet ut backticks (`) med vanlige apostrofer (') for bedre kompatibilitet.
+throw new Error('HTTP error! status: ' + response.status);
 }
 allSongs = await response.json();
 console.log('Sanger lastet inn:', allSongs);
@@ -39,4 +41,4 @@ document.addEventListener('DOMContentLoaded', () => {
 console.log('Quiz-appen er klar!');
 loadSongs();
 });
-/ Version: #3 */
+/ Version: #4 */
