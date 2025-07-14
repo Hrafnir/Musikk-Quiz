@@ -259,305 +259,304 @@
       "genres": ["hip-hop", "20s", "norsk"],
       "trivia": "Gruppen vant P3-prisen 'Årets Låt' for denne sangen under P3 Gull 2023."
     },
-    ,
-{
-  "artist": "Aretha Franklin",
-  "title": "Respect",
-  "year": 1967,
-  "spotifyId": "7s25THrKz86DM225dOYwnr",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273f53f6a8b1a8a3a8a3a8a3a8a",
-  "duration_ms": 157600,
-  "genres": ["soul", "60s", "r&b"],
-  "trivia": "Opprinnelig skrevet og spilt inn av Otis Redding, men Arethas versjon ble et symbol for både borgerrettighets- og kvinnebevegelsen."
-},
-{
-  "artist": "The Velvet Underground",
-  "title": "I'm Waiting For The Man",
-  "year": 1967,
-  "spotifyId": "7rOP1Y2dG0sB9yS1B5gT84",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273d40903657497b77fdef4a84e",
-  "duration_ms": 279560,
-  "genres": ["rock", "60s", "proto-punk", "art rock"],
-  "trivia": "Albumet solgte kun 30 000 kopier de første årene, men Brian Eno sa senere at 'alle som kjøpte det, startet et band'."
-},
-{
-  "artist": "David Bowie",
-  "title": "Heroes",
-  "year": 1977,
-  "spotifyId": "7Jh1bpe76CNTCgdgAdBw4Z",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27393c52a31a73f88c7d3d2a71f",
-  "duration_ms": 371026,
-  "genres": ["rock", "70s", "art rock"],
-  "trivia": "Inspirert av et kyssende par produsent Tony Visconti så ved Berlinmuren. Bowie avslørte først mange år senere at paret var Visconti selv og hans elskerinne."
-},
-{
-  "artist": "Kraftwerk",
-  "title": "The Model",
-  "year": 1978,
-  "spotifyId": "1bTppziau6i2pXOnvnDA28",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27351c09988450a823f53833a46",
-  "duration_ms": 222146,
-  "genres": ["electronic", "70s", "synth-pop"],
-  "trivia": "Sangen ble en overraskende nummer 1-hit i Storbritannia i 1982, fire år etter den først ble utgitt."
-},
-{
-  "artist": "The Clash",
-  "title": "London Calling",
-  "year": 1979,
-  "spotifyId": "5jzma6gCzYtKB1DbEwFZKH",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273462b4369f9843c088d8b1d92",
-  "duration_ms": 199960,
-  "genres": ["punk", "70s", "rock"],
-  "trivia": "Albumcoveret er en hyllest til Elvis Presleys debutalbum, men med Paul Simonon som knuser bassgitaren sin på scenen."
-},
-{
-  "artist": "Joy Division",
-  "title": "Love Will Tear Us Apart",
-  "year": 1980,
-  "spotifyId": "34iOH7LY3vme5rQe8hVSHM",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734a36e0a916b23a5954552431",
-  "duration_ms": 204893,
-  "genres": ["post-punk", "80s", "new wave"],
-  "trivia": "Sangen ble utgitt måneden etter vokalist Ian Curtis' selvmord. 'Love Will Tear Us Apart' er inngravert på gravsteinen hans."
-},
-{
-  "artist": "Talking Heads",
-  "title": "Once in a Lifetime",
-  "year": 1980,
-  "spotifyId": "38Ngied9rBORlAbLYNCl4k",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734f13340b8a4a2a11f0612c62",
-  "duration_ms": 259666,
-  "genres": ["new wave", "80s", "art rock"],
-  "trivia": "Den ikoniske 'hakkete' dansen til David Byrne i musikkvideoen var inspirert av bevegelser fra epileptikere og ulike religiøse ritualer."
-},
-{
-  "artist": "The Smiths",
-  "title": "There Is a Light That Never Goes Out",
-  "year": 1986,
-  "spotifyId": "0WQiDwKJclirSYG9v5tayI",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27352382c42d3122c83c2425862",
-  "duration_ms": 242586,
-  "genres": ["indie", "80s", "alternative rock"],
-  "trivia": "Plateselskapet ville opprinnelig ikke utgi den som singel, men den har siden blitt en av bandets mest elskede sanger."
-},
-{
-  "artist": "Kate Bush",
-  "title": "Running Up That Hill (A Deal With God)",
-  "year": 1985,
-  "spotifyId": "75FEaRjZTKLhTrFGsfMUXR",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2731c518a33333425b44778119b",
-  "duration_ms": 300840,
-  "genres": ["art pop", "80s", "new wave"],
-  "trivia": "Sangen fikk en enorm renessanse og toppet listene verden over i 2022, 37 år etter utgivelsen, takket være TV-serien 'Stranger Things'."
-},
-{
-  "artist": "Public Enemy",
-  "title": "Fight The Power",
-  "year": 1989,
-  "spotifyId": "1lWlgIff62c5i40p53KkG1",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2730e20e8a7536b334a17897cbf",
-  "duration_ms": 286266,
-  "genres": ["hip-hop", "80s", "political hip-hop"],
-  "trivia": "Sangen ble skrevet på bestilling fra regissør Spike Lee for filmen 'Do the Right Thing' og spilles 15 ganger i løpet av filmen."
-},
-{
-  "artist": "Massive Attack",
-  "title": "Unfinished Sympathy",
-  "year": 1991,
-  "spotifyId": "0j5sStMh3A23bXThn312iL",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2731f8650f6b889376a21e42738",
-  "duration_ms": 308440,
-  "genres": ["trip-hop", "90s", "electronic"],
-  "trivia": "Musikkvideoen, som består av ett eneste, kontinuerlig opptak, ble filmet på West Pico Boulevard i Los Angeles."
-},
-{
-  "artist": "Jeff Buckley",
-  "title": "Hallelujah",
-  "year": 1994,
-  "spotifyId": "3pRaLNL3b8x5uBOcsgvdqM",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2736b761e025a74e3cf6b29f44c",
-  "duration_ms": 415080,
-  "genres": ["alternative rock", "90s", "folk"],
-  "trivia": "Selv om den er skrevet av Leonard Cohen, er det Buckleys versjon som er den mest kjente. Han lærte den fra en coverversjon av John Cale."
-},
-{
-  "artist": "Pulp",
-  "title": "Common People",
-  "year": 1995,
-  "spotifyId": "1dtKoeT6DwChjCqRvep3oE",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27391a28a3138b7fe48f72530e3",
-  "duration_ms": 351133,
-  "genres": ["britpop", "90s", "indie"],
-  "trivia": "Jarvis Cocker skal ha blitt inspirert til å skrive sangen etter å ha møtt en gresk kunststudent ved Central Saint Martins College i London."
-},
-{
-  "artist": "Radiohead",
-  "title": "Paranoid Android",
-  "year": 1997,
-  "spotifyId": "2nZzy62s2zaLEw1k5Jps2a",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2733d3e38c5d6796f7c461a153c",
-  "duration_ms": 387213,
-  "genres": ["alternative rock", "90s", "art rock"],
-  "trivia": "Den over 6 minutter lange sangen består av fire distinkte deler, og bandet beskrev den som et forsøk på å smelte sammen DJ Shadow og The Beatles."
-},
-{
-  "artist": "Björk",
-  "title": "Jóga",
-  "year": 1997,
-  "spotifyId": "4Y2ie4oB5T4iS6r5Q4gP6A",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734685e3532a829a29a5312762",
-  "duration_ms": 309066,
-  "genres": ["electronic", "90s", "art pop", "trip-hop"],
-  "trivia": "Sangen er en dedikasjon til hennes beste venninne, Jóga, og beskriver det islandske landskapet. Björk kaller den en 'nasjonalsang'."
-},
-{
-  "artist": "D'Angelo",
-  "title": "Untitled (How Does It Feel)",
-  "year": 2000,
-  "spotifyId": "4oHMsly3oXMROcDAJc0s7z",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27354964724a81d524855f44866",
-  "duration_ms": 430533,
-  "genres": ["neo-soul", "00s", "r&b"],
-  "trivia": "Musikkvideoen, som viser en naken D'Angelo fra livet og opp, ble en sensasjon, men gjorde artisten så ukomfortabel at han trakk seg tilbake i flere år."
-},
-{
-  "artist": "The Strokes",
-  "title": "Last Nite",
-  "year": 2001,
-  "spotifyId": "1M4s3v0rTjb3gSo22d6aQ8",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27350b376d3f005c2fc4342a385",
-  "duration_ms": 193426,
-  "genres": ["indie rock", "00s", "garage rock revival"],
-  "trivia": "Gitar-introen er sterkt inspirert av 'American Girl' av Tom Petty and the Heartbreakers. The Strokes spurte aldri om lov, men Petty syntes det var morsomt."
-},
-{
-  "artist": "Röyksopp",
-  "title": "Eple",
-  "year": 2001,
-  "spotifyId": "32b2dcqljT19eP2j2E4I2b",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273d34f0c6b8a82a1c09033e508",
-  "duration_ms": 217640,
-  "genres": ["electronic", "00s", "downtempo", "norsk"],
-  "trivia": "Sangen sampler 'You're as Right as Rain' av Bob James. Navnet 'Eple' er rett og slett det norske ordet for 'apple'."
-},
-{
-  "artist": "Missy Elliott",
-  "title": "Work It",
-  "year": 2002,
-  "spotifyId": "3R04p81E3m3A7eSgYckR6l",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27320955251a3f5d944e0b04e3e",
-  "duration_ms": 263133,
-  "genres": ["hip-hop", "00s"],
-  "trivia": "Den berømte baklengs-linjen 'I put my thing down, flip it and reverse it' ble til ved et uhell da produsent Timbaland trykket feil på miksebordet."
-},
-{
-  "artist": "Johnny Cash",
-  "title": "Hurt",
-  "year": 2002,
-  "spotifyId": "63w0o2E4ScdVeeAwQgWeCf",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273b75471a5015b67812165037c",
-  "duration_ms": 218053,
-  "genres": ["country", "00s", "folk"],
-  "trivia": "Sangen er en cover av en Nine Inch Nails-låt. Trent Reznor (fra NIN) var først skeptisk, men ble dypt rørt og sa 'den sangen er ikke min lenger'."
-},
-{
-  "artist": "Amy Winehouse",
-  "title": "Rehab",
-  "year": 2006,
-  "spotifyId": "1k3Pz2oTo1C3b93fSgC3oA",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2731c3c5d6f3a3e6a9d5c8a1f3c",
-  "duration_ms": 214466,
-  "genres": ["soul", "00s", "r&b"],
-  "trivia": "Sangen er selvbiografisk og handler om da managementet hennes prøvde å få henne på rehabilitering. Hun nektet, med farens støtte."
-},
-{
-  "artist": "LCD Soundsystem",
-  "title": "All My Friends",
-  "year": 2007,
-  "spotifyId": "2Ud3deUCh2ZeA4tlE9AFeQ",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27339f2b87e73565af4e21a811c",
-  "duration_ms": 462653,
-  "genres": ["indie", "00s", "electronic", "dance-punk"],
-  "trivia": "Sangen består av ett enkelt, repeterende pianoriff som bygger seg opp i over syv minutter. Pitchfork kåret den til den nest beste sangen på 2000-tallet."
-},
-{
-  "artist": "Bon Iver",
-  "title": "Holocene",
-  "year": 2011,
-  "spotifyId": "4fbvXwMTXPWaFyaMWUm9CR",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2737a44f7a245a46399485a735e",
-  "duration_ms": 342626,
-  "genres": ["indie folk", "10s"],
-  "trivia": "Tittelen refererer til en geologisk epoke, men også til en bar i Portland der Justin Vernon følte seg liten og ubetydelig."
-},
-{
-  "artist": "Frank Ocean",
-  "title": "Pyramids",
-  "year": 2012,
-  "spotifyId": "4QhWbupniDd44EDtnh2bFJ",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2737a44f7a245a46399485a735e",
-  "duration_ms": 592533,
-  "genres": ["r&b", "10s", "alternative r&b"],
-  "trivia": "Den nesten 10 minutter lange sangen forteller to separate historier, en om Kleopatra i oldtidens Egypt og en om en stripper i moderne tid."
-},
-{
-  "artist": "Tame Impala",
-  "title": "Let It Happen",
-  "year": 2015,
-  "spotifyId": "2X485T9Z5Ly02g4IIxroA8",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273f6c88e630315515777a799c9",
-  "duration_ms": 467546,
-  "genres": ["psychedelic rock", "10s", "indie"],
-  "trivia": "Midt i sangen er det en seksjon der lyden 'hopper i anlegget'. Dette var en feil i lydprogrammet, men Kevin Parker likte det så godt at han beholdt det."
-},
-{
-  "artist": "Kendrick Lamar",
-  "title": "Alright",
-  "year": 2015,
-  "spotifyId": "3iVcZ5G6tvkXZkZxOdtrWl",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734e9a8a25a9b5b2c1f0e8f6e1",
-  "duration_ms": 219333,
-  "genres": ["hip-hop", "10s", "conscious hip-hop"],
-  "trivia": "Sangen ble en uoffisiell hymne for Black Lives Matter-bevegelsen og ble ropt i kor under protestmarsjer over hele USA."
-},
-{
-  "artist": "Susanne Sundfør",
-  "title": "Delirious",
-  "year": 2015,
-  "spotifyId": "53Z1SEome2Eewslx3aJcaG",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734139d24a1b5c4b8b6a6c6a6c",
-  "duration_ms": 296813,
-  "genres": ["art pop", "10s", "electronic", "norsk"],
-  "trivia": "Sundfør beskriver sangen som et forsøk på å lage en 'voldelig poplåt' om hevn, inspirert av en stalker-opplevelse."
-},
-{
-  "artist": "Childish Gambino",
-  "title": "This Is America",
-  "year": 2018,
-  "spotifyId": "0b9oOr2ZgvyQu88wzEPzg2",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2738725f4393081e9b23b3d18e0",
-  "duration_ms": 225773,
-  "genres": ["hip-hop", "10s", "trap"],
-  "trivia": "Musikkvideoen, regissert av Hiro Murai, er fullpakket med symbolikk om våpenvold, rasisme og distraksjoner i amerikansk kultur."
-},
-{
-  "artist": "Rosalía",
-  "title": "MALAMENTE - Cap.1: Augurio",
-  "year": 2018,
-  "spotifyId": "5zO31er61e0f0s2E5V7p2C",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2735111b191e452a2202a0a2948",
-  "duration_ms": 150000,
-  "genres": ["flamenco", "10s", "pop", "spansk"],
-  "trivia": "Sangen kombinerer tradisjonell spansk flamenco med moderne trap-beats, og katapulterte Rosalía til internasjonal stjernestatus."
-},
-{
-  "artist": "FKA twigs",
-  "title": "cellophane",
-  "year": 2019,
-  "spotifyId": "2cYALQ1KkSj1Qe6BAdk1yD",
-  "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27344933a32f0556f2f9f5a7a7b",
-  "duration_ms": 204360,
-  "genres": ["art pop", "10s", "electronic"],
-  "trivia": "For den prisvinnende musikkvideoen trente FKA twigs i ett år for å bli en profesjonell poledanser."
-}
+    {
+      "artist": "Aretha Franklin",
+      "title": "Respect",
+      "year": 1967,
+      "spotifyId": "7s25THrKz86DM225dOYwnr",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273f53f6a8b1a8a3a8a3a8a3a8a",
+      "duration_ms": 157600,
+      "genres": ["soul", "60s", "r&b"],
+      "trivia": "Opprinnelig skrevet og spilt inn av Otis Redding, men Arethas versjon ble et symbol for både borgerrettighets- og kvinnebevegelsen."
+    },
+    {
+      "artist": "The Velvet Underground",
+      "title": "I'm Waiting For The Man",
+      "year": 1967,
+      "spotifyId": "7rOP1Y2dG0sB9yS1B5gT84",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273d40903657497b77fdef4a84e",
+      "duration_ms": 279560,
+      "genres": ["rock", "60s", "proto-punk", "art rock"],
+      "trivia": "Albumet solgte kun 30 000 kopier de første årene, men Brian Eno sa senere at 'alle som kjøpte det, startet et band'."
+    },
+    {
+      "artist": "David Bowie",
+      "title": "Heroes",
+      "year": 1977,
+      "spotifyId": "7Jh1bpe76CNTCgdgAdBw4Z",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27393c52a31a73f88c7d3d2a71f",
+      "duration_ms": 371026,
+      "genres": ["rock", "70s", "art rock"],
+      "trivia": "Inspirert av et kyssende par produsent Tony Visconti så ved Berlinmuren. Bowie avslørte først mange år senere at paret var Visconti selv og hans elskerinne."
+    },
+    {
+      "artist": "Kraftwerk",
+      "title": "The Model",
+      "year": 1978,
+      "spotifyId": "1bTppziau6i2pXOnvnDA28",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27351c09988450a823f53833a46",
+      "duration_ms": 222146,
+      "genres": ["electronic", "70s", "synth-pop"],
+      "trivia": "Sangen ble en overraskende nummer 1-hit i Storbritannia i 1982, fire år etter den først ble utgitt."
+    },
+    {
+      "artist": "The Clash",
+      "title": "London Calling",
+      "year": 1979,
+      "spotifyId": "5jzma6gCzYtKB1DbEwFZKH",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273462b4369f9843c088d8b1d92",
+      "duration_ms": 199960,
+      "genres": ["punk", "70s", "rock"],
+      "trivia": "Albumcoveret er en hyllest til Elvis Presleys debutalbum, men med Paul Simonon som knuser bassgitaren sin på scenen."
+    },
+    {
+      "artist": "Joy Division",
+      "title": "Love Will Tear Us Apart",
+      "year": 1980,
+      "spotifyId": "34iOH7LY3vme5rQe8hVSHM",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734a36e0a916b23a5954552431",
+      "duration_ms": 204893,
+      "genres": ["post-punk", "80s", "new wave"],
+      "trivia": "Sangen ble utgitt måneden etter vokalist Ian Curtis' selvmord. 'Love Will Tear Us Apart' er inngravert på gravsteinen hans."
+    },
+    {
+      "artist": "Talking Heads",
+      "title": "Once in a Lifetime",
+      "year": 1980,
+      "spotifyId": "38Ngied9rBORlAbLYNCl4k",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734f13340b8a4a2a11f0612c62",
+      "duration_ms": 259666,
+      "genres": ["new wave", "80s", "art rock"],
+      "trivia": "Den ikoniske 'hakkete' dansen til David Byrne i musikkvideoen var inspirert av bevegelser fra epileptikere og ulike religiøse ritualer."
+    },
+    {
+      "artist": "The Smiths",
+      "title": "There Is a Light That Never Goes Out",
+      "year": 1986,
+      "spotifyId": "0WQiDwKJclirSYG9v5tayI",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27352382c42d3122c83c2425862",
+      "duration_ms": 242586,
+      "genres": ["indie", "80s", "alternative rock"],
+      "trivia": "Plateselskapet ville opprinnelig ikke utgi den som singel, men den har siden blitt en av bandets mest elskede sanger."
+    },
+    {
+      "artist": "Kate Bush",
+      "title": "Running Up That Hill (A Deal With God)",
+      "year": 1985,
+      "spotifyId": "75FEaRjZTKLhTrFGsfMUXR",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2731c518a33333425b44778119b",
+      "duration_ms": 300840,
+      "genres": ["art pop", "80s", "new wave"],
+      "trivia": "Sangen fikk en enorm renessanse og toppet listene verden over i 2022, 37 år etter utgivelsen, takket være TV-serien 'Stranger Things'."
+    },
+    {
+      "artist": "Public Enemy",
+      "title": "Fight The Power",
+      "year": 1989,
+      "spotifyId": "1lWlgIff62c5i40p53KkG1",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2730e20e8a7536b334a17897cbf",
+      "duration_ms": 286266,
+      "genres": ["hip-hop", "80s", "political hip-hop"],
+      "trivia": "Sangen ble skrevet på bestilling fra regissør Spike Lee for filmen 'Do the Right Thing' og spilles 15 ganger i løpet av filmen."
+    },
+    {
+      "artist": "Massive Attack",
+      "title": "Unfinished Sympathy",
+      "year": 1991,
+      "spotifyId": "0j5sStMh3A23bXThn312iL",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2731f8650f6b889376a21e42738",
+      "duration_ms": 308440,
+      "genres": ["trip-hop", "90s", "electronic"],
+      "trivia": "Musikkvideoen, som består av ett eneste, kontinuerlig opptak, ble filmet på West Pico Boulevard i Los Angeles."
+    },
+    {
+      "artist": "Jeff Buckley",
+      "title": "Hallelujah",
+      "year": 1994,
+      "spotifyId": "3pRaLNL3b8x5uBOcsgvdqM",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2736b761e025a74e3cf6b29f44c",
+      "duration_ms": 415080,
+      "genres": ["alternative rock", "90s", "folk"],
+      "trivia": "Selv om den er skrevet av Leonard Cohen, er det Buckleys versjon som er den mest kjente. Han lærte den fra en coverversjon av John Cale."
+    },
+    {
+      "artist": "Pulp",
+      "title": "Common People",
+      "year": 1995,
+      "spotifyId": "1dtKoeT6DwChjCqRvep3oE",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27391a28a3138b7fe48f72530e3",
+      "duration_ms": 351133,
+      "genres": ["britpop", "90s", "indie"],
+      "trivia": "Jarvis Cocker skal ha blitt inspirert til å skrive sangen etter å ha møtt en gresk kunststudent ved Central Saint Martins College i London."
+    },
+    {
+      "artist": "Radiohead",
+      "title": "Paranoid Android",
+      "year": 1997,
+      "spotifyId": "2nZzy62s2zaLEw1k5Jps2a",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2733d3e38c5d6796f7c461a153c",
+      "duration_ms": 387213,
+      "genres": ["alternative rock", "90s", "art rock"],
+      "trivia": "Den over 6 minutter lange sangen består av fire distinkte deler, og bandet beskrev den som et forsøk på å smelte sammen DJ Shadow og The Beatles."
+    },
+    {
+      "artist": "Björk",
+      "title": "Jóga",
+      "year": 1997,
+      "spotifyId": "4Y2ie4oB5T4iS6r5Q4gP6A",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734685e3532a829a29a5312762",
+      "duration_ms": 309066,
+      "genres": ["electronic", "90s", "art pop", "trip-hop"],
+      "trivia": "Sangen er en dedikasjon til hennes beste venninne, Jóga, og beskriver det islandske landskapet. Björk kaller den en 'nasjonalsang'."
+    },
+    {
+      "artist": "D'Angelo",
+      "title": "Untitled (How Does It Feel)",
+      "year": 2000,
+      "spotifyId": "4oHMsly3oXMROcDAJc0s7z",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27354964724a81d524855f44866",
+      "duration_ms": 430533,
+      "genres": ["neo-soul", "00s", "r&b"],
+      "trivia": "Musikkvideoen, som viser en naken D'Angelo fra livet og opp, ble en sensasjon, men gjorde artisten så ukomfortabel at han trakk seg tilbake i flere år."
+    },
+    {
+      "artist": "The Strokes",
+      "title": "Last Nite",
+      "year": 2001,
+      "spotifyId": "1M4s3v0rTjb3gSo22d6aQ8",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27350b376d3f005c2fc4342a385",
+      "duration_ms": 193426,
+      "genres": ["indie rock", "00s", "garage rock revival"],
+      "trivia": "Gitar-introen er sterkt inspirert av 'American Girl' av Tom Petty and the Heartbreakers. The Strokes spurte aldri om lov, men Petty syntes det var morsomt."
+    },
+    {
+      "artist": "Röyksopp",
+      "title": "Eple",
+      "year": 2001,
+      "spotifyId": "32b2dcqljT19eP2j2E4I2b",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273d34f0c6b8a82a1c09033e508",
+      "duration_ms": 217640,
+      "genres": ["electronic", "00s", "downtempo", "norsk"],
+      "trivia": "Sangen sampler 'You're as Right as Rain' av Bob James. Navnet 'Eple' er rett og slett det norske ordet for 'apple'."
+    },
+    {
+      "artist": "Missy Elliott",
+      "title": "Work It",
+      "year": 2002,
+      "spotifyId": "3R04p81E3m3A7eSgYckR6l",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27320955251a3f5d944e0b04e3e",
+      "duration_ms": 263133,
+      "genres": ["hip-hop", "00s"],
+      "trivia": "Den berømte baklengs-linjen 'I put my thing down, flip it and reverse it' ble til ved et uhell da produsent Timbaland trykket feil på miksebordet."
+    },
+    {
+      "artist": "Johnny Cash",
+      "title": "Hurt",
+      "year": 2002,
+      "spotifyId": "63w0o2E4ScdVeeAwQgWeCf",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273b75471a5015b67812165037c",
+      "duration_ms": 218053,
+      "genres": ["country", "00s", "folk"],
+      "trivia": "Sangen er en cover av en Nine Inch Nails-låt. Trent Reznor (fra NIN) var først skeptisk, men ble dypt rørt og sa 'den sangen er ikke min lenger'."
+    },
+    {
+      "artist": "Amy Winehouse",
+      "title": "Rehab",
+      "year": 2006,
+      "spotifyId": "1k3Pz2oTo1C3b93fSgC3oA",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2731c3c5d6f3a3e6a9d5c8a1f3c",
+      "duration_ms": 214466,
+      "genres": ["soul", "00s", "r&b"],
+      "trivia": "Sangen er selvbiografisk og handler om da managementet hennes prøvde å få henne på rehabilitering. Hun nektet, med farens støtte."
+    },
+    {
+      "artist": "LCD Soundsystem",
+      "title": "All My Friends",
+      "year": 2007,
+      "spotifyId": "2Ud3deUCh2ZeA4tlE9AFeQ",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27339f2b87e73565af4e21a811c",
+      "duration_ms": 462653,
+      "genres": ["indie", "00s", "electronic", "dance-punk"],
+      "trivia": "Sangen består av ett enkelt, repeterende pianoriff som bygger seg opp i over syv minutter. Pitchfork kåret den til den nest beste sangen på 2000-tallet."
+    },
+    {
+      "artist": "Bon Iver",
+      "title": "Holocene",
+      "year": 2011,
+      "spotifyId": "4fbvXwMTXPWaFyaMWUm9CR",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2737a44f7a245a46399485a735e",
+      "duration_ms": 342626,
+      "genres": ["indie folk", "10s"],
+      "trivia": "Tittelen refererer til en geologisk epoke, men også til en bar i Portland der Justin Vernon følte seg liten og ubetydelig."
+    },
+    {
+      "artist": "Frank Ocean",
+      "title": "Pyramids",
+      "year": 2012,
+      "spotifyId": "4QhWbupniDd44EDtnh2bFJ",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2737a44f7a245a46399485a735e",
+      "duration_ms": 592533,
+      "genres": ["r&b", "10s", "alternative r&b"],
+      "trivia": "Den nesten 10 minutter lange sangen forteller to separate historier, en om Kleopatra i oldtidens Egypt og en om en stripper i moderne tid."
+    },
+    {
+      "artist": "Tame Impala",
+      "title": "Let It Happen",
+      "year": 2015,
+      "spotifyId": "2X485T9Z5Ly02g4IIxroA8",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273f6c88e630315515777a799c9",
+      "duration_ms": 467546,
+      "genres": ["psychedelic rock", "10s", "indie"],
+      "trivia": "Midt i sangen er det en seksjon der lyden 'hopper i anlegget'. Dette var en feil i lydprogrammet, men Kevin Parker likte det så godt at han beholdt det."
+    },
+    {
+      "artist": "Kendrick Lamar",
+      "title": "Alright",
+      "year": 2015,
+      "spotifyId": "3iVcZ5G6tvkXZkZxOdtrWl",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734e9a8a25a9b5b2c1f0e8f6e1",
+      "duration_ms": 219333,
+      "genres": ["hip-hop", "10s", "conscious hip-hop"],
+      "trivia": "Sangen ble en uoffisiell hymne for Black Lives Matter-bevegelsen og ble ropt i kor under protestmarsjer over hele USA."
+    },
+    {
+      "artist": "Susanne Sundfør",
+      "title": "Delirious",
+      "year": 2015,
+      "spotifyId": "53Z1SEome2Eewslx3aJcaG",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2734139d24a1b5c4b8b6a6c6a6c",
+      "duration_ms": 296813,
+      "genres": ["art pop", "10s", "electronic", "norsk"],
+      "trivia": "Sundfør beskriver sangen som et forsøk på å lage en 'voldelig poplåt' om hevn, inspirert av en stalker-opplevelse."
+    },
+    {
+      "artist": "Childish Gambino",
+      "title": "This Is America",
+      "year": 2018,
+      "spotifyId": "0b9oOr2ZgvyQu88wzEPzg2",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2738725f4393081e9b23b3d18e0",
+      "duration_ms": 225773,
+      "genres": ["hip-hop", "10s", "trap"],
+      "trivia": "Musikkvideoen, regissert av Hiro Murai, er fullpakket med symbolikk om våpenvold, rasisme og distraksjoner i amerikansk kultur."
+    },
+    {
+      "artist": "Rosalía",
+      "title": "MALAMENTE - Cap.1: Augurio",
+      "year": 2018,
+      "spotifyId": "5zO31er61e0f0s2E5V7p2C",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b2735111b191e452a2202a0a2948",
+      "duration_ms": 150000,
+      "genres": ["flamenco", "10s", "pop", "spansk"],
+      "trivia": "Sangen kombinerer tradisjonell spansk flamenco med moderne trap-beats, og katapulterte Rosalía til internasjonal stjernestatus."
+    },
+    {
+      "artist": "FKA twigs",
+      "title": "cellophane",
+      "year": 2019,
+      "spotifyId": "2cYALQ1KkSj1Qe6BAdk1yD",
+      "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b27344933a32f0556f2f9f5a7a7b",
+      "duration_ms": 204360,
+      "genres": ["art pop", "10s", "electronic"],
+      "trivia": "For den prisvinnende musikkvideoen trente FKA twigs i ett år for å bli en profesjonell poledanser."
+    }
 ]
