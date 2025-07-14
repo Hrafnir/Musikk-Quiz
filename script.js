@@ -1,10 +1,15 @@
-/* Version: #8 */
+/* Version: #13 */
 // === STATE ===
 let allSongs = [];
 let players = [];
 let gameSettings = {
     songsPerPlayer: 5
 };
+// En liste med forhåndsdefinerte farger for paletten
+const PRESET_COLORS = [
+    '#1DB954', '#1ED760', '#FF4136', '#FF851B', '#FFDC00', 
+    '#0074D9', '#7FDBFF', '#B10DC9', '#F012BE', '#FFFFFF'
+];
 
 // === DOM ELEMENTS ===
 const gameSetupScreen = document.getElementById('game-setup');
@@ -17,6 +22,7 @@ const playerColorInput = document.getElementById('player-color-input');
 const playersListDiv = document.getElementById('players-list');
 const songCountSelect = document.getElementById('song-count-select');
 const startGameBtn = document.getElementById('start-game-btn');
+const colorPaletteDiv = document.getElementById('color-palette'); // NY
 
 
 // === FUNCTIONS ===
@@ -36,6 +42,21 @@ async function loadSongs() {
         console.error('Kunne ikke laste sangfilen:', error);
         gameSetupScreen.innerHTML = '<h1>Feil</h1><p>Kunne ikke laste inn sangdata. Sjekk at filen songs.json finnes og er korrekt formatert.</p>';
     }
+}
+
+/**
+ * Oppretter og viser fargepaletten
+ */
+function populateColorPalette() {
+    PRESET_COLORS.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = color;
+        swatch.addEventListener('click', () => {
+            playerColorInput.value = color;
+        });
+        colorPaletteDiv.appendChild(swatch);
+    });
 }
 
 /**
@@ -82,8 +103,9 @@ function handleAddPlayer(event) {
         players.push(newPlayer);
         renderPlayers();
 
-        // Nullstill input-feltene
+        // Nullstill input-feltene og velg en ny tilfeldig farge for neste spiller
         playerNameInput.value = '';
+        playerColorInput.value = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
         playerNameInput.focus();
     }
 }
@@ -109,6 +131,7 @@ function startGame() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Quiz-appen er klar!');
     loadSongs();
+    populateColorPalette(); // NY: Fyll paletten med farger
 
     // Legg til event listeners
     playerSetupForm.addEventListener('submit', handleAddPlayer);
@@ -117,4 +140,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialiser spillerlisten (som er tom)
     renderPlayers();
 });
-/* Version: #8 */
+/* Version: #13 */
