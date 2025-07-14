@@ -1,4 +1,4 @@
-<!-- Version: #15 -->
+<!-- Version: #45 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -41,19 +41,17 @@
             </div>
 
             <button id="start-game-btn" disabled>Start Spill</button>
+
+            <!-- NYTT: Lenke til verifiseringsverktøy -->
+            <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
+                <a href="verifier.html" style="color: #b3b3b3; text-decoration: none;">Gå til Sang-Verifiserer</a>
+            </div>
         </div>
 
         <!-- SKJERM 2: SELVE SPILLET -->
         <div id="game-screen" class="hidden">
-            <!-- Poengtavle -->
-            <div id="scoreboard">
-                <!-- Poeng for hver spiller blir lagt til her av JavaScript -->
-            </div>
-
-            <!-- Område for selve runden -->
-            <div id="round-container">
-                <!-- Innhold for hver runde (hvem sin tur, input, etc.) kommer her -->
-            </div>
+            <div id="scoreboard"></div>
+            <div id="round-container"></div>
         </div>
 
         <!-- SKJERM 3: SPILL-SLUTT -->
@@ -66,4 +64,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #15 -->
+<!-- Version: #45 -->
