@@ -1,17 +1,18 @@
-/* Version: #47 */
+/* Version: #49 */
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Verifiserer er klar.');
 
     // DOM-elementer
     const songSelector = document.getElementById('song-selector');
     const displayArea = document.getElementById('song-display-area');
+    const nextSongBtn = document.getElementById('next-song-btn'); // NY
     const generateLogBtn = document.getElementById('generate-log-btn');
     const clearLogBtn = document.getElementById('clear-log-btn');
     const logOutput = document.getElementById('log-output');
 
     // Tilstand
     let allSongs = [];
-    let flaggedSongs = []; // Her lagrer vi sanger som blir flagget
+    let flaggedSongs = [];
 
     /**
      * Laster sanger fra songs.json og fyller ut nedtrekksmenyen
@@ -38,15 +39,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Viser detaljene for en valgt sang
+     * Viser detaljene for en valgt sang basert på indeks
+     * @param {string | number} index - Indeksen til sangen som skal vises
      */
-    function displaySongDetails() {
-        const selectedIndex = songSelector.value;
-        if (selectedIndex === "") {
+    function displaySongDetails(index) {
+        // Oppdaterer nedtrekksmenyen til å reflektere valget
+        songSelector.value = index;
+
+        if (index === "" || index === null) {
             displayArea.innerHTML = '<p>Velg en sang fra listen over for å se detaljer.</p>';
             return;
         }
-        const song = allSongs[selectedIndex];
+        
+        const song = allSongs[index];
         if (!song) return;
 
         displayArea.innerHTML = `
@@ -80,27 +85,32 @@ document.addEventListener('DOMContentLoaded', () => {
             <button id="play-song-btn" style="margin-top: 20px;">Test avspilling</button>
         `;
 
-        // Legg til lytter for avspillingsknapp
         document.getElementById('play-song-btn').addEventListener('click', () => {
             window.open(`https://open.spotify.com/track/${song.spotifyId}`, 'spotify_test_player');
         });
 
-        // Legg til lyttere for flagg-knapper
         document.querySelectorAll('.flag-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 const errorType = event.target.dataset.error;
-                flagSong(selectedIndex, errorType);
-                event.target.style.backgroundColor = '#FF851B'; // Visuell bekreftelse
+                flagSong(index, errorType);
+                event.target.style.backgroundColor = '#FF851B';
                 event.target.textContent = 'Flagget!';
             });
         });
     }
 
     /**
-     * Legger en sang til i listen over flaggede sanger
-     * @param {string} songIndex - Indeksen til sangen i allSongs-arrayet
-     * @param {string} errorType - Beskrivelse av feilen
+     * Håndterer klikk på "Neste Sang"-knappen
      */
+    function handleNextSong() {
+        let currentIndex = parseInt(songSelector.value, 10);
+        if (isNaN(currentIndex)) {
+            currentIndex = -1; // Start fra begynnelsen hvis ingenting er valgt
+        }
+        const nextIndex = (currentIndex + 1) % allSongs.length;
+        displaySongDetails(nextIndex);
+    }
+
     function flagSong(songIndex, errorType) {
         const song = allSongs[songIndex];
         const flag = {
@@ -109,12 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spotifyId: song.spotifyId,
             error: errorType
         };
-
-        // Unngå duplikater
-        const isAlreadyFlagged = flaggedSongs.some(
-            fs => fs.spotifyId === flag.spotifyId && fs.error === flag.error
-        );
-
+        const isAlreadyFlagged = flaggedSongs.some(fs => fs.spotifyId === flag.spotifyId && fs.error === flag.error);
         if (!isAlreadyFlagged) {
             flaggedSongs.push(flag);
             console.log(`Flagget: ${song.title} - ${errorType}`);
@@ -123,19 +128,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Genererer en formatert tekst-logg av flaggede sanger
-     */
     function generateLog() {
         if (flaggedSongs.length === 0) {
             logOutput.value = "Ingen feil har blitt flagget ennå.";
             return;
         }
-
         let logText = `Feilrapport generert ${new Date().toLocaleString('no-NO')}\n`;
         logText += `Totalt antall feil: ${flaggedSongs.length}\n`;
         logText += "==================================================\n\n";
-
         flaggedSongs.forEach(flag => {
             logText += `Artist: ${flag.artist}\n`;
             logText += `Tittel: ${flag.title}\n`;
@@ -143,13 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
             logText += `FEIL: ${flag.error}\n`;
             logText += `--------------------------------------------------\n`;
         });
-
         logOutput.value = logText;
     }
 
-    /**
-     * Tømmer listen over flaggede sanger og tekstfeltet
-     */
     function clearLog() {
         if (confirm('Er du sikker på at du vil slette feil-loggen?')) {
             flaggedSongs = [];
@@ -160,8 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Kjør funksjoner og sett opp lyttere
     loadAndPopulateSongs();
-    songSelector.addEventListener('change', displaySongDetails);
+    songSelector.addEventListener('change', (event) => displaySongDetails(event.target.value));
+    nextSongBtn.addEventListener('click', handleNextSong); // NY
     generateLogBtn.addEventListener('click', generateLog);
     clearLogBtn.addEventListener('click', clearLog);
 });
-/* Version: #47 */
+/* Version: #49 */
