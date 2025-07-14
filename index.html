@@ -1,52 +1,68 @@
-<div id="app-container">
-    <!-- SKJERM 1: SPILL-OPPSETT (Vises som standard) -->
-    <div id="game-setup">
-        <h1>Spotify Årstalls-Quiz</h1>
-        
-        <!-- Seksjon for å legge til spillere -->
-        <div id="player-setup-section">
-            <h2>Legg til spillere</h2>
-            <form id="player-setup-form">
-                <input type="text" id="player-name-input" placeholder="Spillernavn" required>
-                <input type="color" id="player-color-input" value="#1DB954">
-                <button type="submit">Legg til</button>
-            </form>
-        </div>
+<!-- Version: #11 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Årstalls-Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-        <!-- Liste over spillere som er lagt til -->
-        <div id="players-list-container">
-            <h3>Spillere:</h3>
-            <div id="players-list">
-                <!-- Spiller-elementer blir lagt til her av JavaScript -->
+    <div id="app-container">
+        <!-- SKJERM 1: SPILL-OPPSETT (Vises som standard) -->
+        <div id="game-setup">
+            <h1>Spotify Årstalls-Quiz</h1>
+            
+            <!-- Seksjon for å legge til spillere -->
+            <div id="player-setup-section">
+                <h2>Legg til spillere</h2>
+                <form id="player-setup-form">
+                    <input type="text" id="player-name-input" placeholder="Spillernavn" required>
+                    <input type="color" id="player-color-input" value="#1DB954">
+                    <button type="submit">Legg til</button>
+                </form>
+                <!-- NYTT: Beholder for fargepalett -->
+                <div id="color-palette"></div>
             </div>
+
+            <!-- Liste over spillere som er lagt til -->
+            <div id="players-list-container">
+                <h3>Spillere:</h3>
+                <div id="players-list">
+                    <!-- Spiller-elementer blir lagt til her av JavaScript -->
+                </div>
+            </div>
+
+            <!-- Seksjon for spillinnstillinger -->
+            <div id="game-options-section">
+                <h2>Innstillinger</h2>
+                <label for="song-count-select">Antall sanger per spiller:</label>
+                <select id="song-count-select">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="Infinity">Uendelig</option>
+                </select>
+            </div>
+
+            <button id="start-game-btn" disabled>Start Spill</button>
         </div>
 
-        <!-- Seksjon for spillinnstillinger -->
-        <div id="game-options-section">
-            <h2>Innstillinger</h2>
-            <label for="song-count-select">Antall sanger per spiller:</label>
-            <select id="song-count-select">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="Infinity">Uendelig</option>
-            </select>
+        <!-- SKJERM 2: SELVE SPILLET (Skjult som standard) -->
+        <div id="game-screen" class="hidden">
+            <h2>Spillet er i gang!</h2>
+            <!-- Innhold for selve spillet kommer her -->
         </div>
 
-        <button id="start-game-btn" disabled>Start Spill</button>
+        <!-- SKJERM 3: SPILL-SLUTT (Skjult som standard) -->
+        <div id="game-over" class="hidden">
+            <h2>Spillet er over!</h2>
+            <!-- Innhold for poengoversikt kommer her -->
+        </div>
     </div>
 
-    <!-- SKJERM 2: SELVE SPILLET (Skjult som standard) -->
-    <div id="game-screen" class="hidden">
-        <h2>Spillet er i gang!</h2>
-        <!-- Innhold for selve spillet kommer her -->
-    </div>
-
-    <!-- SKJERM 3: SPILL-SLUTT (Skjult som standard) -->
-    <div id="game-over" class="hidden">
-        <h2>Spillet er over!</h2>
-        <!-- Innhold for poengoversikt kommer her -->
-    </div>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+<!-- Version: #11 -->
