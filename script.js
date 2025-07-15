@@ -1,4 +1,4 @@
-/* Version: #30 */
+/* Version: #54 */
 // === STATE ===
 let allSongs = [];
 let players = [];
@@ -10,7 +10,6 @@ const PRESET_COLORS = [
     '#0074D9', '#7FDBFF', '#B10DC9', '#F012BE', '#FFFFFF'
 ];
 
-// Spill-spesifikk state
 let gamePlaylist = [];
 let currentRound = 0;
 let currentPlayerIndex = 0;
@@ -33,6 +32,10 @@ const colorPaletteDiv = document.getElementById('color-palette');
 // Spill-skjerm
 const scoreboardDiv = document.getElementById('scoreboard');
 const roundContainerDiv = document.getElementById('round-container');
+
+// Spill-slutt skjerm
+const finalResultsListDiv = document.getElementById('final-results-list');
+const playAgainBtn = document.getElementById('play-again-btn');
 
 
 // === FUNCTIONS ===
@@ -59,9 +62,7 @@ function populateColorPalette() {
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
         swatch.style.backgroundColor = color;
-        swatch.addEventListener('click', () => {
-            playerColorInput.value = color;
-        });
+        swatch.addEventListener('click', () => { playerColorInput.value = color; });
         colorPaletteDiv.appendChild(swatch);
     });
 }
@@ -89,7 +90,7 @@ function handleAddPlayer(event) {
     const name = playerNameInput.value.trim();
     const color = playerColorInput.value;
     if (name) {
-        players.push({ name: name, color: color, score: 0 });
+        players.push({ id: Date.now(), name: name, color: color, score: 0 });
         renderPlayers();
         playerNameInput.value = '';
         playerColorInput.value = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
@@ -98,20 +99,9 @@ function handleAddPlayer(event) {
 }
 
 // --- Spill-funksjoner ---
-
-/**
- * Normaliserer en tekststreng for sammenligning.
- * Fjerner store bokstaver, spesialtegn og vanlige ord som "the".
- * @param {string} text 
- * @returns {string}
- */
 function normalizeText(text) {
     if (typeof text !== 'string') return '';
-    return text
-        .toLowerCase()
-        .replace(/^(the|en|et|a)\s+/i, '') // Fjerner vanlige artikler i starten
-        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g,"") // Fjerner tegnsetting
-        .replace(/\s+/g, ''); // Fjerner mellomrom
+    return text.toLowerCase().replace(/^(the|en|et|a)\s+/i, '').replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g,"").replace(/\s+/g, '');
 }
 
 function renderScoreboard() {
@@ -129,7 +119,6 @@ function renderScoreboard() {
     });
 }
 
-// ** GJENINNSATT FUNKSJON **
 function buildGamePlaylist() {
     const totalSongsNeeded = gameSettings.songsPerPlayer === Infinity ? allSongs.length : players.length * gameSettings.songsPerPlayer;
     const shuffledSongs = [...allSongs].sort(() => 0.5 - Math.random());
@@ -154,30 +143,28 @@ function showRoundResult(points, guesses) {
                 <p>Artist: ${points.artist} p (Du gjettet '${artistGuess || 'ingenting'}')</p>
                 <p>Tittel: ${points.title} p (Du gjettet '${titleGuess || 'ingenting'}')</p>
             </div>
-            <button id="next-round-btn">Neste runde</button>
+            <button id="next-round-btn">Neste</button>
         </div>
     `;
 
     document.getElementById('next-round-btn').addEventListener('click', () => {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        currentRound++;
+        // Gå kun til neste runde etter at alle har spilt denne
+        if (currentPlayerIndex === 0) {
+            currentRound++;
+        }
         startNextRound();
     });
 }
 
-
 function processAnswer(event) {
     event.preventDefault(); 
-    
     const yearGuess = parseInt(document.getElementById('year-guess').value, 10);
     const artistGuess = document.getElementById('artist-guess').value;
     const titleGuess = document.getElementById('title-guess').value;
-
     const currentSong = gamePlaylist[currentRound];
     const currentPlayer = players[currentPlayerIndex];
-
     let points = { year: 0, artist: 0, title: 0, total: 0 };
-
     const yearDiff = Math.abs(yearGuess - currentSong.year);
     if (!isNaN(yearDiff)) {
         if (yearDiff === 0) points.year = 5;
@@ -186,45 +173,54 @@ function processAnswer(event) {
         else if (yearDiff === 3) points.year = 2;
         else if (yearDiff === 4) points.year = 1;
     }
-
-    if (normalizeText(artistGuess) === normalizeText(currentSong.artist)) {
-        points.artist = 5;
-    }
-
-    if (normalizeText(titleGuess) === normalizeText(currentSong.title)) {
-        points.title = 5;
-    }
-
+    if (normalizeText(artistGuess) === normalizeText(currentSong.artist)) points.artist = 5;
+    if (normalizeText(titleGuess) === normalizeText(currentSong.title)) points.title = 5;
     points.total = points.year + points.artist + points.title;
     currentPlayer.score += points.total;
-
     console.log(`${currentPlayer.name} fikk ${points.total} poeng. Ny score: ${currentPlayer.score}`);
-
     renderScoreboard();
     showRoundResult(points, { yearGuess, artistGuess, titleGuess });
 }
 
+function showGameOver() {
+    gameScreen.classList.add('hidden');
+    gameOverScreen.classList.remove('hidden');
+
+    // Sorter spillere etter poeng, høyest først
+    const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+
+    finalResultsListDiv.innerHTML = ''; // Tøm listen
+    sortedPlayers.forEach((player, index) => {
+        const playerItem = document.createElement('div');
+        playerItem.className = 'final-player-item';
+        if (index === 0) {
+            playerItem.classList.add('winner');
+        }
+        playerItem.style.backgroundColor = player.color;
+        playerItem.innerHTML = `<span>${player.name}</span><strong>${player.score} p</strong>`;
+        finalResultsListDiv.appendChild(playerItem);
+    });
+}
+
 function startNextRound() {
-    if (currentRound >= gamePlaylist.length) {
-        console.log("Spill over!");
-        roundContainerDiv.innerHTML = '<h2>Spillet er ferdig!</h2>';
+    const totalRounds = gameSettings.songsPerPlayer === Infinity ? allSongs.length : gameSettings.songsPerPlayer;
+    if (currentRound >= totalRounds) {
+        showGameOver();
         return;
     }
 
-    const currentPlayer = players[currentPlayerIndex];
-    const currentSong = gamePlaylist[currentRound];
+    const songForThisRound = gamePlaylist[currentRound];
+    const playerForThisTurn = players[currentPlayerIndex];
 
-    console.log(`Runde ${currentRound + 1}: ${currentPlayer.name} sin tur. Sang: ${currentSong.title}`);
+    console.log(`Runde ${currentRound + 1} / ${totalRounds} | Spiller: ${playerForThisTurn.name} | Sang: ${songForThisRound.title}`);
 
     roundContainerDiv.innerHTML = `
-        <h2>${currentPlayer.name}, din tur!</h2>
-        
+        <h2>${playerForThisTurn.name}, din tur!</h2>
+        <p style="font-size: 1.2em; margin-bottom: 20px;">Runde ${currentRound + 1} av ${totalRounds}</p>
         <div style="padding: 10px; border: 1px solid #555; border-radius: 5px; margin: 15px 0;">
-            <p><strong>VIKTIG:</strong> Klikk knappen under og bytt <strong>umiddelbart</strong> tilbake til denne fanen for å unngå å se sangtittelen!</p>
+            <p><strong>VIKTIG:</strong> Klikk knappen under og bytt <strong>umiddelbart</strong> tilbake til denne fanen!</p>
         </div>
-        
         <button id="play-song-btn" class="play-song-btn">Spill av sang på Spotify</button>
-        
         <form id="guess-form">
             <p>Hvilket år, artist og tittel?</p>
             <input type="number" id="year-guess" placeholder="Årstall (f.eks. 1995)" required>
@@ -235,10 +231,15 @@ function startNextRound() {
     `;
 
     document.getElementById('play-song-btn').addEventListener('click', () => {
-        window.open(`https://open.spotify.com/track/${currentSong.spotifyId}`, 'spotify_player_tab');
+        window.open(`https://open.spotify.com/track/${songForThisRound.spotifyId}`, 'spotify_player_tab');
     });
-
     document.getElementById('guess-form').addEventListener('submit', processAnswer);
+}
+
+function resetGame() {
+    gameOverScreen.classList.add('hidden');
+    gameSetupScreen.classList.remove('hidden');
+    // Spillerlisten beholdes, men poeng nullstilles ved neste spillstart
 }
 
 function startGame() {
@@ -246,35 +247,26 @@ function startGame() {
     gamePlaylist = [];
     currentRound = 0;
     currentPlayerIndex = 0;
-
-    console.log("Starter spill med disse spillerne:", players);
     gameSettings.songsPerPlayer = songCountSelect.value === 'Infinity' ? Infinity : parseInt(songCountSelect.value, 10);
-    console.log("Spillinnstillinger:", gameSettings);
-
-    buildGamePlaylist(); // Denne vil ikke lenger feile
-
+    buildGamePlaylist();
     if (gamePlaylist.length === 0) {
         alert("Ikke nok sanger i songs.json til å starte spillet!");
         return;
     }
-
     gameSetupScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
-
     renderScoreboard();
     startNextRound();
 }
-
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Quiz-appen er klar!');
     loadSongs();
     populateColorPalette();
-
     playerSetupForm.addEventListener('submit', handleAddPlayer);
     startGameBtn.addEventListener('click', startGame);
-
+    playAgainBtn.addEventListener('click', resetGame);
     renderPlayers();
 });
-/* Version: #30 */
+/* Version: #54 */
