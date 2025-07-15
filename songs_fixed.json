@@ -1,0 +1,1213 @@
+[
+  {
+    "artist": "The Beatles",
+    "title": "Here Comes The Sun",
+    "year": 1969,
+    "spotifyId": "6dGnYIeXmHdcikdzNNDMm2",
+    "albumArtUrl": "",
+    "duration_ms": 185733,
+    "genres": [
+      "rock",
+      "60s",
+      "classic rock"
+    ],
+    "trivia": "Skrevet av George Harrison i hagen til Eric Clapton en solskinnsdag da han skulket et møte hos Apple Records."
+  },
+  {
+    "artist": "Queen",
+    "title": "Bohemian Rhapsody",
+    "year": 1975,
+    "spotifyId": "6l8GvAyoUZwWDgF1e4822w",
+    "albumArtUrl": "",
+    "duration_ms": 354320,
+    "genres": [
+      "rock",
+      "70s",
+      "classic rock"
+    ],
+    "trivia": "Plateselskapet mente sangen var altfor lang til å bli en hit, men den ble en av verdens mest solgte singler."
+  },
+  {
+    "artist": "ABBA",
+    "title": "Dancing Queen",
+    "year": 1976,
+    "spotifyId": "0GjEhVFGZW8afUYGChu3Rr",
+    "albumArtUrl": "",
+    "duration_ms": 231133,
+    "genres": [
+      "pop",
+      "70s",
+      "disco"
+    ],
+    "trivia": "Sangen ble fremført for første gang på en gallatilstelning for Kong Carl XVI Gustaf og hans kommende brud, Silvia Sommerlath."
+  },
+  {
+    "artist": "Michael Jackson",
+    "title": "Billie Jean",
+    "year": 1982,
+    "spotifyId": "5ChkMS8OtdzJeqyybCc9R5",
+    "albumArtUrl": "",
+    "duration_ms": 294333,
+    "genres": [
+      "pop",
+      "80s",
+      "r&b"
+    ],
+    "trivia": "Michael Jackson fremførte sin berømte 'moonwalk' for første gang under en TV-spesial mens denne sangen spilte."
+  },
+  {
+    "artist": "a-ha",
+    "title": "Take on Me",
+    "year": 1985,
+    "spotifyId": "2WfaOiMkCvy7F5fcp2zZ8L",
+    "albumArtUrl": "",
+    "duration_ms": 225280,
+    "genres": [
+      "pop",
+      "80s",
+      "synth-pop",
+      "new wave",
+      "norsk"
+    ],
+    "trivia": "Musikkvideoen, som brukte rotoscoping, vant seks priser på MTV Video Music Awards i 1986."
+  },
+  {
+    "artist": "Whitney Houston",
+    "title": "I Wanna Dance with Somebody (Who Loves Me)",
+    "year": 1987,
+    "spotifyId": "2tUBqZG2AbRi7Q0BIrVrEj",
+    "albumArtUrl": "",
+    "duration_ms": 291133,
+    "genres": [
+      "pop",
+      "80s",
+      "r&b"
+    ],
+    "trivia": "Til tross for blandede kritikker da den kom ut, vant sangen en Grammy og har blitt en av Houstons mest ikoniske låter."
+  },
+  {
+    "artist": "DumDum Boys",
+    "title": "Splitter Pine",
+    "year": 1989,
+    "spotifyId": "4x9sVeOchWnntvZO8LfD4n",
+    "albumArtUrl": "",
+    "duration_ms": 268666,
+    "genres": [
+      "rock",
+      "80s",
+      "norsk",
+      "norsk rock"
+    ],
+    "trivia": "Sangen ble en landeplage i Norge og er en av bandets mest kjente sanger."
+  },
+  {
+    "artist": "Nirvana",
+    "title": "Smells Like Teen Spirit",
+    "year": 1991,
+    "spotifyId": "5ghIJDpPoe3CfHMGu71E6T",
+    "albumArtUrl": "",
+    "duration_ms": 301920,
+    "genres": [
+      "rock",
+      "90s",
+      "grunge",
+      "alternative rock"
+    ],
+    "trivia": "Tittelen kom fra en setning Kathleen Hanna spraymalte på veggen til Kurt Cobain: 'Kurt smells like Teen Spirit'."
+  },
+  {
+    "artist": "R.E.M.",
+    "title": "Losing My Religion",
+    "year": 1991,
+    "spotifyId": "31AOj9sFz2gM0O3hMARRBx",
+    "albumArtUrl": "",
+    "duration_ms": 268560,
+    "genres": [
+      "alternative rock",
+      "90s",
+      "rock"
+    ],
+    "trivia": "Hovedinstrumentet i sangen er en mandolin, noe som var svært uvanlig for en stor hitsingel på den tiden."
+  },
+  {
+    "artist": "deLillos",
+    "title": "Neste Sommer",
+    "year": 1993,
+    "spotifyId": "57ZtwfFbKNS3mj8E8ijujU",
+    "albumArtUrl": "",
+    "duration_ms": 222600,
+    "genres": [
+      "pop",
+      "90s",
+      "norsk",
+      "norsk pop"
+    ],
+    "trivia": "Sangen har blitt en uoffisiell nasjonalsang for den norske sommeren."
+  },
+  {
+    "artist": "Mariah Carey",
+    "title": "All I Want for Christmas Is You",
+    "year": 1994,
+    "spotifyId": "0bYg9bo50gSsH3LtXe2SQn",
+    "albumArtUrl": "",
+    "duration_ms": 241106,
+    "genres": [
+      "pop",
+      "90s",
+      "jul",
+      "holiday"
+    ],
+    "trivia": "Mariah Carey skrev og produserte sangen sammen med Walter Afanasieff på bare 15 minutter."
+  },
+  {
+    "artist": "Oasis",
+    "title": "Wonderwall",
+    "year": 1995,
+    "spotifyId": "1qPbGZqppFwLwcBC1JQ6Vr",
+    "albumArtUrl": "",
+    "duration_ms": 258786,
+    "genres": [
+      "rock",
+      "90s",
+      "britpop"
+    ],
+    "trivia": "Sangen har blitt covret utallige ganger og er en av de mest spilte sangene på leirbål verden over."
+  },
+  {
+    "artist": "Britney Spears",
+    "title": "...Baby One More Time",
+    "year": 1998,
+    "spotifyId": "3MjUtNVVq3C8Fn0MP3zhXa",
+    "albumArtUrl": "",
+    "duration_ms": 211066,
+    "genres": [
+      "pop",
+      "90s",
+      "dance-pop"
+    ],
+    "trivia": "Sangen ble opprinnelig skrevet for TLC, som avslo den. Max Martin ga den deretter til en da ukjent Britney Spears."
+  },
+  {
+    "artist": "Eminem",
+    "title": "Lose Yourself",
+    "year": 2002,
+    "spotifyId": "7MJQ9Nfxzh8LPZ9e9u68Fq",
+    "albumArtUrl": "",
+    "duration_ms": 320826,
+    "genres": [
+      "hip-hop",
+      "00s",
+      "rap"
+    ],
+    "trivia": "Dette var den første rap-sangen som vant en Oscar for 'Beste Originale Sang'."
+  },
+  {
+    "artist": "OutKast",
+    "title": "Hey Ya!",
+    "year": 2003,
+    "spotifyId": "2PpruBYCo4H7WOBJ7Q2EwM",
+    "albumArtUrl": "",
+    "duration_ms": 235213,
+    "genres": [
+      "hip-hop",
+      "00s",
+      "pop",
+      "funk"
+    ],
+    "trivia": "Setningen 'Shake it like a Polaroid picture' førte til en midlertidig salgsboom for Polaroid-kameraer."
+  },
+  {
+    "artist": "The Killers",
+    "title": "Mr. Brightside",
+    "year": 2003,
+    "spotifyId": "003vvx7Niy0yvhvHt4a68B",
+    "albumArtUrl": "",
+    "duration_ms": 222973,
+    "genres": [
+      "rock",
+      "00s",
+      "alternative rock"
+    ],
+    "trivia": "Sangen har tilbrakt over 300 uker på den britiske singellisten, til tross for at den aldri nådde førsteplassen."
+  },
+  {
+    "artist": "Lady Gaga",
+    "title": "Bad Romance",
+    "year": 2009,
+    "spotifyId": "0SiywuOBRcynK0uKGWdCnn",
+    "albumArtUrl": "",
+    "duration_ms": 294573,
+    "genres": [
+      "pop",
+      "00s",
+      "dance-pop",
+      "electropop"
+    ],
+    "trivia": "Musikkvideoen var den mest sette videoen på YouTube i en periode og vant en Grammy for 'Best Short Form Music Video'."
+  },
+  {
+    "artist": "Adele",
+    "title": "Rolling in the Deep",
+    "year": 2010,
+    "spotifyId": "1c8gk2PeTE04A1pIDH9YMk",
+    "albumArtUrl": "",
+    "duration_ms": 228093,
+    "genres": [
+      "pop",
+      "10s",
+      "soul"
+    ],
+    "trivia": "Sangen var en av de mestselgende digitale singlene gjennom tidene og vant tre Grammy-priser."
+  },
+  {
+    "artist": "Gotye",
+    "title": "Somebody That I Used to Know",
+    "year": 2011,
+    "spotifyId": "4wCmqSrbyCgxEXROQE6vtV",
+    "albumArtUrl": "",
+    "duration_ms": 244960,
+    "genres": [
+      "pop",
+      "10s",
+      "indie pop"
+    ],
+    "trivia": "Musikkvideoen, der Gotye og Kimbra blir malt inn i en bakgrunn, er basert på et kunstverk av Gotyes far."
+  },
+  {
+    "artist": "Daft Punk",
+    "title": "Get Lucky",
+    "year": 2013,
+    "spotifyId": "69kOkLUCkxIZYexIgSG8rq",
+    "albumArtUrl": "",
+    "duration_ms": 369626,
+    "genres": [
+      "electronic",
+      "10s",
+      "disco",
+      "funk"
+    ],
+    "trivia": "Sangen inneholder gitarspill fra Nile Rodgers, kjent fra det legendariske discobandet Chic."
+  },
+  {
+    "artist": "Kygo",
+    "title": "Firestone",
+    "year": 2014,
+    "spotifyId": "1I8tHoNBFTuoJAlh4hfVVE",
+    "albumArtUrl": "",
+    "duration_ms": 272426,
+    "genres": [
+      "electronic",
+      "10s",
+      "tropical house",
+      "norsk"
+    ],
+    "trivia": "Dette var Kygos internasjonale gjennombruddslåt og definerte sjangeren 'tropical house'."
+  },
+  {
+    "artist": "Luis Fonsi",
+    "title": "Despacito",
+    "year": 2017,
+    "spotifyId": "6habFhsOp2NvshLv26DqMb",
+    "albumArtUrl": "",
+    "duration_ms": 229186,
+    "genres": [
+      "pop",
+      "10s",
+      "latin"
+    ],
+    "trivia": "Musikkvideoen var den første videoen på YouTube som nådde både tre, fire, fem, seks og syv milliarder visninger."
+  },
+  {
+    "artist": "Billie Eilish",
+    "title": "bad guy",
+    "year": 2019,
+    "spotifyId": "2Fxmhks0bxGSBdJ92vM42m",
+    "albumArtUrl": "",
+    "duration_ms": 194087,
+    "genres": [
+      "pop",
+      "10s",
+      "electropop"
+    ],
+    "trivia": "Sangen vant to Grammy Awards: 'Record of the Year' og 'Song of the Year' i 2020."
+  },
+  {
+    "artist": "The Weeknd",
+    "title": "Blinding Lights",
+    "year": 2019,
+    "spotifyId": "0VjIjW4GlUZAMYd2vXMi3b",
+    "albumArtUrl": "",
+    "duration_ms": 200040,
+    "genres": [
+      "pop",
+      "10s",
+      "synth-pop",
+      "80s revival"
+    ],
+    "trivia": "Sangen har blitt kåret av Billboard som den største Hot 100-hiten gjennom tidene."
+  },
+  {
+    "artist": "Harry Styles",
+    "title": "As It Was",
+    "year": 2022,
+    "spotifyId": "4Dvkj6JhhA12EX05fT7y2e",
+    "albumArtUrl": "",
+    "duration_ms": 167306,
+    "genres": [
+      "pop",
+      "20s",
+      "synth-pop"
+    ],
+    "trivia": "Stemmen du hører i starten av sangen er guddatteren til Harry Styles, Ruby Winston."
+  },
+  {
+    "artist": "Undergrunn",
+    "title": "Michelin Stjerner",
+    "year": 2023,
+    "spotifyId": "4KjHgPOIsA8LlMwyAJRlfv",
+    "albumArtUrl": "",
+    "duration_ms": 172921,
+    "genres": [
+      "hip-hop",
+      "20s",
+      "norsk"
+    ],
+    "trivia": "Gruppen vant P3-prisen 'Årets Låt' for denne sangen under P3 Gull 2023."
+  },
+  {
+    "artist": "Aretha Franklin",
+    "title": "Respect",
+    "year": 1967,
+    "spotifyId": "7s25THrKz86DM225dOYwnr",
+    "albumArtUrl": "",
+    "duration_ms": 157600,
+    "genres": [
+      "soul",
+      "60s",
+      "r&b"
+    ],
+    "trivia": "Opprinnelig skrevet og spilt inn av Otis Redding, men Arethas versjon ble et symbol for både borgerrettighets- og kvinnebevegelsen."
+  },
+  {
+    "artist": "The Velvet Underground",
+    "title": "I'm Waiting For The Man",
+    "year": 1967,
+    "spotifyId": "3fElupNRLRJ0tbUDahPrAb",
+    "albumArtUrl": "",
+    "duration_ms": 279560,
+    "genres": [
+      "rock",
+      "60s",
+      "proto-punk",
+      "art rock"
+    ],
+    "trivia": "Albumet solgte kun 30 000 kopier de første årene, men Brian Eno sa senere at 'alle som kjøpte det, startet et band'."
+  },
+  {
+    "artist": "David Bowie",
+    "title": "Heroes",
+    "year": 1977,
+    "spotifyId": "7Jh1bpe76CNTCgdgAdBw4Z",
+    "albumArtUrl": "",
+    "duration_ms": 371026,
+    "genres": [
+      "rock",
+      "70s",
+      "art rock"
+    ],
+    "trivia": "Inspirert av et kyssende par produsent Tony Visconti så ved Berlinmuren. Bowie avslørte først mange år senere at paret var Visconti selv og hans elskerinne."
+  },
+  {
+    "artist": "Kraftwerk",
+    "title": "The Model",
+    "year": 1978,
+    "spotifyId": "1FL9DHDSED6lxNMDJUJQvB",
+    "albumArtUrl": "",
+    "duration_ms": 222146,
+    "genres": [
+      "electronic",
+      "70s",
+      "synth-pop"
+    ],
+    "trivia": "Sangen ble en overraskende nummer 1-hit i Storbritannia i 1982, fire år etter den først ble utgitt."
+  },
+  {
+    "artist": "The Clash",
+    "title": "London Calling",
+    "year": 1979,
+    "spotifyId": "124Y9LPRCAz3q2OP0iCvcJ",
+    "albumArtUrl": "",
+    "duration_ms": 199960,
+    "genres": [
+      "punk",
+      "70s",
+      "rock"
+    ],
+    "trivia": "Albumcoveret er en hyllest til Elvis Presleys debutalbum, men med Paul Simonon som knuser bassgitaren sin på scenen."
+  },
+  {
+    "artist": "Joy Division",
+    "title": "Love Will Tear Us Apart",
+    "year": 1980,
+    "spotifyId": "2JO3HwMRPeya8bXbtbyPcf",
+    "albumArtUrl": "",
+    "duration_ms": 204893,
+    "genres": [
+      "post-punk",
+      "80s",
+      "new wave"
+    ],
+    "trivia": "Sangen ble utgitt måneden etter vokalist Ian Curtis' selvmord. 'Love Will Tear Us Apart' er inngravert på gravsteinen hans."
+  },
+  {
+    "artist": "Talking Heads",
+    "title": "Once in a Lifetime",
+    "year": 1980,
+    "spotifyId": "1Tr4K5MU5XYE44umXGDndd",
+    "albumArtUrl": "",
+    "duration_ms": 259666,
+    "genres": [
+      "new wave",
+      "80s",
+      "art rock"
+    ],
+    "trivia": "Den ikoniske 'hakkete' dansen til David Byrne i musikkvideoen var inspirert av bevegelser fra epileptikere og ulike religiøse ritualer."
+  },
+  {
+    "artist": "The Smiths",
+    "title": "There Is a Light That Never Goes Out",
+    "year": 1986,
+    "spotifyId": "0WQiDwKJclirSYG9v5tayI",
+    "albumArtUrl": "",
+    "duration_ms": 242586,
+    "genres": [
+      "indie",
+      "80s",
+      "alternative rock"
+    ],
+    "trivia": "Plateselskapet ville opprinnelig ikke utgi den som singel, men den har siden blitt en av bandets mest elskede sanger."
+  },
+  {
+    "artist": "Kate Bush",
+    "title": "Running Up That Hill (A Deal With God)",
+    "year": 1985,
+    "spotifyId": "1PtQJZVZIdWIYdARpZRDFO",
+    "albumArtUrl": "",
+    "duration_ms": 300840,
+    "genres": [
+      "art pop",
+      "80s",
+      "new wave"
+    ],
+    "trivia": "Sangen fikk en enorm renessanse og toppet listene verden over i 2022, 37 år etter utgivelsen, takket være TV-serien 'Stranger Things'."
+  },
+  {
+    "artist": "Public Enemy",
+    "title": "Fight The Power",
+    "year": 1989,
+    "spotifyId": "1yo16b3u0lptm6Cs7lx4AD",
+    "albumArtUrl": "",
+    "duration_ms": 286266,
+    "genres": [
+      "hip-hop",
+      "80s",
+      "political hip-hop"
+    ],
+    "trivia": "Sangen ble skrevet på bestilling fra regissør Spike Lee for filmen 'Do the Right Thing' og spilles 15 ganger i løpet av filmen."
+  },
+  {
+    "artist": "Massive Attack",
+    "title": "Unfinished Sympathy",
+    "year": 1991,
+    "spotifyId": "6OKUMxI7u6p3c4ViM8IXIx",
+    "albumArtUrl": "",
+    "duration_ms": 308440,
+    "genres": [
+      "trip-hop",
+      "90s",
+      "electronic"
+    ],
+    "trivia": "Musikkvideoen, som består av ett eneste, kontinuerlig opptak, ble filmet på West Pico Boulevard i Los Angeles."
+  },
+  {
+    "artist": "Jeff Buckley",
+    "title": "Hallelujah",
+    "year": 1994,
+    "spotifyId": "3pRaLNL3b8x5uBOcsgvdqM",
+    "albumArtUrl": "",
+    "duration_ms": 415080,
+    "genres": [
+      "alternative rock",
+      "90s",
+      "folk"
+    ],
+    "trivia": "Selv om den er skrevet av Leonard Cohen, er det Buckleys versjon som er den mest kjente. Han lærte den fra en coverversjon av John Cale."
+  },
+  {
+    "artist": "Pulp",
+    "title": "Common People",
+    "year": 1995,
+    "spotifyId": "2fXKyAyPrEa24c6PJyqznF",
+    "albumArtUrl": "",
+    "duration_ms": 351133,
+    "genres": [
+      "britpop",
+      "90s",
+      "indie"
+    ],
+    "trivia": "Jarvis Cocker skal ha blitt inspirert til å skrive sangen etter å ha møtt en gresk kunststudent ved Central Saint Martins College i London."
+  },
+  {
+    "artist": "Radiohead",
+    "title": "Paranoid Android",
+    "year": 1997,
+    "spotifyId": "6LgJvl0Xdtc73RJ1mmpotq",
+    "albumArtUrl": "",
+    "duration_ms": 387213,
+    "genres": [
+      "alternative rock",
+      "90s",
+      "art rock"
+    ],
+    "trivia": "Den over 6 minutter lange sangen består av fire distinkte deler, og bandet beskrev den som et forsøk på å smelte sammen DJ Shadow og The Beatles."
+  },
+  {
+    "artist": "Björk",
+    "title": "Jóga",
+    "year": 1997,
+    "spotifyId": "20ZvzoDSefcZo6bj10jgGC",
+    "albumArtUrl": "",
+    "duration_ms": 309066,
+    "genres": [
+      "electronic",
+      "90s",
+      "art pop",
+      "trip-hop"
+    ],
+    "trivia": "Sangen er en dedikasjon til hennes beste venninne, Jóga, og beskriver det islandske landskapet. Björk kaller den en 'nasjonalsang'."
+  },
+  {
+    "artist": "D'Angelo",
+    "title": "Untitled (How Does It Feel)",
+    "year": 2000,
+    "spotifyId": "4oPNN7syJYSjzDhRerF966",
+    "albumArtUrl": "",
+    "duration_ms": 430533,
+    "genres": [
+      "neo-soul",
+      "00s",
+      "r&b"
+    ],
+    "trivia": "Musikkvideoen, som viser en naken D'Angelo fra livet og opp, ble en sensasjon, men gjorde artisten så ukomfortabel at han trakk seg tilbake i flere år."
+  },
+  {
+    "artist": "The Strokes",
+    "title": "Last Nite",
+    "year": 2001,
+    "spotifyId": "7kzKAuUzOITUauHAhoMoxA",
+    "albumArtUrl": "",
+    "duration_ms": 193426,
+    "genres": [
+      "indie rock",
+      "00s",
+      "garage rock revival"
+    ],
+    "trivia": "Gitar-introen er sterkt inspirert av 'American Girl' av Tom Petty and the Heartbreakers. The Strokes spurte aldri om lov, men Petty syntes det var morsomt."
+  },
+  {
+    "artist": "Röyksopp",
+    "title": "Eple",
+    "year": 2001,
+    "spotifyId": "0Zw4llKeB35SIKASy1aLtV",
+    "albumArtUrl": "",
+    "duration_ms": 217640,
+    "genres": [
+      "electronic",
+      "00s",
+      "downtempo",
+      "norsk"
+    ],
+    "trivia": "Sangen sampler 'You're as Right as Rain' av Bob James. Navnet 'Eple' er rett og slett det norske ordet for 'apple'."
+  },
+  {
+    "artist": "Missy Elliott",
+    "title": "Work It",
+    "year": 2002,
+    "spotifyId": "3jagJCUbdqhDSPuxP8cAqF",
+    "albumArtUrl": "",
+    "duration_ms": 263133,
+    "genres": [
+      "hip-hop",
+      "00s"
+    ],
+    "trivia": "Den berømte baklengs-linjen 'I put my thing down, flip it and reverse it' ble til ved et uhell da produsent Timbaland trykket feil på miksebordet."
+  },
+  {
+    "artist": "Johnny Cash",
+    "title": "Hurt",
+    "year": 2002,
+    "spotifyId": "28cnXtME493VX9NOw9cIUh",
+    "albumArtUrl": "",
+    "duration_ms": 218053,
+    "genres": [
+      "country",
+      "00s",
+      "folk"
+    ],
+    "trivia": "Sangen er en cover av en Nine Inch Nails-låt. Trent Reznor (fra NIN) var først skeptisk, men ble dypt rørt og sa 'den sangen er ikke min lenger'."
+  },
+  {
+    "artist": "Amy Winehouse",
+    "title": "Rehab",
+    "year": 2006,
+    "spotifyId": "1L5tZi0izXsi5Kk5OJf4W0",
+    "albumArtUrl": "",
+    "duration_ms": 214466,
+    "genres": [
+      "soul",
+      "00s",
+      "r&b"
+    ],
+    "trivia": "Sangen er selvbiografisk og handler om da managementet hennes prøvde å få henne på rehabilitering. Hun nektet, med farens støtte."
+  },
+  {
+    "artist": "LCD Soundsystem",
+    "title": "All My Friends",
+    "year": 2007,
+    "spotifyId": "2Ud3deeqLAG988pfW0Kwcl",
+    "albumArtUrl": "",
+    "duration_ms": 462653,
+    "genres": [
+      "indie",
+      "00s",
+      "electronic",
+      "dance-punk"
+    ],
+    "trivia": "Sangen består av ett enkelt, repeterende pianoriff som bygger seg opp i over syv minutter. Pitchfork kåret den til den nest beste sangen på 2000-tallet."
+  },
+  {
+    "artist": "Bon Iver",
+    "title": "Holocene",
+    "year": 2011,
+    "spotifyId": "4fbvXwMTXPWaFyaMWUm9CR",
+    "albumArtUrl": "",
+    "duration_ms": 342626,
+    "genres": [
+      "indie folk",
+      "10s"
+    ],
+    "trivia": "Tittelen refererer til en geologisk epoke, men også til en bar i Portland der Justin Vernon følte seg liten og ubetydelig."
+  },
+  {
+    "artist": "Frank Ocean",
+    "title": "Pyramids",
+    "year": 2012,
+    "spotifyId": "4QhWbupniDd44EDtnh2bFJ",
+    "albumArtUrl": "",
+    "duration_ms": 592533,
+    "genres": [
+      "r&b",
+      "10s",
+      "alternative r&b"
+    ],
+    "trivia": "Den nesten 10 minutter lange sangen forteller to separate historier, en om Kleopatra i oldtidens Egypt og en om en stripper i moderne tid."
+  },
+  {
+    "artist": "Tame Impala",
+    "title": "Let It Happen",
+    "year": 2015,
+    "spotifyId": "2X485T9Z5Ly0xyaghN73ed",
+    "albumArtUrl": "",
+    "duration_ms": 467546,
+    "genres": [
+      "psychedelic rock",
+      "10s",
+      "indie"
+    ],
+    "trivia": "Midt i sangen er det en seksjon der lyden 'hopper i anlegget'. Dette var en feil i lydprogrammet, men Kevin Parker likte det så godt at han beholdt det."
+  },
+  {
+    "artist": "Kendrick Lamar",
+    "title": "Alright",
+    "year": 2015,
+    "spotifyId": "3iVcZ5G6tvkXZkZKlMpIUs",
+    "albumArtUrl": "",
+    "duration_ms": 219333,
+    "genres": [
+      "hip-hop",
+      "10s",
+      "conscious hip-hop"
+    ],
+    "trivia": "Sangen ble en uoffisiell hymne for Black Lives Matter-bevegelsen og ble ropt i kor under protestmarsjer over hele USA."
+  },
+  {
+    "artist": "Susanne Sundfør",
+    "title": "Delirious",
+    "year": 2015,
+    "spotifyId": "4VvqxWMsdN1DlgWNi5SiXJ",
+    "albumArtUrl": "",
+    "duration_ms": 296813,
+    "genres": [
+      "art pop",
+      "10s",
+      "electronic",
+      "norsk"
+    ],
+    "trivia": "Sundfør beskriver sangen som et forsøk på å lage en 'voldelig poplåt' om hevn, inspirert av en stalker-opplevelse."
+  },
+  {
+    "artist": "Childish Gambino",
+    "title": "This Is America",
+    "year": 2018,
+    "spotifyId": "0b9oOr2ZgvyQu88wzixux9",
+    "albumArtUrl": "",
+    "duration_ms": 225773,
+    "genres": [
+      "hip-hop",
+      "10s",
+      "trap"
+    ],
+    "trivia": "Musikkvideoen, regissert av Hiro Murai, er fullpakket med symbolikk om våpenvold, rasisme og distraksjoner i amerikansk kultur."
+  },
+  {
+    "artist": "Rosalía",
+    "title": "MALAMENTE - Cap.1: Augurio",
+    "year": 2018,
+    "spotifyId": "5zOAudPQIs5U8zP6LQGHmH",
+    "albumArtUrl": "",
+    "duration_ms": 150000,
+    "genres": [
+      "flamenco",
+      "10s",
+      "pop",
+      "spansk"
+    ],
+    "trivia": "Sangen kombinerer tradisjonell spansk flamenco med moderne trap-beats, og katapulterte Rosalía til internasjonal stjernestatus."
+  },
+  {
+    "artist": "FKA twigs",
+    "title": "cellophane",
+    "year": 2019,
+    "spotifyId": "3VwZqgfrM3xb1usuLprkTu",
+    "albumArtUrl": "",
+    "duration_ms": 204360,
+    "genres": [
+      "art pop",
+      "10s",
+      "electronic"
+    ],
+    "trivia": "For den prisvinnende musikkvideoen trente FKA twigs i ett år for å bli en profesjonell poledanser."
+  },
+  {
+    "artist": "James Brown",
+    "title": "Get Up (I Feel Like Being a) Sex Machine",
+    "year": 1970,
+    "spotifyId": "71sPm8uNpMxEvVZuOCqvMk",
+    "albumArtUrl": "",
+    "duration_ms": 315666,
+    "genres": [
+      "funk",
+      "70s",
+      "soul"
+    ],
+    "trivia": "Sangen er kjent for sin improviserte dialog mellom James Brown og Bobby Byrd, og ble spilt inn på under to 'takes'."
+  },
+  {
+    "artist": "Marvin Gaye",
+    "title": "What's Going On",
+    "year": 1971,
+    "spotifyId": "7ro3Wru6pHfSUYTh8U0snG",
+    "albumArtUrl": "",
+    "duration_ms": 232133,
+    "genres": [
+      "soul",
+      "70s",
+      "r&b"
+    ],
+    "trivia": "Motown-sjef Berry Gordy nektet først å gi ut sangen fordi han mente den var for politisk og ikke kommersiell nok."
+  },
+  {
+    "artist": "Joni Mitchell",
+    "title": "A Case of You",
+    "year": 1971,
+    "spotifyId": "7shVwhUdVbHpykOfbzvDc1",
+    "albumArtUrl": "",
+    "duration_ms": 263400,
+    "genres": [
+      "folk",
+      "70s"
+    ],
+    "trivia": "Sangen inneholder en referanse til Canadas nasjonalsang og spilles på en appalachian dulcimer, et strengeinstrument."
+  },
+  {
+    "artist": "Led Zeppelin",
+    "title": "Kashmir",
+    "year": 1975,
+    "spotifyId": "6Vjk8MNXpQpi0F4BefdTyq",
+    "albumArtUrl": "",
+    "duration_ms": 508133,
+    "genres": [
+      "hard rock",
+      "70s",
+      "psychedelic rock"
+    ],
+    "trivia": "Til tross for navnet, ble teksten skrevet av Robert Plant under en kjøretur gjennom den sørlige ørkenen i Marokko."
+  },
+  {
+    "artist": "Stevie Wonder",
+    "title": "Superstition",
+    "year": 1972,
+    "spotifyId": "4N0TP4Rmj6QQezWV88ARNJ",
+    "albumArtUrl": "",
+    "duration_ms": 267293,
+    "genres": [
+      "funk",
+      "70s",
+      "soul"
+    ],
+    "trivia": "Sangen ble opprinnelig skrevet for gitarist Jeff Beck som takk for hans bidrag på 'Talking Book'-albumet."
+  },
+  {
+    "artist": "Pink Floyd",
+    "title": "Comfortably Numb",
+    "year": 1979,
+    "spotifyId": "5HNCy40Ni5BZJFw1TKzRsC",
+    "albumArtUrl": "",
+    "duration_ms": 383133,
+    "genres": [
+      "progressive rock",
+      "70s",
+      "rock"
+    ],
+    "trivia": "Gitarsoloen av David Gilmour blir av mange regnet som en av de beste i rockehistorien."
+  },
+  {
+    "artist": "Blondie",
+    "title": "Heart of Glass",
+    "year": 1978,
+    "spotifyId": "4v2rkl1mC3zVAz0nXMx9r4",
+    "albumArtUrl": "",
+    "duration_ms": 353866,
+    "genres": [
+      "new wave",
+      "70s",
+      "disco"
+    ],
+    "trivia": "En tidligere, mer reggae-inspirert versjon av sangen, kalt 'Once I Had a Love', ble spilt inn av bandet allerede i 1975."
+  },
+  {
+    "artist": "The Police",
+    "title": "Roxanne",
+    "year": 1978,
+    "spotifyId": "530Nh8H6UdeIZmxf9y7NXl",
+    "albumArtUrl": "",
+    "duration_ms": 191946,
+    "genres": [
+      "new wave",
+      "70s",
+      "reggae rock"
+    ],
+    "trivia": "Den velkjente pianoklangen i starten var et uhell. Sting satte seg ved et uhell på et piano i studioet, og bandet bestemte seg for å beholde lyden."
+  },
+  {
+    "artist": "Prince",
+    "title": "When Doves Cry",
+    "year": 1984,
+    "spotifyId": "51H2y6YrNNXcy3dfc3qSbA",
+    "albumArtUrl": "",
+    "duration_ms": 352546,
+    "genres": [
+      "pop",
+      "80s",
+      "funk"
+    ],
+    "trivia": "Sangen er svært uvanlig for en stor pophit fordi den ikke har noen basslinje. Prince fjernet den i siste liten fordi han mente den var for konvensjonell."
+  },
+  {
+    "artist": "New Order",
+    "title": "Blue Monday",
+    "year": 1983,
+    "spotifyId": "6hHc7Pks7wtBIW8Z6A0iFq",
+    "albumArtUrl": "",
+    "duration_ms": 450413,
+    "genres": [
+      "synth-pop",
+      "80s",
+      "post-punk"
+    ],
+    "trivia": "Dette er den mestselgende 12-tommers singelen gjennom tidene. Platecoveret var så dyrt å produsere at plateselskapet tapte penger på hvert solgte eksemplar."
+  },
+  {
+    "artist": "U2",
+    "title": "With or Without You",
+    "year": 1987,
+    "spotifyId": "6ADSaE87h8Y3lccZlBJdXH",
+    "albumArtUrl": "",
+    "duration_ms": 296000,
+    "genres": [
+      "rock",
+      "80s"
+    ],
+    "trivia": "Gitareffekten 'Infinite Guitar' som The Edge bruker, ble oppfunnet av gitaristen Michael Brook."
+  },
+  {
+    "artist": "Guns N' Roses",
+    "title": "Sweet Child o' Mine",
+    "year": 1987,
+    "spotifyId": "7snQQk1zcKl8gZ92AnueZW",
+    "albumArtUrl": "",
+    "duration_ms": 356106,
+    "genres": [
+      "hard rock",
+      "80s"
+    ],
+    "trivia": "Det berømte gitar-riffet i starten var en oppvarmingsøvelse for gitarist Slash, som han spilte på spøk."
+  },
+  {
+    "artist": "Beastie Boys",
+    "title": "Sabotage",
+    "year": 1994,
+    "spotifyId": "0Puj4YlTm6xNzDDADXHMI9",
+    "albumArtUrl": "",
+    "duration_ms": 178973,
+    "genres": [
+      "rap rock",
+      "90s",
+      "alternative rock"
+    ],
+    "trivia": "Musikkvideoen, regissert av Spike Jonze, er en parodi på 70-tallets politiserier som 'Starsky & Hutch'."
+  },
+  {
+    "artist": "Portishead",
+    "title": "Glory Box",
+    "year": 1994,
+    "spotifyId": "3Ty7OTBNSigGEpeW2PqcsC",
+    "albumArtUrl": "",
+    "duration_ms": 306933,
+    "genres": [
+      "trip-hop",
+      "90s"
+    ],
+    "trivia": "Sangen sampler 'Ike's Rap II' av Isaac Hayes, samme sample som er brukt i 'I'm a Hustla' av Cassidy og 'Hell Is Round the Corner' av Tricky."
+  },
+  {
+    "artist": "2Pac",
+    "title": "Changes",
+    "year": 1998,
+    "spotifyId": "1ofhfV90EnYhEr7Un2fWiv",
+    "albumArtUrl": "",
+    "duration_ms": 269000,
+    "genres": [
+      "hip-hop",
+      "90s"
+    ],
+    "trivia": "Sangen ble utgitt posthumt og sampler 'The Way It Is' av Bruce Hornsby and the Range."
+  },
+  {
+    "artist": "The Notorious B.I.G.",
+    "title": "Juicy",
+    "year": 1994,
+    "spotifyId": "5ByAIlEEnxYdvpnezg7HTX",
+    "albumArtUrl": "",
+    "duration_ms": 302133,
+    "genres": [
+      "hip-hop",
+      "90s"
+    ],
+    "trivia": "Produsent Pete Rock lagde den originale beaten med en sample fra 'Juicy Fruit' av Mtume, men Puff Daddy gjenskapte den med andre musikere for å unngå rettighetsproblemer."
+  },
+  {
+    "artist": "Aphex Twin",
+    "title": "Windowlicker",
+    "year": 1999,
+    "spotifyId": "60Pe9j2pCBa4Zp4ztf5nhd",
+    "albumArtUrl": "",
+    "duration_ms": 367240,
+    "genres": [
+      "idm",
+      "90s",
+      "electronic"
+    ],
+    "trivia": "Den groteske og humoristiske musikkvideoen, regissert av Chris Cunningham, er over 10 minutter lang og er en parodi på amerikanske gangster-rap videoer."
+  },
+  {
+    "artist": "Sigur Rós",
+    "title": "Svefn-g-englar",
+    "year": 1999,
+    "spotifyId": "07eGxuz8bL6QMsRqEe1Adu",
+    "albumArtUrl": "",
+    "duration_ms": 604600,
+    "genres": [
+      "post-rock",
+      "90s",
+      "ambient"
+    ],
+    "trivia": "Sangen er kjent for bruken av en cello-bue på en elektrisk gitar og vokal på 'Hopelandic', et oppdiktet språk."
+  },
+  {
+    "artist": "The White Stripes",
+    "title": "Seven Nation Army",
+    "year": 2003,
+    "spotifyId": "03OGe1S2a7i35BmuKbWaHk",
+    "albumArtUrl": "",
+    "duration_ms": 232106,
+    "genres": [
+      "garage rock",
+      "00s",
+      "alternative rock"
+    ],
+    "trivia": "Det berømte riffet spilles ikke på en bassgitar, men på en halvakustisk gitar med en pitch shift-pedal som senker tonen en oktav."
+  },
+  {
+    "artist": "Kanye West",
+    "title": "Runaway",
+    "year": 2010,
+    "spotifyId": "3DK6m7It6Pw857FcQftMds",
+    "albumArtUrl": "",
+    "duration_ms": 547986,
+    "genres": [
+      "hip-hop",
+      "10s",
+      "art pop"
+    ],
+    "trivia": "Sangen avsluttes med en tre minutter lang, forvrengt vokal-solo gjennom en Auto-Tune-effekt, ment å representere manglende evne til å kommunisere."
+  },
+  {
+    "artist": "M83",
+    "title": "Midnight City",
+    "year": 2011,
+    "spotifyId": "1eyzqe2QqGZUmfcPZtrIyt",
+    "albumArtUrl": "",
+    "duration_ms": 243786,
+    "genres": [
+      "synth-pop",
+      "10s",
+      "indie"
+    ],
+    "trivia": "Den ikoniske saksofon-soloen på slutten ble spilt av James King fra bandet Fitz and The Tantrums."
+  },
+  {
+    "artist": "Lana Del Rey",
+    "title": "Video Games",
+    "year": 2011,
+    "spotifyId": "0fBSs3fRoh1yJcne77fdu9",
+    "albumArtUrl": "",
+    "duration_ms": 282106,
+    "genres": [
+      "sadcore",
+      "10s",
+      "pop"
+    ],
+    "trivia": "Sangen og den selvlagde musikkvideoen ble en viral sensasjon og førte til en intens debatt om hennes 'autentisitet'."
+  },
+  {
+    "artist": "Todd Terje",
+    "title": "Inspector Norse",
+    "year": 2012,
+    "spotifyId": "1NHd4UVxT5d5EGYzlDq17T",
+    "albumArtUrl": "",
+    "duration_ms": 418133,
+    "genres": [
+      "nu-disco",
+      "10s",
+      "electronic",
+      "norsk"
+    ],
+    "trivia": "Tittelen er et ordspill på den franske tegneseriefiguren 'Inspector Clouseau'. Sangen ble av Pitchfork kåret til den beste låten i 2012."
+  },
+  {
+    "artist": "Arctic Monkeys",
+    "title": "Do I Wanna Know?",
+    "year": 2013,
+    "spotifyId": "5FVd6KXrgO9B3JPmC8OPst",
+    "albumArtUrl": "",
+    "duration_ms": 272373,
+    "genres": [
+      "indie rock",
+      "10s"
+    ],
+    "trivia": "Musikkvideoen, som starter med en enkel lydbølge, var den første videoen som nådde en milliard visninger på YouTube for et band signert på et uavhengig plateselskap."
+  },
+  {
+    "artist": "Sufjan Stevens",
+    "title": "Fourth of July",
+    "year": 2015,
+    "spotifyId": "5Qnrgqy1pAm9GyNQOgyVFz",
+    "albumArtUrl": "",
+    "duration_ms": 279533,
+    "genres": [
+      "indie folk",
+      "10s"
+    ],
+    "trivia": "Sangen er en samtale med hans avdøde mor, der han avslutter de fleste linjer med 'we're all gonna die'."
+  },
+  {
+    "artist": "David Bowie",
+    "title": "Lazarus",
+    "year": 2016,
+    "spotifyId": "3Vn9oCZbdI1EMO7jxdz2Rc",
+    "albumArtUrl": "",
+    "duration_ms": 262159,
+    "genres": [
+      "art rock",
+      "10s"
+    ],
+    "trivia": "Sangen ble utgitt kun tre dager før hans død, og videoen, der han ligger i en sykeseng, blir sett på som hans planlagte svanesang."
+  },
+  {
+    "artist": "Solange",
+    "title": "Cranes in the Sky",
+    "year": 2016,
+    "spotifyId": "48EjSdYh8wz2gBxxqzrsLe",
+    "albumArtUrl": "",
+    "duration_ms": 250546,
+    "genres": [
+      "alternative r&b",
+      "10s",
+      "soul"
+    ],
+    "trivia": "Solange begynte å skrive sangen åtte år før den ble utgitt, og den handler om å prøve å distrahere seg fra smerte."
+  },
+  {
+    "artist": "Lorde",
+    "title": "Green Light",
+    "year": 2017,
+    "spotifyId": "3FQ26GroLnhQEja48FKYqT",
+    "albumArtUrl": "",
+    "duration_ms": 234640,
+    "genres": [
+      "art pop",
+      "10s",
+      "electropop"
+    ],
+    "trivia": "Lorde beskriver sangen som en blanding av 'eufori og hjertesorg', og den uvanlige pianointroen representerer forvirring."
+  },
+  {
+    "artist": "Tyler, The Creator",
+    "title": "EARFQUAKE",
+    "year": 2019,
+    "spotifyId": "5hVghJ4KaYES3BFUATCYn0",
+    "albumArtUrl": "",
+    "duration_ms": 190066,
+    "genres": [
+      "hip-hop",
+      "10s",
+      "neo-soul"
+    ],
+    "trivia": "Sangen ble angivelig tilbudt både Justin Bieber og Rihanna, som begge takket nei, før Tyler bestemte seg for å bruke den selv."
+  },
+  {
+    "artist": "Billie Eilish",
+    "title": "everything i wanted",
+    "year": 2019,
+    "spotifyId": "3ZCTVFBt2Brf31RLEnCkWJ",
+    "albumArtUrl": "",
+    "duration_ms": 245425,
+    "genres": [
+      "pop",
+      "10s",
+      "electropop"
+    ],
+    "trivia": "Sangen er basert på et mareritt Billie hadde, og handler om det sterke båndet mellom henne og broren Finneas."
+  }
+]
