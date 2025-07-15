@@ -1,4 +1,4 @@
-/* Version: #29 */
+/* Version: #53 */
 /* === GENERELT === */
 * {
     box-sizing: border-box;
@@ -231,8 +231,44 @@ button:disabled {
     width: 100%;
 }
 
+/* === SPILL-SLUTT === */
+#final-results-list {
+    margin: 30px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.final-player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 1.2em;
+}
+
+.final-player-item.winner {
+    background-color: #FFD700 !important; /* Gullfarge for vinneren */
+    color: #000;
+    font-weight: bold;
+}
+
+.final-player-item.winner::before {
+    content: '👑'; /* Krone-emoji for vinneren */
+    margin-right: 15px;
+    font-size: 1.5em;
+}
+
+#play-again-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+}
+
+
 /* === UTILITIES === */
 .hidden {
     display: none;
 }
-/* Version: #29 */
+/* Version: #53 */
