@@ -1,4 +1,4 @@
-/* Version: #53 */
+/* Version: #57 */
 /* === GENERELT === */
 * {
     box-sizing: border-box;
@@ -193,6 +193,21 @@ button:disabled {
     margin-bottom: 20px;
 }
 
+/* NYTT: Styling for hopp over-knapp */
+.skip-song-btn {
+    background-color: transparent;
+    border: 1px solid #888;
+    color: #888;
+    font-size: 12px;
+    padding: 5px 10px;
+    margin-top: 10px;
+}
+.skip-song-btn:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+
 /* === RESULTATVISNING === */
 .result-album-art {
     width: 150px;
@@ -271,4 +286,4 @@ button:disabled {
 .hidden {
     display: none;
 }
-/* Version: #53 */
+/* Version: #57 */
