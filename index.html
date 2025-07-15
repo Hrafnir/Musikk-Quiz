@@ -1,4 +1,4 @@
-<!-- Version: #52 -->
+<!-- Version: #55 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -31,12 +31,14 @@
 
             <div id="game-options-section">
                 <h2>Innstillinger</h2>
-                <label for="song-count-select">Antall sanger per spiller:</label>
-                <select id="song-count-select">
-                    <option value="5">5</option>
+                <!-- KORRIGERT: Endret fra "per spiller" til "totalt" -->
+                <label for="total-song-select">Totalt antall sanger:</label>
+                <select id="total-song-select">
                     <option value="10">10</option>
                     <option value="20">20</option>
-                    <option value="Infinity">Uendelig</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="Infinity">Alle sanger</option>
                 </select>
             </div>
 
@@ -66,4 +68,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #52 -->
+<!-- Version: #55 -->
