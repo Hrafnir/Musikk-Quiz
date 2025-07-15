@@ -1,4 +1,4 @@
-<!-- Version: #45 -->
+<!-- Version: #52 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -42,7 +42,6 @@
 
             <button id="start-game-btn" disabled>Start Spill</button>
 
-            <!-- NYTT: Lenke til verifiseringsverktøy -->
             <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
                 <a href="verifier.html" style="color: #b3b3b3; text-decoration: none;">Gå til Sang-Verifiserer</a>
             </div>
@@ -56,12 +55,15 @@
 
         <!-- SKJERM 3: SPILL-SLUTT -->
         <div id="game-over" class="hidden">
-            <h2>Spillet er over!</h2>
-            <!-- Innhold for poengoversikt kommer her -->
+            <h1 id="game-over-title">Spillet er over!</h1>
+            <div id="final-results-list">
+                <!-- Rangert liste over spillere kommer her -->
+            </div>
+            <button id="play-again-btn">Spill på nytt</button>
         </div>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #45 -->
+<!-- Version: #52 -->
