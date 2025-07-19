@@ -1,4 +1,4 @@
-<!-- Version: #55 -->
+<!-- Version: #62 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -9,63 +9,32 @@
 </head>
 <body>
 
+    <!-- Spotify Web Playback SDK -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+
     <div id="app-container">
-        <!-- SKJERM 1: SPILL-OPPSETT -->
-        <div id="game-setup">
+        
+        <!-- SKJERM 1: INNLOGGING (Vises hvis ikke innlogget) -->
+        <div id="login-screen">
             <h1>Spotify Årstalls-Quiz</h1>
-            
-            <div id="player-setup-section">
-                <h2>Legg til spillere</h2>
-                <form id="player-setup-form">
-                    <input type="text" id="player-name-input" placeholder="Spillernavn" required>
-                    <input type="color" id="player-color-input" value="#1DB954">
-                    <button type="submit">Legg til</button>
-                </form>
-                <div id="color-palette"></div>
-            </div>
-
-            <div id="players-list-container">
-                <h3>Spillere:</h3>
-                <div id="players-list"></div>
-            </div>
-
-            <div id="game-options-section">
-                <h2>Innstillinger</h2>
-                <!-- KORRIGERT: Endret fra "per spiller" til "totalt" -->
-                <label for="total-song-select">Totalt antall sanger:</label>
-                <select id="total-song-select">
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="30">30</option>
-                    <option value="50">50</option>
-                    <option value="Infinity">Alle sanger</option>
-                </select>
-            </div>
-
-            <button id="start-game-btn" disabled>Start Spill</button>
-
-            <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
-                <a href="verifier.html" style="color: #b3b3b3; text-decoration: none;">Gå til Sang-Verifiserer</a>
-            </div>
+            <p>Du må koble til din Spotify Premium-konto for å spille.</p>
+            <button id="login-btn">Logg inn med Spotify</button>
         </div>
 
-        <!-- SKJERM 2: SELVE SPILLET -->
+        <!-- SKJERM 2: SELVE SPILLET (Vises ETTER innlogging) -->
         <div id="game-screen" class="hidden">
-            <div id="scoreboard"></div>
-            <div id="round-container"></div>
+            <div id="main-content">
+                <h2>Innlogget!</h2>
+                <p>Spotify-spilleren er klar.</p>
+                <div id="player-device-id"></div>
+                <button id="test-play-btn">Test avspilling (a-ha)</button>
+            </div>
+            <!-- Poengtavle og runde-innhold vil bli lagt til her igjen senere -->
         </div>
 
-        <!-- SKJERM 3: SPILL-SLUTT -->
-        <div id="game-over" class="hidden">
-            <h1 id="game-over-title">Spillet er over!</h1>
-            <div id="final-results-list">
-                <!-- Rangert liste over spillere kommer her -->
-            </div>
-            <button id="play-again-btn">Spill på nytt</button>
-        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #55 -->
+<!-- Version: #62 -->
