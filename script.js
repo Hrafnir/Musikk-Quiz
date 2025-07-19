@@ -1,8 +1,8 @@
-/* Version: #69 */
+/* Version: #70 */
 // === CONFIGURATION ===
 const CLIENT_ID = '61939bcc94514b76bcdc268a7b258740';
-// KORRIGERT: Må matche nøyaktig det du har i Spotify Dashboard
-const REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/callback.html'; 
+// KORRIGERT TILBAKE: Vi prøver uten callback.html for å se om det er en innstilling vi har oversett.
+const REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/'; 
 const SCOPES = [
     'streaming',
     'user-read-email',
@@ -42,44 +42,50 @@ document.addEventListener('DOMContentLoaded', () => {
         playTrack('spotify:track:2WfaOiMkCvy7F5fcp2zZ8L');
     });
 
-    // Lytt etter melding fra callback-vinduet
-    window.addEventListener('message', (event) => {
-        if (event.origin !== window.location.origin) {
-            return;
-        }
-        const { type, token, error } = event.data;
-        if (type === 'spotify-auth') {
-            if (token) {
-                accessToken = token;
-                localStorage.setItem('spotify_access_token', accessToken);
-                console.log('Mottok Access Token fra callback!', accessToken);
-                handleSuccessfulLogin();
-            } else if (error) {
-                alert(`Innlogging feilet: ${error}`);
-            }
-        }
-    });
-
     handlePageLoad();
 });
+
 
 // === FUNCTIONS ===
 
 function handlePageLoad() {
-    accessToken = localStorage.getItem('spotify_access_token');
+    const hash = window.location.hash;
+    
+    if (hash) {
+        const params = new URLSearchParams(hash.substring(1));
+        const tokenFromUrl = params.get('access_token');
+        const error = params.get('error');
+
+        window.location.hash = "";
+
+        if (error) {
+            alert(`Innlogging feilet: ${error}`);
+            initializeUI(false);
+            return;
+        }
+
+        if (tokenFromUrl) {
+            accessToken = tokenFromUrl;
+            localStorage.setItem('spotify_access_token', accessToken);
+            console.log('Mottok Access Token fra URL!', accessToken);
+        }
+    }
+    
+    if (!accessToken) {
+        accessToken = localStorage.getItem('spotify_access_token');
+        if (accessToken) {
+            console.log('Fant Access Token i localStorage.');
+        }
+    }
+
     if (accessToken) {
-        console.log('Fant Access Token i localStorage.');
-        handleSuccessfulLogin();
+        initializeUI(true);
+        if (window.Spotify) {
+            initializeSpotifyPlayer();
+        }
     } else {
         console.log('Ingen Access Token funnet.');
         initializeUI(false);
-    }
-}
-
-function handleSuccessfulLogin() {
-    initializeUI(true);
-    if (window.Spotify) {
-        initializeSpotifyPlayer();
     }
 }
 
@@ -96,13 +102,9 @@ function initializeUI(isLoggedIn) {
 }
 
 function redirectToSpotifyLogin() {
-    console.log('Åpner Spotify innloggingsvindu...');
+    console.log('Omdirigerer til Spotify for innlogging...');
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES.join(' '))}`;
-    // Åpne i et popup-vindu for en bedre opplevelse
-    const width = 500, height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
-    window.open(authUrl, 'Spotify', `width=${width},height=${height},top=${top},left=${left}`);
+    window.location = authUrl; // Går tilbake til full side-redirect
 }
 
 function initializeSpotifyPlayer() {
@@ -160,4 +162,4 @@ async function playTrack(trackUri) {
         console.error('Nettverksfeil ved forsøk på avspilling:', error);
     }
 }
-/* Version: #69 */
+/* Version: #70 */
