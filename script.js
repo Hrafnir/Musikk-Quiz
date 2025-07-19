@@ -1,7 +1,6 @@
-/* Version: #71 */
+/* Version: #72 */
 // === CONFIGURATION ===
 const CLIENT_ID = '61939bcc94514b76bcdc268a7b258740';
-// VIKTIG: Denne MÅ matche det som står i Dashboardet ditt.
 const REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/'; 
 const SCOPES = [
     'streaming',
@@ -70,7 +69,7 @@ async function redirectToSpotifyLogin() {
 
     const authUrl = `https://accounts.spotify.com/authorize?` +
         `client_id=${CLIENT_ID}` +
-        `&response_type=code` + // Endret fra 'token'
+        `&response_type=code` +
         `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
         `&scope=${encodeURIComponent(SCOPES.join(' '))}` +
         `&code_challenge_method=S256` +
@@ -85,10 +84,8 @@ function handlePageLoad() {
     const code = params.get('code');
 
     if (code) {
-        // Vi har en autorisasjonskode, bytt den inn mot en access token
         console.log('Mottok autorisasjonskode fra Spotify. Henter access token...');
         fetchAccessToken(code);
-        // Fjern query-parametere fra URL
         window.history.pushState({}, document.title, window.location.pathname);
     } else {
         accessToken = localStorage.getItem('spotify_access_token');
@@ -203,4 +200,4 @@ async function playTrack(trackUri) {
         console.error('Nettverksfeil ved forsøk på avspilling:', error);
     }
 }
-/* Version: #71 */
+/* Version: #72 */
