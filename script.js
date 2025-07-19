@@ -1,6 +1,7 @@
-/* Version: #72 */
+/* Version: #73 */
 // === CONFIGURATION ===
 const CLIENT_ID = '61939bcc94514b76bcdc268a7b258740';
+// DEN ENE, SANNE URI. Denne må være 100% identisk med det som er lagret i Spotify Dashboard.
 const REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/'; 
 const SCOPES = [
     'streaming',
@@ -200,4 +201,4 @@ async function playTrack(trackUri) {
         console.error('Nettverksfeil ved forsøk på avspilling:', error);
     }
 }
-/* Version: #72 */
+/* Version: #73 */
