@@ -1,7 +1,8 @@
-/* Version: #65 */
+/* Version: #69 */
 // === CONFIGURATION ===
 const CLIENT_ID = '61939bcc94514b76bcdc268a7b258740';
-const REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/'; // VIKTIG: Må matche nøyaktig det du har i Spotify Dashboard
+// KORRIGERT: Må matche nøyaktig det du har i Spotify Dashboard
+const REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/callback.html'; 
 const SCOPES = [
     'streaming',
     'user-read-email',
@@ -15,10 +16,8 @@ let spotifyPlayer = null;
 let deviceId = null;
 
 // === SPOTIFY SDK INITIALIZATION ===
-// Denne må være globalt tilgjengelig for SDK-scriptet
 window.onSpotifyWebPlaybackSDKReady = () => {
     console.log('Spotify SDK er klar.');
-    // Vi initialiserer spilleren kun hvis/når vi har en token
     if (accessToken) {
         initializeSpotifyPlayer();
     }
@@ -30,17 +29,12 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM er fullstendig lastet. Starter app-logikk.');
 
-    // === DOM ELEMENTS (defineres NÅR DOM er klar) ===
-    const loginScreen = document.getElementById('login-screen');
-    const gameScreen = document.getElementById('game-screen');
     const loginBtn = document.getElementById('login-btn');
     const testPlayBtn = document.getElementById('test-play-btn');
-    const playerDeviceIdDiv = document.getElementById('player-device-id');
 
-    // Sjekk om vi har en knapp å feste lytter til
     if (!loginBtn) {
         console.error('FEIL: Fant ikke "login-btn". Sjekk index.html.');
-        return; // Stopp videre kjøring
+        return;
     }
 
     loginBtn.addEventListener('click', redirectToSpotifyLogin);
@@ -48,50 +42,44 @@ document.addEventListener('DOMContentLoaded', () => {
         playTrack('spotify:track:2WfaOiMkCvy7F5fcp2zZ8L');
     });
 
-    // Start resten av logikken
+    // Lytt etter melding fra callback-vinduet
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+        const { type, token, error } = event.data;
+        if (type === 'spotify-auth') {
+            if (token) {
+                accessToken = token;
+                localStorage.setItem('spotify_access_token', accessToken);
+                console.log('Mottok Access Token fra callback!', accessToken);
+                handleSuccessfulLogin();
+            } else if (error) {
+                alert(`Innlogging feilet: ${error}`);
+            }
+        }
+    });
+
     handlePageLoad();
 });
-
 
 // === FUNCTIONS ===
 
 function handlePageLoad() {
-    const hash = window.location.hash;
-    
-    if (hash) {
-        const params = new URLSearchParams(hash.substring(1));
-        const tokenFromUrl = params.get('access_token');
-        const error = params.get('error');
-
-        window.location.hash = "";
-
-        if (error) {
-            alert(`Innlogging feilet: ${error}`);
-            return;
-        }
-
-        if (tokenFromUrl) {
-            accessToken = tokenFromUrl;
-            localStorage.setItem('spotify_access_token', accessToken);
-            console.log('Mottok Access Token fra URL!', accessToken);
-        }
-    }
-    
-    if (!accessToken) {
-        accessToken = localStorage.getItem('spotify_access_token');
-        if (accessToken) {
-            console.log('Fant Access Token i localStorage.');
-        }
-    }
-
+    accessToken = localStorage.getItem('spotify_access_token');
     if (accessToken) {
-        initializeUI(true);
-        if (window.Spotify) {
-            initializeSpotifyPlayer();
-        }
+        console.log('Fant Access Token i localStorage.');
+        handleSuccessfulLogin();
     } else {
         console.log('Ingen Access Token funnet.');
         initializeUI(false);
+    }
+}
+
+function handleSuccessfulLogin() {
+    initializeUI(true);
+    if (window.Spotify) {
+        initializeSpotifyPlayer();
     }
 }
 
@@ -108,36 +96,35 @@ function initializeUI(isLoggedIn) {
 }
 
 function redirectToSpotifyLogin() {
-    console.log('Omdirigerer til Spotify for innlogging...');
+    console.log('Åpner Spotify innloggingsvindu...');
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES.join(' '))}`;
-    window.location = authUrl;
+    // Åpne i et popup-vindu for en bedre opplevelse
+    const width = 500, height = 600;
+    const left = (screen.width / 2) - (width / 2);
+    const top = (screen.height / 2) - (height / 2);
+    window.open(authUrl, 'Spotify', `width=${width},height=${height},top=${top},left=${left}`);
 }
 
 function initializeSpotifyPlayer() {
-    if (spotifyPlayer) {
-        console.log("Spilleren er allerede initialisert.");
-        return;
-    }
+    if (spotifyPlayer) return;
 
     const playerDeviceIdDiv = document.getElementById('player-device-id');
-
     spotifyPlayer = new Spotify.Player({
         name: 'MQuiz Spiller',
         getOAuthToken: cb => { cb(accessToken); },
         volume: 0.5
     });
 
-    spotifyPlayer.addListener('initialization_error', ({ message }) => { console.error('Initialization Error:', message); });
+    spotifyPlayer.addListener('initialization_error', ({ message }) => console.error('Init Error:', message));
     spotifyPlayer.addListener('authentication_error', ({ message }) => {
-        console.error('Authentication Error:', message);
+        console.error('Auth Error:', message);
         localStorage.removeItem('spotify_access_token');
         accessToken = null;
         alert('Innlogging utløpt. Vennligst logg inn på nytt.');
         initializeUI(false);
     });
-    spotifyPlayer.addListener('account_error', ({ message }) => { console.error('Account Error:', message); });
-    spotifyPlayer.addListener('playback_error', ({ message }) => { console.error('Playback Error:', message); });
-
+    spotifyPlayer.addListener('account_error', ({ message }) => console.error('Account Error:', message));
+    spotifyPlayer.addListener('playback_error', ({ message }) => console.error('Playback Error:', message));
     spotifyPlayer.addListener('ready', ({ device_id }) => {
         console.log('Spilleren er klar med Device ID:', device_id);
         deviceId = device_id;
@@ -145,9 +132,7 @@ function initializeSpotifyPlayer() {
     });
 
     spotifyPlayer.connect().then(success => {
-        if (success) {
-            console.log('Spotify Player er koblet til!');
-        }
+        if (success) console.log('Spotify Player er koblet til!');
     });
 }
 
@@ -175,4 +160,4 @@ async function playTrack(trackUri) {
         console.error('Nettverksfeil ved forsøk på avspilling:', error);
     }
 }
-/* Version: #65 */
+/* Version: #69 */
