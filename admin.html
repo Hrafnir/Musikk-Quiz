@@ -1,0 +1,53 @@
+<!-- Version: #96 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div id="app-container">
+        <h1>Adminpanel for Sanger</h1>
+        <p>Bruk dette skjemaet for å legge til nye sanger i databasen.</p>
+        
+        <form id="add-song-form" style="text-align: left;">
+            <label for="artist">Artist:</label>
+            <input type="text" id="artist" required>
+
+            <label for="title">Tittel:</label>
+            <input type="text" id="title" required>
+
+            <label for="year">Årstall:</label>
+            <input type="number" id="year" required>
+
+            <label for="spotifyId">Spotify ID:</label>
+            <input type="text" id="spotifyId" required>
+
+            <label for="albumArtUrl">URL til Album Cover (valgfritt):</label>
+            <input type="text" id="albumArtUrl">
+
+            <label for="trivia">Trivia (valgfritt):</label>
+            <textarea id="trivia" rows="3"></textarea>
+
+            <label for="genres">Sjangre (kommaseparert, f.eks. pop, 80s, norsk):</label>
+            <input type="text" id="genres">
+
+            <button type="submit" style="margin-top: 20px;">Lagre Sang i Databasen</button>
+        </form>
+
+        <div id="status-message" style="margin-top: 20px; font-weight: bold;"></div>
+
+        <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px; text-align: center;">
+            <a href="index.html" style="color: #b3b3b3; text-decoration: none;">Tilbake til Quizen</a>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
+<!-- Version: #96 -->
