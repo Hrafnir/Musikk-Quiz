@@ -1,4 +1,4 @@
-/* Version: #57 */
+/* Version: #78 */
 /* === GENERELT === */
 * {
     box-sizing: border-box;
@@ -19,8 +19,8 @@ body {
 
 #app-container {
     width: 100%;
-    max-width: 600px;
-    padding: 20px;
+    max-width: 500px;
+    padding: 40px;
     background-color: #1e1e1e;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
@@ -31,48 +31,15 @@ h1 {
     margin-bottom: 20px;
 }
 
-h2 {
-    margin-top: 30px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #444;
-    padding-bottom: 10px;
+p {
+    margin-bottom: 30px;
+    line-height: 1.5;
 }
 
-h3 {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    text-align: left;
-}
-
-hr {
-    border: none;
-    border-top: 1px solid #444;
-    margin: 20px 0;
-}
-
-/* === SKJEMA OG KNAPPER === */
-input[type="text"], input[type="number"], select {
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #555;
-    background-color: #333;
-    color: #fff;
-    font-size: 16px;
-    margin: 5px;
-}
-
-input[type="color"] {
-    height: 42px;
-    width: 42px;
-    padding: 2px;
-    border: none;
-    background-color: transparent;
-    vertical-align: middle;
-}
-
+/* === KNAPPER === */
 button {
-    padding: 10px 20px;
-    border-radius: 20px;
+    padding: 15px 30px;
+    border-radius: 50px; /* Mer avrundet for moderne utseende */
     border: none;
     background-color: #1DB954;
     color: #fff;
@@ -80,205 +47,20 @@ button {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.2s;
+    width: 100%;
 }
 
 button:hover {
     background-color: #1ed760;
 }
 
-button:disabled {
+#logout-btn {
+    margin-top: 20px;
     background-color: #555;
-    cursor: not-allowed;
 }
 
-#player-setup-form {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#start-game-btn {
-    margin-top: 30px;
-    width: 100%;
-    padding: 15px;
-    font-size: 18px;
-}
-
-/* === SPILLERLISTE === */
-#players-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.player-item {
-    display: flex;
-    align-items: center;
-    background-color: #282828;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.player-color-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    margin-right: 15px;
-    border: 2px solid #fff;
-}
-
-.player-name {
-    font-size: 18px;
-}
-
-/* === FARGEPALETT === */
-#color-palette {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.color-swatch {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid #fff;
-    transition: transform 0.1s ease-in-out;
-}
-
-.color-swatch:hover {
-    transform: scale(1.15);
-}
-
-/* === SPILLSKJERM === */
-#scoreboard {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-}
-
-.scoreboard-player {
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-weight: bold;
-    min-width: 100px;
-    color: #000;
-}
-
-#round-container {
-    padding: 20px;
-    background-color: #282828;
-    border-radius: 8px;
-}
-
-/* === RUNDE-INNHOLD === */
-#guess-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-#guess-form input {
-    width: 100%;
-}
-
-.play-song-btn {
-    padding: 15px 30px;
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-/* NYTT: Styling for hopp over-knapp */
-.skip-song-btn {
-    background-color: transparent;
-    border: 1px solid #888;
-    color: #888;
-    font-size: 12px;
-    padding: 5px 10px;
-    margin-top: 10px;
-}
-.skip-song-btn:hover {
-    background-color: #333;
-    color: #fff;
-}
-
-
-/* === RESULTATVISNING === */
-.result-album-art {
-    width: 150px;
-    height: 150px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-
-.result-title {
-    color: #1DB954;
-    border-bottom: none;
-    margin-top: 0;
-}
-
-.result-trivia {
-    font-style: italic;
-    color: #b3b3b3;
-    margin-top: 10px;
-}
-
-.result-details {
-    text-align: left;
-    margin: 15px 0;
-}
-
-.result-details p {
-    background-color: #333;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 8px;
-}
-
-#next-round-btn {
-    margin-top: 20px;
-    width: 100%;
-}
-
-/* === SPILL-SLUTT === */
-#final-results-list {
-    margin: 30px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.final-player-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border-radius: 5px;
-    font-size: 1.2em;
-}
-
-.final-player-item.winner {
-    background-color: #FFD700 !important; /* Gullfarge for vinneren */
-    color: #000;
-    font-weight: bold;
-}
-
-.final-player-item.winner::before {
-    content: '👑'; /* Krone-emoji for vinneren */
-    margin-right: 15px;
-    font-size: 1.5em;
-}
-
-#play-again-btn {
-    width: 100%;
-    padding: 15px;
-    font-size: 18px;
+#logout-btn:hover {
+    background-color: #777;
 }
 
 
@@ -286,4 +68,4 @@ button:disabled {
 .hidden {
     display: none;
 }
-/* Version: #57 */
+/* Version: #78 */
