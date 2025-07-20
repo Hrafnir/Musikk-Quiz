@@ -1,15 +1,16 @@
-/* Version: #80 */
+/* Version: #81 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// KORRIGERT: Riktig initialisering av Supabase-klienten
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
 // === DOM ELEMENTS ===
 const loginView = document.getElementById('auth-login');
 const loggedInView = document.getElementById('auth-loggedin');
-// KORRIGERT: Rettet ID fra 'login-btn' til 'google-login-btn'
 const googleLoginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const userEmailSpan = document.getElementById('user-email');
@@ -22,7 +23,7 @@ const userEmailSpan = document.getElementById('user-email');
  */
 async function signInWithGoogle() {
     console.log('Forsøker å logge inn med Google...');
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
     });
     if (error) {
@@ -36,7 +37,7 @@ async function signInWithGoogle() {
  */
 async function signOut() {
     console.log('Forsøker å logge ut...');
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
     if (error) {
         console.error('Feil under utlogging:', error);
     }
@@ -73,14 +74,14 @@ if (googleLoginBtn && logoutBtn) {
 }
 
 // Sjekk innloggingsstatus med en gang siden lastes
-supabase.auth.getSession().then(({ data: { session } }) => {
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
     console.log('Nåværende session:', session);
     updateUI(session?.user ?? null);
 });
 
 // Lytt etter endringer i innloggingsstatus (når bruker logger inn/ut)
-supabase.auth.onAuthStateChange((_event, session) => {
+supabaseClient.auth.onAuthStateChange((_event, session) => {
     console.log('Innloggingsstatus endret:', session);
     updateUI(session?.user ?? null);
 });
-/* Version: #80 */
+/* Version: #81 */
