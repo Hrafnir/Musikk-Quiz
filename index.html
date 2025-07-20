@@ -1,4 +1,4 @@
-<!-- Version: #77 -->
+<!-- Version: #86 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Spotify Web Playback SDK -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
 
@@ -24,9 +26,20 @@
         <div id="auth-loggedin" class="hidden">
             <h1>Velkommen!</h1>
             <p>Du er logget inn som: <strong id="user-email"></strong></p>
-            <div id="next-steps">
-                <!-- Her kommer "Koble til Spotify"-knappen senere -->
+            
+            <!-- NYTT: Seksjon for Spotify-tilkobling -->
+            <div id="spotify-connect-view">
+                <p>Koble til Spotify Premium for å kunne spille av musikk.</p>
+                <button id="spotify-login-btn">Koble til Spotify</button>
             </div>
+            
+            <!-- Vises når Spotify er tilkoblet -->
+            <div id="spotify-connected-view" class="hidden">
+                <p style="color: #1DB954;">✓ Spotify er tilkoblet.</p>
+                <!-- Testknapp for avspilling -->
+                <button id="test-play-btn">Test avspilling (a-ha)</button>
+            </div>
+
             <button id="logout-btn">Logg ut</button>
         </div>
 
@@ -35,4 +48,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #77 -->
+<!-- Version: #86 -->
