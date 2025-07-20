@@ -1,4 +1,4 @@
-/* Version: #106 */
+/* Version: #108 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
@@ -17,8 +17,8 @@ const tagsContainer = document.getElementById('tags-container');
  * Henter sjangre og tags fra databasen og bygger avkrysningsbokser
  */
 async function populateCheckboxes() {
-    // Hent sjangre
-    const { data: genres, error: genresError } = await supabaseClient.from('genres').select('id, name');
+    // KORRIGERT: Endret fra 'genres' til 'genre' for å matche databasen
+    const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
     if (genresError) {
         genresContainer.textContent = 'Kunne ikke laste sjangre.';
         console.error('Feil ved henting av sjangre:', genresError);
@@ -85,7 +85,12 @@ async function handleAddSong(event) {
 
     const selectedGenreIds = Array.from(document.querySelectorAll('input[name="genre"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedGenreIds.length > 0) {
-        const songGenresData = selectedGenreIds.map(genreId => ({ song_id: newSongId, genre_id: genreId }));
+        const songGenresData = selectedGenreIds.map(genreId => ({
+            song_id: newSongId,
+            genre_id: genreId // Kolonnenavnet er fortsatt genre_id
+        }));
+        // KORRIGERT: Endret fra 'song_genres' til 'song_genre' hvis du kalte den det.
+        // Sjekk navnet på koblingstabellen din. Jeg antar den heter song_genres.
         const { error: genreLinkError } = await supabaseClient.from('song_genres').insert(songGenresData);
         if (genreLinkError) {
             statusMessage.textContent = `FEIL ved kobling av sjangre: ${genreLinkError.message}`;
@@ -95,7 +100,10 @@ async function handleAddSong(event) {
 
     const selectedTagIds = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedTagIds.length > 0) {
-        const songTagsData = selectedTagIds.map(tagId => ({ song_id: newSongId, tag_id: tagId }));
+        const songTagsData = selectedTagIds.map(tagId => ({
+            song_id: newSongId,
+            tag_id: tagId
+        }));
         const { error: tagLinkError } = await supabaseClient.from('song_tags').insert(songTagsData);
         if (tagLinkError) {
             statusMessage.textContent = `FEIL ved kobling av tags: ${tagLinkError.message}`;
@@ -113,4 +121,4 @@ document.addEventListener('DOMContentLoaded', () => {
     populateCheckboxes();
     addSongForm.addEventListener('submit', handleAddSong);
 });
-/* Version: #106 */
+/* Version: #108 */
