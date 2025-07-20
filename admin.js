@@ -1,7 +1,8 @@
-/* Version: #103 */
+/* Version: #104 */
 // === SUPABASE CONFIGURATION ===
-const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzIǹNiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
+const SUPABASE_URL = 'https://vqzyrmpfuxfnciwgyge.supabase.co';
+// KORRIGERT: Rettet skrivefeil i nøkkelen
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -72,8 +73,8 @@ async function handleAddSong(event) {
     const { data: newSong, error: songError } = await supabaseClient
         .from('songs')
         .insert(songData)
-        .select('id') // Viktig: returner ID-en til den nye sangen
-        .single(); // Vi forventer kun ett resultat
+        .select('id')
+        .single();
 
     if (songError) {
         statusMessage.textContent = `FEIL ved lagring av sang: ${songError.message}`;
@@ -128,4 +129,4 @@ document.addEventListener('DOMContentLoaded', () => {
     populateCheckboxes();
     addSongForm.addEventListener('submit', handleAddSong);
 });
-/* Version: #103 */
+/* Version: #104 */
