@@ -1,4 +1,4 @@
-<!-- Version: #86 -->
+<!-- Version: #98 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -27,20 +27,22 @@
             <h1>Velkommen!</h1>
             <p>Du er logget inn som: <strong id="user-email"></strong></p>
             
-            <!-- NYTT: Seksjon for Spotify-tilkobling -->
             <div id="spotify-connect-view">
                 <p>Koble til Spotify Premium for å kunne spille av musikk.</p>
                 <button id="spotify-login-btn">Koble til Spotify</button>
             </div>
             
-            <!-- Vises når Spotify er tilkoblet -->
             <div id="spotify-connected-view" class="hidden">
                 <p style="color: #1DB954;">✓ Spotify er tilkoblet.</p>
-                <!-- Testknapp for avspilling -->
                 <button id="test-play-btn">Test avspilling (a-ha)</button>
             </div>
 
             <button id="logout-btn">Logg ut</button>
+
+            <!-- NYTT: Lenke til Admin-panelet -->
+            <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px; text-align: center;">
+                <a href="admin.html" style="color: #b3b3b3; text-decoration: none;">Gå til Adminpanel</a>
+            </div>
         </div>
 
     </div>
@@ -48,4 +50,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #86 -->
+<!-- Version: #98 -->
