@@ -1,4 +1,4 @@
-/* Version: #85 */
+/* Version: #89 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
@@ -19,9 +19,12 @@ const userEmailSpan = document.getElementById('user-email');
 
 async function signInWithGoogle() {
     console.log('Forsøker å logge inn med Google...');
-    // Supabase bruker automatisk Site URL fra innstillingene, så vi trenger ikke spesifisere den her lenger.
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+            // VIKTIG: Vi tvinger returadressen her for å overstyre alle serverinnstillinger.
+            redirectTo: 'https://hrafnir.github.io/Musikk-Quiz/index.html'
+        }
     });
     if (error) {
         console.error('Feil under Google-innlogging:', error);
@@ -66,10 +69,9 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
 
 supabaseClient.auth.onAuthStateChange((_event, session) => {
     console.log('Innloggingsstatus endret:', session);
-    // Rydd opp i URL-en etter at Supabase har hentet nøkkelen
     if (window.location.hash.includes('access_token')) {
         window.history.replaceState(null, '', window.location.pathname);
     }
     updateUI(session?.user ?? null);
 });
-/* Version: #85 */
+/* Version: #89 */
