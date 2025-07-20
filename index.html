@@ -1,34 +1,33 @@
-<!-- Version: #72 -->
+<!-- Version: #77 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Årstalls-Quiz</title>
+    <title>MQuiz</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <!-- Spotify Web Playback SDK -->
-    <script src="https://sdk.scdn.co/spotify-player.js"></script>
-
     <div id="app-container">
-        
-        <!-- SKJERM 1: INNLOGGING (Vises hvis ikke innlogget) -->
-        <div id="login-screen">
-            <h1>Spotify Årstalls-Quiz</h1>
-            <p>Du må koble til din Spotify Premium-konto for å spille.</p>
-            <button id="login-btn">Logg inn med Spotify</button>
+
+        <!-- Vises når brukeren er logget ut -->
+        <div id="auth-login">
+            <h1>MQuiz</h1>
+            <p>Logg inn for å starte.</p>
+            <button id="google-login-btn">Logg inn med Google</button>
         </div>
 
-        <!-- SKJERM 2: SELVE SPILLET (Vises ETTER innlogging) -->
-        <div id="game-screen" class="hidden">
-            <div id="main-content">
-                <h2>Innlogget!</h2>
-                <p>Spotify-spilleren er klar.</p>
-                <div id="player-device-id"></div>
-                <button id="test-play-btn">Test avspilling (a-ha)</button>
+        <!-- Vises når brukeren er logget inn -->
+        <div id="auth-loggedin" class="hidden">
+            <h1>Velkommen!</h1>
+            <p>Du er logget inn som: <strong id="user-email"></strong></p>
+            <div id="next-steps">
+                <!-- Her kommer "Koble til Spotify"-knappen senere -->
             </div>
+            <button id="logout-btn">Logg ut</button>
         </div>
 
     </div>
@@ -36,4 +35,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-<!-- Version: #72 -->
+<!-- Version: #77 -->
