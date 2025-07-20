@@ -1,7 +1,6 @@
-/* Version: #104 */
+/* Version: #106 */
 // === SUPABASE CONFIGURATION ===
-const SUPABASE_URL = 'https://vqzyrmpfuxfnciwgyge.supabase.co';
-// KORRIGERT: Rettet skrivefeil i nøkkelen
+const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
@@ -22,7 +21,7 @@ async function populateCheckboxes() {
     const { data: genres, error: genresError } = await supabaseClient.from('genres').select('id, name');
     if (genresError) {
         genresContainer.textContent = 'Kunne ikke laste sjangre.';
-        console.error(genresError);
+        console.error('Feil ved henting av sjangre:', genresError);
     } else {
         genresContainer.innerHTML = genres.map(genre => `
             <div>
@@ -36,7 +35,7 @@ async function populateCheckboxes() {
     const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
     if (tagsError) {
         tagsContainer.textContent = 'Kunne ikke laste tags.';
-        console.error(tagsError);
+        console.error('Feil ved henting av tags:', tagsError);
     } else {
         tagsContainer.innerHTML = tags.map(tag => `
             <div>
@@ -57,7 +56,6 @@ async function handleAddSong(event) {
     statusMessage.textContent = 'Lagrer sang...';
     statusMessage.style.color = '#FFDC00';
 
-    // 1. Hent basisdata fra skjemaet
     const form = event.target;
     const songData = {
         artist: form.artist.value.trim(),
@@ -69,7 +67,6 @@ async function handleAddSong(event) {
         trivia: form.trivia.value.trim() || null,
     };
 
-    // 2. Sett inn sangen i 'songs'-tabellen og få tilbake ID-en
     const { data: newSong, error: songError } = await supabaseClient
         .from('songs')
         .insert(songData)
@@ -86,47 +83,34 @@ async function handleAddSong(event) {
     const newSongId = newSong.id;
     console.log(`Sang lagret med ID: ${newSongId}`);
 
-    // 3. Håndter sjangre
     const selectedGenreIds = Array.from(document.querySelectorAll('input[name="genre"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedGenreIds.length > 0) {
-        const songGenresData = selectedGenreIds.map(genreId => ({
-            song_id: newSongId,
-            genre_id: genreId
-        }));
+        const songGenresData = selectedGenreIds.map(genreId => ({ song_id: newSongId, genre_id: genreId }));
         const { error: genreLinkError } = await supabaseClient.from('song_genres').insert(songGenresData);
         if (genreLinkError) {
             statusMessage.textContent = `FEIL ved kobling av sjangre: ${genreLinkError.message}`;
-            statusMessage.style.color = '#FF4136';
             return;
         }
     }
 
-    // 4. Håndter tags
     const selectedTagIds = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedTagIds.length > 0) {
-        const songTagsData = selectedTagIds.map(tagId => ({
-            song_id: newSongId,
-            tag_id: tagId
-        }));
+        const songTagsData = selectedTagIds.map(tagId => ({ song_id: newSongId, tag_id: tagId }));
         const { error: tagLinkError } = await supabaseClient.from('song_tags').insert(songTagsData);
         if (tagLinkError) {
             statusMessage.textContent = `FEIL ved kobling av tags: ${tagLinkError.message}`;
-            statusMessage.style.color = '#FF4136';
             return;
         }
     }
 
-    // 5. Suksess!
     statusMessage.textContent = `Vellykket! "${songData.title}" er lagt til i databasen.`;
     statusMessage.style.color = '#1DB954';
     addSongForm.reset();
     form.artist.focus();
 }
 
-
-// === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     populateCheckboxes();
     addSongForm.addEventListener('submit', handleAddSong);
 });
-/* Version: #104 */
+/* Version: #106 */
