@@ -1,4 +1,4 @@
-/* Version: #206 */
+/* Version: #208 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -13,8 +13,8 @@ let currentSong = null;
 let score = 0;
 let handicap = 5;
 let artistList = [];
-let songHistory = []; // NYTT: Holder styr på spilte sanger
-let totalSongsInDb = 0; // NYTT: Holder styr på totalt antall sanger
+let songHistory = [];
+let totalSongsInDb = 0;
 
 // === DOM ELEMENTS ===
 let preGameView, inGameView, startGameBtn,
@@ -60,72 +60,91 @@ function initializeSpotifyPlayer(token) {
     spotifyPlayer.connect();
 }
 
-// NYTT: Egen funksjon for å pause avspilling
-async function pauseTrack() {
+async function transferPlayback() {
     if (!deviceId) return;
-    await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
+    console.log("Forsøker å overføre avspilling for å re-aktivere spilleren...");
+    await fetch(`https://api.spotify.com/v1/me/player`, {
         method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${spotifyAccessToken}`
-        },
-    });
-}
-
-// ENDRET: Mer robust avspillingsfunksjon
-async function playTrack(spotifyTrackId) {
-    if (!deviceId) {
-        alert('Ingen aktiv Spotify-enhet funnet. Åpne Spotify på en enhet og prøv igjen.');
-        return;
-    }
-    // Steg 1: Pause først for å unngå at gammel sang fortsetter
-    await pauseTrack();
-    
-    // En bitteliten forsinkelse for å la Spotify-APIet "puste"
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Steg 2: Spill av den nye sangen
-    const trackUri = `spotify:track:${spotifyTrackId}`;
-    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ uris: [trackUri] }),
+        body: JSON.stringify({ device_ids: [deviceId], play: false }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${spotifyAccessToken}`
         },
     });
+    await new Promise(resolve => setTimeout(resolve, 500)); // Liten pause for å la overføringen fullføre
 }
 
+async function pauseTrack() {
+    if (!deviceId) return;
+    await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${spotifyAccessToken}` },
+    });
+}
+
+async function playTrack(spotifyTrackId) {
+    if (!deviceId) {
+        alert('Ingen aktiv Spotify-enhet funnet.');
+        return false;
+    }
+    await pauseTrack();
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const trackUri = `spotify:track:${spotifyTrackId}`;
+    const playUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
+    const playOptions = {
+        method: 'PUT',
+        body: JSON.stringify({ uris: [trackUri] }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` },
+    };
+
+    try {
+        const response = await fetch(playUrl, playOptions);
+        if (!response.ok) throw new Error(`Spotify API svarte med ${response.status}`);
+        return true;
+    } catch (error) {
+        console.warn("Første avspillingsforsøk feilet:", error);
+        if (error.message.includes("403")) {
+            console.log("Fikk 403-feil. Forsøker å re-aktivere spiller...");
+            await transferPlayback();
+            try {
+                console.log("Prøver avspilling på nytt...");
+                const retryResponse = await fetch(playUrl, playOptions);
+                if (!retryResponse.ok) throw new Error(`Spotify API svarte med ${retryResponse.status} på nytt forsøk`);
+                return true;
+            } catch (retryError) {
+                console.error("Andre avspillingsforsøk feilet også:", retryError);
+                alert("Klarte ikke starte avspilling. Sjekk at Spotify er aktiv og prøv neste runde.");
+                return false;
+            }
+        } else {
+            console.error("En uventet feil oppstod under avspilling:", error);
+            return false;
+        }
+    }
+}
 
 // === GAME LOGIC ===
 async function populateArtistList() {
     console.log("Henter artistliste for autocomplete...");
     const { data, error } = await supabaseClient.rpc('get_distinct_artists');
-
-    if (error) {
-        console.error("Klarte ikke hente artistliste:", error);
-        return;
-    }
-    
+    if (error) { console.error("Klarte ikke hente artistliste:", error); return; }
     artistList = data.map(item => item.artist_name);
     artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join('');
     console.log(`Artistliste lastet med ${artistList.length} unike artister.`);
 }
 
-// ENDRET: Bruker nå den nye, smarte databasefunksjonen
 async function fetchRandomSong() {
-    // Hvis vi har spilt over halvparten av sangene, nullstill historikken for å unngå å gå tom
-    if (songHistory.length > totalSongsInDb / 2) {
-        console.log("Nullstiller sanghistorikk.");
+    // Nullstill historikken hvis vi har spilt alle sangene
+    if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) {
+        console.log("Alle sanger spilt! Nullstiller sanghistorikk.");
         songHistory = [];
     }
 
-    const { data, error } = await supabaseClient.rpc('get_random_song', {
-        excluded_ids: songHistory
-    });
+    const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory });
 
     if (error || !data || data.length === 0) {
-        console.error("Klarte ikke hente en unik tilfeldig sang:", error);
-        // Fallback: nullstill historikk og prøv igjen én gang
+        console.warn("Klarte ikke hente unik sang, prøver igjen med tom historikk...");
         songHistory = [];
         const { data: fallbackData, error: fallbackError } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory });
         if (fallbackError || !fallbackData || fallbackData.length === 0) {
@@ -134,7 +153,6 @@ async function fetchRandomSong() {
         }
         return fallbackData[0];
     }
-    
     return data[0];
 }
 
@@ -142,11 +160,10 @@ async function startGame() {
     preGameView.classList.add('hidden');
     inGameView.classList.remove('hidden');
     score = 0;
-    songHistory = []; // Nullstill historikk ved nytt spill
+    songHistory = [];
     updateScoreDisplay();
     updateHandicapDisplay();
     
-    // Hent totalt antall sanger én gang ved start
     const { count, error } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true });
     if (!error) totalSongsInDb = count;
 
@@ -169,11 +186,18 @@ async function playNextRound() {
     currentSong = await fetchRandomSong();
 
     if (currentSong) {
-        songHistory.push(currentSong.id); // Legg til sangen i historikken
+        songHistory.push(currentSong.id);
         console.log("Spiller sang ID:", currentSong.id, "Historikk:", songHistory);
-        roundStatus.textContent = 'Sangen spilles...';
-        await playTrack(currentSong.spotifyid);
-        artistGuessInput.focus();
+        roundStatus.textContent = 'Starter avspilling...';
+        
+        const playbackSuccess = await playTrack(currentSong.spotifyid);
+        
+        if (playbackSuccess) {
+            roundStatus.textContent = 'Sangen spilles...';
+            artistGuessInput.focus();
+        } else {
+            roundStatus.textContent = 'Avspilling feilet. Prøv neste runde.';
+        }
     } else {
         roundStatus.textContent = 'Klarte ikke hente en sang. Prøv igjen.';
     }
@@ -191,10 +215,7 @@ function handleSubmitGuess() {
 
     if (artistGuess === correctArtist) roundScore++;
     if (titleGuess === correctTitle) roundScore++;
-    
-    if (yearGuess && Math.abs(yearGuess - correctYear) <= handicap) {
-        roundScore++;
-    }
+    if (yearGuess && Math.abs(yearGuess - correctYear) <= handicap) roundScore++;
 
     score += roundScore;
     updateScoreDisplay();
@@ -217,14 +238,8 @@ function showAnswer() {
 }
 
 // === UI UPDATE FUNCTIONS ===
-function updateScoreDisplay() {
-    scoreDisplay.textContent = `Poeng: ${score}`;
-}
-
-function updateHandicapDisplay() {
-    handicapDisplay.textContent = `Handicap: ${handicap}`;
-}
-
+function updateScoreDisplay() { scoreDisplay.textContent = `Poeng: ${score}`; }
+function updateHandicapDisplay() { handicapDisplay.textContent = `Handicap: ${handicap}`; }
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -256,4 +271,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', playNextRound);
 });
-/* Version: #206 */
+/* Version: #208 */
