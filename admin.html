@@ -1,4 +1,4 @@
-<!-- Version: #113 -->
+<!-- Version: #211 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQuiz Admin</title>
     <link rel="stylesheet" href="style.css">
+    <!-- NYTT: Legger til admin-spesifikk CSS for bedre layout -->
+    <link rel="stylesheet" href="admin.css"> 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -36,8 +38,14 @@
                 <label for="year">Årstall:</label>
                 <input type="number" id="year" required>
 
+                <!-- NY STRUKTUR for Spotify ID-feltet -->
                 <label for="spotifyId">Spotify ID:</label>
-                <input type="text" id="spotifyId" required>
+                <div class="input-with-button">
+                    <input type="text" id="spotifyId" required>
+                    <button type="button" id="test-spotify-btn">Test</button>
+                </div>
+                <!-- NYTT: Statusområde for testen -->
+                <div id="spotify-test-status" class="test-status"></div>
 
                 <label for="albumArtUrl">URL til Album Cover (valgfritt):</label>
                 <input type="text" id="albumArtUrl">
@@ -45,12 +53,12 @@
                 <label for="trivia">Trivia (valgfritt):</label>
                 <textarea id="trivia" rows="3"></textarea>
 
-                <fieldset id="genres-fieldset" style="margin-top: 20px; border: 1px solid #555; padding: 10px; border-radius: 5px;">
+                <fieldset id="genres-fieldset">
                     <legend>Sjangre</legend>
                     <div id="genres-container">Laster sjangre...</div>
                 </fieldset>
 
-                <fieldset id="tags-fieldset" style="margin-top: 20px; border: 1px solid #555; padding: 10px; border-radius: 5px;">
+                <fieldset id="tags-fieldset">
                     <legend>Tags</legend>
                     <div id="tags-container">Laster tags...</div>
                 </fieldset>
@@ -69,4 +77,4 @@
     <script src="admin.js"></script>
 </body>
 </html>
-<!-- Version: #113 -->
+<!-- Version: #211 -->
