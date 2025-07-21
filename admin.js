@@ -1,4 +1,4 @@
-/* Version: #154 */
+/* Version: #164 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -60,22 +60,21 @@ async function handleAddSong(event) {
         return;
     }
     
-    // Hent brukerens ID fra økten
     const userId = session.user.id;
-
     const form = event.target;
+
     const songData = {
         artist: form.artist.value.trim(),
         title: form.title.value.trim(),
         album: form.album.value.trim() || null,
         year: parseInt(form.year.value, 10),
         spotifyId: form.spotifyId.value.trim(),
-        albumArtUrl: form.albumArtUrl.value.trim() || null,
+        // KORRIGERT: 'albumArtUrl' endret til 'albumarturl' for å matche databasen
+        albumarturl: form.albumArtUrl.value.trim() || null, 
         trivia: form.trivia.value.trim() || null,
-        user_id: userId, // Legg til brukerens ID i objektet som sendes
+        user_id: userId,
     };
 
-    // 1. Lagre sangen
     const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single();
     if (songError) {
         statusMessage.textContent = `FEIL ved lagring av sang: ${songError.message}`;
@@ -85,26 +84,18 @@ async function handleAddSong(event) {
     }
     const newSongId = newSong.id;
 
-    // 2. Koble sjangre
     const selectedGenreIds = Array.from(document.querySelectorAll('input[name="genre"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedGenreIds.length > 0) {
         const songGenresData = selectedGenreIds.map(genreId => ({ song_id: newSongId, genre_id: genreId }));
         const { error: genreLinkError } = await supabaseClient.from('song_genres').insert(songGenresData);
-        if (genreLinkError) {
-            statusMessage.textContent = `FEIL ved kobling av sjangre: ${genreLinkError.message}`;
-            return;
-        }
+        if (genreLinkError) { statusMessage.textContent = `FEIL ved kobling av sjangre: ${genreLinkError.message}`; return; }
     }
 
-    // 3. Koble tags
     const selectedTagIds = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedTagIds.length > 0) {
         const songTagsData = selectedTagIds.map(tagId => ({ song_id: newSongId, tag_id: tagId }));
         const { error: tagLinkError } = await supabaseClient.from('song_tags').insert(songTagsData);
-        if (tagLinkError) {
-            statusMessage.textContent = `FEIL ved kobling av tags: ${tagLinkError.message}`;
-            return;
-        }
+        if (tagLinkError) { statusMessage.textContent = `FEIL ved kobling av tags: ${tagLinkError.message}`; return; }
     }
 
     statusMessage.textContent = `Vellykket! "${songData.title}" er lagt til i databasen.`;
@@ -113,10 +104,8 @@ async function handleAddSong(event) {
     form.artist.focus();
 }
 
-
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Hent DOM-elementer
     loginView = document.getElementById('admin-login-view');
     mainView = document.getElementById('admin-main-view');
     googleLoginBtn = document.getElementById('google-login-btn');
@@ -126,12 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
     genresContainer = document.getElementById('genres-container');
     tagsContainer = document.getElementById('tags-container');
 
-    // Sett opp event listeners
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleAddSong);
 
-    // Håndter visning basert på innloggingsstatus
     supabaseClient.auth.onAuthStateChange((_event, session) => {
         if (session) {
             loginView.classList.add('hidden');
@@ -141,8 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mainView.classList.add('hidden');
         }
     });
-
-    // Last inn sjangre og tags umiddelbart, uavhengig av innlogging
+    
     populateCheckboxes();
 });
-/* Version: #154 */
+/* Version: #164 */
