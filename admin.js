@@ -1,10 +1,9 @@
-/* Version: #132 */
+/* Version: #154 */
 // === SUPABASE CONFIGURATION ===
-const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
+const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
 
 const { createClient } = supabase;
-// KORRIGERT LINJE: Bruker riktig variabelnavn 'SUPABASE_ANON_KEY'
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === DOM ELEMENTS ===
@@ -146,4 +145,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Last inn sjangre og tags umiddelbart, uavhengig av innlogging
     populateCheckboxes();
 });
-/* Version: #132 */
+/* Version: #154 */
