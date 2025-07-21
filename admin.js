@@ -1,6 +1,7 @@
-/* Version: #114 */
+/* Version: #115 */
 // === SUPABASE CONFIGURATION ===
-const SUPABASE_URL = 'https://vqzyrmpfuxfnciwgyge.supabase.co';
+// Korrigert med den URL-en du verifiserte
+const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
@@ -79,4 +80,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #114 */
+/* Version: #115 */
