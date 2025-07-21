@@ -1,4 +1,4 @@
-<!-- Version: #195 -->
+<!-- Version: #199 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -31,7 +31,6 @@
 
             <!-- Player HUD (Heads-Up Display) -->
             <div id="player-hud">
-                <!-- NYTT: Egen div for handicap -->
                 <div id="handicap-display">Handicap: 5</div> 
                 <div id="score-display">Poeng: 0</div>
             </div>
@@ -48,7 +47,8 @@
 
             <!-- Gjette-område (vises under gjetning) -->
             <div id="guess-area">
-                <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off">
+                <!-- ENDRET: Artist-input er nå koblet til en datalist -->
+                <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
                 <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
                 <button id="submit-guess-btn">Gjett</button>
@@ -71,8 +71,11 @@
 
     </div>
 
+    <!-- NYTT: Datalist for autocomplete. Denne er usynlig. -->
+    <datalist id="artist-list"></datalist>
+
     <!-- Spill-logikk -->
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #195 -->
+<!-- Version: #199 -->
