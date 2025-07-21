@@ -1,18 +1,45 @@
-/* Version: #218 */
+/* Version: #224 */
 
 /* === Spesifikk styling for admin-panelet === */
+
+/* Styling for <details> elementet (sammenleggbare paneler) */
+details {
+    border: 1px solid #444;
+    border-radius: 5px;
+    margin-top: 20px;
+    background-color: #282828;
+}
+details > summary {
+    padding: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1.1em;
+    list-style: none; /* Fjerner standard trekant-pil */
+}
+details > summary::-webkit-details-marker {
+    display: none; /* Fjerner standard trekant-pil i Chrome */
+}
+details > summary::before {
+    content: '► '; /* Legger til vår egen pil */
+    margin-right: 5px;
+}
+details[open] > summary::before {
+    content: '▼ '; /* Endrer pilen når panelet er åpent */
+}
+details > *:not(summary) {
+    padding: 0 15px 15px 15px;
+}
+
 
 /* Container for et input-felt og en knapp på samme linje */
 .input-with-button {
     display: flex;
     align-items: center;
-    gap: 10px; /* Mellomrom mellom input og knapp */
+    gap: 10px;
 }
-
 .input-with-button input {
     flex-grow: 1;
 }
-
 .input-with-button button {
     flex-shrink: 0;
     padding: 10px 20px;
@@ -27,12 +54,11 @@
     min-height: 1.2em;
 }
 
-/* NYTT: Styling for test-coveret */
 #test-cover-art {
     display: block;
     width: 150px;
     height: 150px;
-    margin: 15px auto; /* Sentrerer bildet */
+    margin: 15px auto;
     border-radius: 4px;
     background-color: #333;
     object-fit: cover;
@@ -41,15 +67,14 @@
     display: none;
 }
 
-
-/* Generell styling for skjemafelter i admin-panelet */
-#add-song-form label {
+/* Generell styling for skjemafelter */
+#add-song-form label,
+.bulk-import-container label {
     display: block;
     margin-top: 15px;
     margin-bottom: 5px;
     font-weight: bold;
 }
-
 #add-song-form input[type="text"],
 #add-song-form input[type="number"],
 #add-song-form textarea {
@@ -61,15 +86,38 @@
     color: #fff;
     font-size: 16px;
 }
-
 #add-song-form fieldset {
     margin-top: 20px;
     border: 1px solid #555;
     padding: 10px;
     border-radius: 5px;
 }
-
 #add-song-form legend {
     padding: 0 5px;
 }
-/* Version: #218 */
+
+/* NYTT: Styling for masse-import seksjonen */
+#bulk-import-input {
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #fff;
+    font-family: monospace; /* For bedre lesbarhet av lenker */
+    font-size: 14px;
+}
+#bulk-import-log {
+    width: 100%;
+    height: 200px;
+    background-color: #121212;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 10px;
+    overflow-y: auto; /* Legger til scrollbar hvis innholdet blir for langt */
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap; /* Bevarer linjeskift */
+}
+
+/* Version: #224 */
