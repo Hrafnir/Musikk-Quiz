@@ -1,4 +1,4 @@
-<!-- Version: #211 -->
+<!-- Version: #218 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQuiz Admin</title>
     <link rel="stylesheet" href="style.css">
-    <!-- NYTT: Legger til admin-spesifikk CSS for bedre layout -->
     <link rel="stylesheet" href="admin.css"> 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- NYTT: Spotify Web Playback SDK for å teste avspilling -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
     <div id="app-container">
@@ -26,6 +27,15 @@
             <p>Legg til nye sanger i databasen.</p>
             
             <form id="add-song-form" style="text-align: left;">
+                <label for="spotifyId">Spotify ID eller Lenke:</label>
+                <div class="input-with-button">
+                    <input type="text" id="spotifyId" required placeholder="Lim inn ID eller lenke her...">
+                    <button type="button" id="test-spotify-btn">Test & Fyll ut</button>
+                </div>
+                <div id="spotify-test-status" class="test-status"></div>
+                <!-- NYTT: Område for å vise test-cover -->
+                <img id="test-cover-art" src="" alt="Test av album cover" class="hidden">
+
                 <label for="artist">Artist:</label>
                 <input type="text" id="artist" required>
 
@@ -37,15 +47,6 @@
 
                 <label for="year">Årstall:</label>
                 <input type="number" id="year" required>
-
-                <!-- NY STRUKTUR for Spotify ID-feltet -->
-                <label for="spotifyId">Spotify ID:</label>
-                <div class="input-with-button">
-                    <input type="text" id="spotifyId" required>
-                    <button type="button" id="test-spotify-btn">Test</button>
-                </div>
-                <!-- NYTT: Statusområde for testen -->
-                <div id="spotify-test-status" class="test-status"></div>
 
                 <label for="albumArtUrl">URL til Album Cover (valgfritt):</label>
                 <input type="text" id="albumArtUrl">
@@ -77,4 +78,4 @@
     <script src="admin.js"></script>
 </body>
 </html>
-<!-- Version: #211 -->
+<!-- Version: #218 -->
