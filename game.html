@@ -1,0 +1,68 @@
+<!-- Version: #180 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz - Spill</title>
+    <!-- Felles stiler -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Spill-spesifikke stiler -->
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Spotify Web Playback SDK -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>Musikk-Quiz</h1>
+
+        <!-- === FØR SPILLET-VISNING === -->
+        <!-- Vises kun før spillet starter -->
+        <div id="pre-game-view">
+            <p>Klar til å teste dine musikk-kunnskaper?</p>
+            <button id="start-game-btn">Start Spill</button>
+        </div>
+
+        <!-- === I SPILLET-VISNING === -->
+        <!-- Denne er skjult frem til spillet starter -->
+        <div id="in-game-view" class="hidden">
+
+            <!-- Resultat-område (vises etter gjetning) -->
+            <div id="answer-display" class="hidden">
+                <img id="album-art" src="" alt="Album Cover">
+                <h2 id="song-title"></h2>
+                <p id="song-details"></p>
+            </div>
+
+            <!-- Gjette-område (vises under gjetning) -->
+            <div id="guess-area">
+                <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
+                <button id="submit-guess-btn">Gjett</button>
+            </div>
+
+            <!-- Status-melding for runden -->
+            <div id="round-status"></div>
+
+            <!-- Knapper for å styre spillet -->
+            <div id="game-controls">
+                <button id="next-round-btn" class="hidden">Neste Runde</button>
+            </div>
+
+        </div>
+
+        <!-- Tilbake-lenke -->
+        <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px; text-align: center;">
+            <a href="index.html" style="color: #b3b3b3; text-decoration: none;">Tilbake til hovedmenyen</a>
+        </div>
+
+    </div>
+
+    <!-- Spill-logikk -->
+    <script src="game.js"></script>
+</body>
+</html>
+<!-- Version: #180 -->
