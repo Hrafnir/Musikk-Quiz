@@ -1,19 +1,20 @@
-/* Version: #219 */
+/* Version: #220 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzII1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
+// KORRIGERT: Limt inn den korrekte, fullstendige nøkkelen på nytt
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === STATE ===
 let spotifyAccessToken = null;
-let spotifyPlayer = null; // NYTT
-let deviceId = null; // NYTT
+let spotifyPlayer = null;
+let deviceId = null;
 
 // === DOM ELEMENTS ===
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
     statusMessage, genresContainer, tagsContainer,
-    testSpotifyBtn, spotifyTestStatus, testCoverArt; // NYTT
+    testSpotifyBtn, spotifyTestStatus, testCoverArt;
 
 // === SPOTIFY PLAYER INITIALIZATION ===
 window.onSpotifyWebPlaybackSDKReady = () => {
@@ -122,14 +123,12 @@ async function handleTestSpotifyId() {
         const imageUrl = (track.album.images && track.album.images.length > 0) ? track.album.images[0].url : '';
         document.getElementById('albumArtUrl').value = imageUrl;
 
-        // VISER TEST-COVER
         testCoverArt.src = imageUrl;
         testCoverArt.classList.remove('hidden');
 
         spotifyTestStatus.textContent = '✓ Vellykket! Spiller av test-lyd...';
         spotifyTestStatus.style.color = '#1DB954';
         
-        // SPILLER AV SANGEN
         await playTestTrack(spotifyId);
 
     } catch (error) {
@@ -202,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
     addSongForm.addEventListener('submit', handleAddSong);
     testSpotifyBtn.addEventListener('click', handleTestSpotifyId);
 
-    // KORRIGERT: Kjører sjekkboks-innlasting umiddelbart
     populateCheckboxes(); 
 
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
@@ -210,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
             loginView.classList.add('hidden');
             mainView.classList.remove('hidden');
             spotifyAccessToken = localStorage.getItem('spotify_access_token');
-            // Initialiserer spilleren NÅR vi vet at brukeren er logget inn og har token
             if (window.Spotify && spotifyAccessToken) {
                 initializeSpotifyPlayer(spotifyAccessToken);
             }
@@ -220,4 +217,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #219 */
+/* Version: #220 */
