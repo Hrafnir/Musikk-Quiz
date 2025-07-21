@@ -1,4 +1,4 @@
-<!-- Version: #180 -->
+<!-- Version: #190 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -21,25 +21,34 @@
         <h1>Musikk-Quiz</h1>
 
         <!-- === FØR SPILLET-VISNING === -->
-        <!-- Vises kun før spillet starter -->
         <div id="pre-game-view">
             <p>Klar til å teste dine musikk-kunnskaper?</p>
             <button id="start-game-btn">Start Spill</button>
         </div>
 
         <!-- === I SPILLET-VISNING === -->
-        <!-- Denne er skjult frem til spillet starter -->
         <div id="in-game-view" class="hidden">
+
+            <!-- NYTT: Poeng-visning -->
+            <div id="player-hud">
+                <div id="score-display">Poeng: 0</div>
+            </div>
 
             <!-- Resultat-område (vises etter gjetning) -->
             <div id="answer-display" class="hidden">
                 <img id="album-art" src="" alt="Album Cover">
-                <h2 id="song-title"></h2>
-                <p id="song-details"></p>
+                <div id="song-info">
+                    <p><strong>Artist:</strong> <span id="correct-artist"></span></p>
+                    <p><strong>Tittel:</strong> <span id="correct-title"></span></p>
+                    <p><strong>År:</strong> <span id="correct-year"></span></p>
+                </div>
             </div>
 
             <!-- Gjette-område (vises under gjetning) -->
             <div id="guess-area">
+                <!-- NYTT: Lagt til input for artist og tittel -->
+                <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off">
+                <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
                 <button id="submit-guess-btn">Gjett</button>
             </div>
@@ -65,4 +74,4 @@
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #180 -->
+<!-- Version: #190 -->
