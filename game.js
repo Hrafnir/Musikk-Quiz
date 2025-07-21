@@ -1,4 +1,4 @@
-/* Version: #197 */
+/* Version: #202 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -11,14 +11,16 @@ let spotifyPlayer = null;
 let deviceId = null;
 let currentSong = null;
 let score = 0;
-let handicap = 5; // NYTT: Handicap-verdi
+let handicap = 5;
+let artistList = []; // NYTT: For å holde på listen over artister
 
 // === DOM ELEMENTS ===
 let preGameView, inGameView, startGameBtn,
-    playerHud, scoreDisplay, handicapDisplay, // NYTT: handicapDisplay
+    playerHud, scoreDisplay, handicapDisplay,
     answerDisplay, albumArt, correctArtist, correctTitle, correctYear,
     guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
-    roundStatus, gameControls, nextRoundBtn;
+    roundStatus, gameControls, nextRoundBtn,
+    artistDataList; // NYTT: Datalisten for artister
 
 
 // === SPOTIFY SDK & PLAYER ===
@@ -75,6 +77,30 @@ async function playTrack(spotifyTrackId) {
 
 
 // === GAME LOGIC ===
+
+// NY FUNKSJON: Henter alle unike artister og fyller datalisten
+async function populateArtistList() {
+    console.log("Henter artistliste for autocomplete...");
+    const { data, error } = await supabaseClient.rpc('get_distinct_artists');
+
+    if (error) {
+        console.error("Klarte ikke hente artistliste:", error);
+        return;
+    }
+
+    // data er en array av objekter, f.eks. [{ artist_name: 'Queen' }, { artist_name: 'Led Zeppelin' }]
+    artistList = data.map(item => item.artist_name);
+    
+    artistDataList.innerHTML = ''; // Tømmer forrige liste
+    artistList.forEach(artist => {
+        const option = document.createElement('option');
+        option.value = artist;
+        artistDataList.appendChild(option);
+    });
+    console.log(`Artistliste lastet med ${artistList.length} unike artister.`);
+}
+
+
 async function fetchRandomSong() {
     const { count, error: countError } = await supabaseClient
         .from('songs')
@@ -102,12 +128,17 @@ async function fetchRandomSong() {
     return song;
 }
 
-function startGame() {
+// ENDRET: Må være async for å kunne vente på populateArtistList
+async function startGame() {
     preGameView.classList.add('hidden');
     inGameView.classList.remove('hidden');
     score = 0;
     updateScoreDisplay();
-    updateHandicapDisplay(); // NYTT: Vis handicap ved start
+    updateHandicapDisplay();
+    
+    // NYTT: Henter og klargjør artistlisten før første runde
+    await populateArtistList();
+
     playNextRound();
 }
 
@@ -147,7 +178,6 @@ function handleSubmitGuess() {
     if (artistGuess === correctArtist) roundScore++;
     if (titleGuess === correctTitle) roundScore++;
     
-    // ENDRET: Sjekker om gjettet er innenfor handicap-marginen
     if (yearGuess && Math.abs(yearGuess - correctYear) <= handicap) {
         roundScore++;
     }
@@ -177,7 +207,6 @@ function updateScoreDisplay() {
     scoreDisplay.textContent = `Poeng: ${score}`;
 }
 
-// NYTT: Funksjon for å oppdatere handicap-visning
 function updateHandicapDisplay() {
     handicapDisplay.textContent = `Handicap: ${handicap}`;
 }
@@ -192,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     playerHud = document.getElementById('player-hud');
     scoreDisplay = document.getElementById('score-display');
-    handicapDisplay = document.getElementById('handicap-display'); // NYTT
+    handicapDisplay = document.getElementById('handicap-display');
     
     answerDisplay = document.getElementById('answer-display');
     albumArt = document.getElementById('album-art');
@@ -210,6 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
     gameControls = document.getElementById('game-controls');
     nextRoundBtn = document.getElementById('next-round-btn');
 
+    artistDataList = document.getElementById('artist-list'); // NYTT
+
     startGameBtn.disabled = true;
     startGameBtn.textContent = 'Kobler til Spotify...';
 
@@ -217,4 +248,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', playNextRound);
 });
-/* Version: #197 */
+/* Version: #202 */
