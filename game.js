@@ -1,4 +1,4 @@
-/* Version: #202 */
+/* Version: #206 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -12,7 +12,9 @@ let deviceId = null;
 let currentSong = null;
 let score = 0;
 let handicap = 5;
-let artistList = []; // NYTT: For å holde på listen over artister
+let artistList = [];
+let songHistory = []; // NYTT: Holder styr på spilte sanger
+let totalSongsInDb = 0; // NYTT: Holder styr på totalt antall sanger
 
 // === DOM ELEMENTS ===
 let preGameView, inGameView, startGameBtn,
@@ -20,7 +22,7 @@ let preGameView, inGameView, startGameBtn,
     answerDisplay, albumArt, correctArtist, correctTitle, correctYear,
     guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
     roundStatus, gameControls, nextRoundBtn,
-    artistDataList; // NYTT: Datalisten for artister
+    artistDataList;
 
 
 // === SPOTIFY SDK & PLAYER ===
@@ -49,7 +51,6 @@ function initializeSpotifyPlayer(token) {
     });
 
     spotifyPlayer.addListener('not_ready', ({ device_id }) => { console.log('Enhet har gått offline', device_id); });
-
     spotifyPlayer.addListener('authentication_error', ({ message }) => {
         console.error('Autentisering feilet:', message);
         alert('Spotify-autentisering feilet. Prøv å koble til på nytt fra hovedsiden.');
@@ -59,11 +60,30 @@ function initializeSpotifyPlayer(token) {
     spotifyPlayer.connect();
 }
 
+// NYTT: Egen funksjon for å pause avspilling
+async function pauseTrack() {
+    if (!deviceId) return;
+    await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${spotifyAccessToken}`
+        },
+    });
+}
+
+// ENDRET: Mer robust avspillingsfunksjon
 async function playTrack(spotifyTrackId) {
     if (!deviceId) {
         alert('Ingen aktiv Spotify-enhet funnet. Åpne Spotify på en enhet og prøv igjen.');
         return;
     }
+    // Steg 1: Pause først for å unngå at gammel sang fortsetter
+    await pauseTrack();
+    
+    // En bitteliten forsinkelse for å la Spotify-APIet "puste"
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Steg 2: Spill av den nye sangen
     const trackUri = `spotify:track:${spotifyTrackId}`;
     await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
         method: 'PUT',
@@ -77,8 +97,6 @@ async function playTrack(spotifyTrackId) {
 
 
 // === GAME LOGIC ===
-
-// NY FUNKSJON: Henter alle unike artister og fyller datalisten
 async function populateArtistList() {
     console.log("Henter artistliste for autocomplete...");
     const { data, error } = await supabaseClient.rpc('get_distinct_artists');
@@ -87,58 +105,52 @@ async function populateArtistList() {
         console.error("Klarte ikke hente artistliste:", error);
         return;
     }
-
-    // data er en array av objekter, f.eks. [{ artist_name: 'Queen' }, { artist_name: 'Led Zeppelin' }]
-    artistList = data.map(item => item.artist_name);
     
-    artistDataList.innerHTML = ''; // Tømmer forrige liste
-    artistList.forEach(artist => {
-        const option = document.createElement('option');
-        option.value = artist;
-        artistDataList.appendChild(option);
-    });
+    artistList = data.map(item => item.artist_name);
+    artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join('');
     console.log(`Artistliste lastet med ${artistList.length} unike artister.`);
 }
 
-
+// ENDRET: Bruker nå den nye, smarte databasefunksjonen
 async function fetchRandomSong() {
-    const { count, error: countError } = await supabaseClient
-        .from('songs')
-        .select('*', { count: 'exact', head: true });
-
-    if (countError || count === 0) {
-        console.error('Kunne ikke hente antall sanger:', countError);
-        alert('Fant ingen sanger i databasen! Gå til admin-panelet og legg til noen sanger først.');
-        return null;
+    // Hvis vi har spilt over halvparten av sangene, nullstill historikken for å unngå å gå tom
+    if (songHistory.length > totalSongsInDb / 2) {
+        console.log("Nullstiller sanghistorikk.");
+        songHistory = [];
     }
 
-    const randomIndex = Math.floor(Math.random() * count);
+    const { data, error } = await supabaseClient.rpc('get_random_song', {
+        excluded_ids: songHistory
+    });
 
-    const { data: song, error: songError } = await supabaseClient
-        .from('songs')
-        .select('*')
-        .range(randomIndex, randomIndex)
-        .single();
-
-    if (songError) {
-        console.error('Kunne ikke hente tilfeldig sang:', songError);
-        return null;
+    if (error || !data || data.length === 0) {
+        console.error("Klarte ikke hente en unik tilfeldig sang:", error);
+        // Fallback: nullstill historikk og prøv igjen én gang
+        songHistory = [];
+        const { data: fallbackData, error: fallbackError } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory });
+        if (fallbackError || !fallbackData || fallbackData.length === 0) {
+            alert("Klarte ikke hente en sang fra databasen.");
+            return null;
+        }
+        return fallbackData[0];
     }
     
-    return song;
+    return data[0];
 }
 
-// ENDRET: Må være async for å kunne vente på populateArtistList
 async function startGame() {
     preGameView.classList.add('hidden');
     inGameView.classList.remove('hidden');
     score = 0;
+    songHistory = []; // Nullstill historikk ved nytt spill
     updateScoreDisplay();
     updateHandicapDisplay();
     
-    // NYTT: Henter og klargjør artistlisten før første runde
-    await populateArtistList();
+    // Hent totalt antall sanger én gang ved start
+    const { count, error } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true });
+    if (!error) totalSongsInDb = count;
 
+    await populateArtistList();
     playNextRound();
 }
 
@@ -157,6 +169,8 @@ async function playNextRound() {
     currentSong = await fetchRandomSong();
 
     if (currentSong) {
+        songHistory.push(currentSong.id); // Legg til sangen i historikken
+        console.log("Spiller sang ID:", currentSong.id, "Historikk:", songHistory);
         roundStatus.textContent = 'Sangen spilles...';
         await playTrack(currentSong.spotifyid);
         artistGuessInput.focus();
@@ -214,32 +228,26 @@ function updateHandicapDisplay() {
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Hent alle DOM-elementer
     preGameView = document.getElementById('pre-game-view');
     inGameView = document.getElementById('in-game-view');
     startGameBtn = document.getElementById('start-game-btn');
-    
     playerHud = document.getElementById('player-hud');
     scoreDisplay = document.getElementById('score-display');
     handicapDisplay = document.getElementById('handicap-display');
-    
     answerDisplay = document.getElementById('answer-display');
     albumArt = document.getElementById('album-art');
     correctArtist = document.getElementById('correct-artist');
     correctTitle = document.getElementById('correct-title');
     correctYear = document.getElementById('correct-year');
-    
     guessArea = document.getElementById('guess-area');
     artistGuessInput = document.getElementById('artist-guess-input');
     titleGuessInput = document.getElementById('title-guess-input');
     yearGuessInput = document.getElementById('year-guess-input');
     submitGuessBtn = document.getElementById('submit-guess-btn');
-    
     roundStatus = document.getElementById('round-status');
     gameControls = document.getElementById('game-controls');
     nextRoundBtn = document.getElementById('next-round-btn');
-
-    artistDataList = document.getElementById('artist-list'); // NYTT
+    artistDataList = document.getElementById('artist-list');
 
     startGameBtn.disabled = true;
     startGameBtn.textContent = 'Kobler til Spotify...';
@@ -248,4 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', playNextRound);
 });
-/* Version: #202 */
+/* Version: #206 */
