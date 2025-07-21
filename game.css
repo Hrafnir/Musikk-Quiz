@@ -1,0 +1,99 @@
+/* Version: #181 */
+
+/* === Game Container === */
+#game-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 40px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+/* === In-Game View Specifics === */
+#in-game-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Mellomrom mellom elementene */
+}
+
+/* === Answer Display (Album Art & Info) === */
+#answer-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+#album-art {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    /* Sørger for at den ikke "hopper" når bildet lastes */
+    min-height: 300px; 
+    background-color: #333; /* Plassholderfarge */
+}
+
+#song-title {
+    font-size: 1.5em;
+    color: #fff;
+    margin: 0;
+}
+
+#song-details {
+    font-size: 1.1em;
+    color: #b3b3b3;
+    margin: 0;
+}
+
+/* === Guessing Area === */
+#guess-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#year-guess-input {
+    padding: 15px;
+    font-size: 16px;
+    text-align: center;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: #fff;
+}
+
+/* Fjerner piler på nummer-input */
+#year-guess-input::-webkit-outer-spin-button,
+#year-guess-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#year-guess-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+/* === Status & Controls === */
+#round-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    min-height: 25px; /* Forhindrer hopping i layout */
+}
+
+#game-controls {
+    width: 100%;
+}
+
+/* === Utility === */
+.hidden {
+    display: none !important;
+}
+
+/* Version: #181 */
