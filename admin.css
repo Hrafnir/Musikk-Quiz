@@ -1,4 +1,4 @@
-/* Version: #212 */
+/* Version: #218 */
 
 /* === Spesifikk styling for admin-panelet === */
 
@@ -9,26 +9,38 @@
     gap: 10px; /* Mellomrom mellom input og knapp */
 }
 
-/* Sørger for at input-feltet fyller den tilgjengelige plassen */
 .input-with-button input {
-    flex-grow: 1; /* Vokser for å fylle plassen */
+    flex-grow: 1;
 }
 
-/* Mindre, mer kompakt knapp som passer ved siden av et felt */
 .input-with-button button {
-    flex-shrink: 0; /* Hindrer knappen fra å krympe */
+    flex-shrink: 0;
     padding: 10px 20px;
     font-size: 14px;
-    width: auto; /* Lar bredden bestemmes av innholdet */
+    width: auto;
 }
 
-/* Styling for statusmeldingen under test-knappen */
 .test-status {
     font-size: 0.9em;
     font-weight: bold;
     margin-top: 5px;
-    min-height: 1.2em; /* Forhindrer at layouten "hopper" */
+    min-height: 1.2em;
 }
+
+/* NYTT: Styling for test-coveret */
+#test-cover-art {
+    display: block;
+    width: 150px;
+    height: 150px;
+    margin: 15px auto; /* Sentrerer bildet */
+    border-radius: 4px;
+    background-color: #333;
+    object-fit: cover;
+}
+#test-cover-art.hidden {
+    display: none;
+}
+
 
 /* Generell styling for skjemafelter i admin-panelet */
 #add-song-form label {
@@ -60,5 +72,4 @@
 #add-song-form legend {
     padding: 0 5px;
 }
-
-/* Version: #212 */
+/* Version: #218 */
