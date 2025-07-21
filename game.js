@@ -1,9 +1,8 @@
-/* Version: #188 */
+/* Version: #193 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
 
-// KORRIGERT: Bruker det globale 'supabase'-objektet og lagrer i 'supabaseClient'
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === STATE ===
@@ -11,11 +10,13 @@ let spotifyAccessToken = null;
 let spotifyPlayer = null;
 let deviceId = null;
 let currentSong = null;
+let score = 0; // NYTT: Poeng-variabel
 
 // === DOM ELEMENTS ===
 let preGameView, inGameView, startGameBtn,
-    answerDisplay, albumArt, songTitle, songDetails,
-    guessArea, yearGuessInput, submitGuessBtn,
+    playerHud, scoreDisplay,
+    answerDisplay, albumArt, correctArtist, correctTitle, correctYear,
+    guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
     roundStatus, gameControls, nextRoundBtn;
 
 
@@ -44,9 +45,7 @@ function initializeSpotifyPlayer(token) {
         startGameBtn.textContent = 'Start Spill';
     });
 
-    spotifyPlayer.addListener('not_ready', ({ device_id }) => {
-        console.log('Enhet har gått offline', device_id);
-    });
+    spotifyPlayer.addListener('not_ready', ({ device_id }) => { console.log('Enhet har gått offline', device_id); });
 
     spotifyPlayer.addListener('authentication_error', ({ message }) => {
         console.error('Autentisering feilet:', message);
@@ -76,7 +75,6 @@ async function playTrack(spotifyTrackId) {
 
 // === GAME LOGIC ===
 async function fetchRandomSong() {
-    // KORRIGERT: Bruker 'supabaseClient' i stedet for 'supabase'
     const { count, error: countError } = await supabaseClient
         .from('songs')
         .select('*', { count: 'exact', head: true });
@@ -89,7 +87,6 @@ async function fetchRandomSong() {
 
     const randomIndex = Math.floor(Math.random() * count);
 
-    // KORRIGERT: Bruker 'supabaseClient' i stedet for 'supabase'
     const { data: song, error: songError } = await supabaseClient
         .from('songs')
         .select('*')
@@ -107,6 +104,8 @@ async function fetchRandomSong() {
 function startGame() {
     preGameView.classList.add('hidden');
     inGameView.classList.remove('hidden');
+    score = 0; // Nullstill poeng ved start
+    updateScoreDisplay(); // Vis start-poengsum
     playNextRound();
 }
 
@@ -116,60 +115,85 @@ async function playNextRound() {
     guessArea.classList.remove('hidden');
     answerDisplay.classList.add('hidden');
     nextRoundBtn.classList.add('hidden');
+    
+    // Tøm alle input-felt
+    artistGuessInput.value = '';
+    titleGuessInput.value = '';
     yearGuessInput.value = '';
     albumArt.src = '';
 
     currentSong = await fetchRandomSong();
 
     if (currentSong) {
-        roundStatus.textContent = 'Sangen spilles... Gjett årstallet!';
+        roundStatus.textContent = 'Sangen spilles...';
         await playTrack(currentSong.spotifyid);
+        artistGuessInput.focus(); // Sett fokus på første felt
     } else {
         roundStatus.textContent = 'Klarte ikke hente en sang. Prøv igjen.';
     }
 }
 
 function handleSubmitGuess() {
-    const guess = parseInt(yearGuessInput.value, 10);
-    if (!guess) {
-        roundStatus.textContent = 'Vennligst skriv inn et årstall.';
-        return;
-    }
+    let roundScore = 0;
+    const artistGuess = artistGuessInput.value.trim().toLowerCase();
+    const titleGuess = titleGuessInput.value.trim().toLowerCase();
+    const yearGuess = parseInt(yearGuessInput.value, 10);
 
-    if (guess === currentSong.year) {
-        roundStatus.textContent = 'RIKTIG!';
-        roundStatus.style.color = '#1DB954';
-    } else {
-        roundStatus.textContent = `FEIL! Riktig år var ${currentSong.year}.`;
-        roundStatus.style.color = '#FF4136';
-    }
+    const correctArtist = currentSong.artist.toLowerCase();
+    const correctTitle = currentSong.title.toLowerCase();
+    const correctYear = currentSong.year;
+
+    if (artistGuess === correctArtist) roundScore++;
+    if (titleGuess === correctTitle) roundScore++;
+    if (yearGuess === correctYear) roundScore++;
+
+    score += roundScore;
+    updateScoreDisplay();
+
+    roundStatus.textContent = `Du fikk ${roundScore} av 3 poeng denne runden!`;
+    roundStatus.style.color = roundScore > 0 ? '#1DB954' : '#FF4136';
 
     showAnswer();
 }
 
 function showAnswer() {
     albumArt.src = currentSong.albumarturl || '';
-    songTitle.textContent = currentSong.title;
-    songDetails.textContent = `${currentSong.artist} (${currentSong.year})`;
+    correctArtist.textContent = currentSong.artist;
+    correctTitle.textContent = currentSong.title;
+    correctYear.textContent = currentSong.year;
     
     answerDisplay.classList.remove('hidden');
     guessArea.classList.add('hidden');
     nextRoundBtn.classList.remove('hidden');
 }
 
+function updateScoreDisplay() {
+    scoreDisplay.textContent = `Poeng: ${score}`;
+}
+
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
+    // Hent alle DOM-elementer
     preGameView = document.getElementById('pre-game-view');
     inGameView = document.getElementById('in-game-view');
     startGameBtn = document.getElementById('start-game-btn');
+    
+    playerHud = document.getElementById('player-hud');
+    scoreDisplay = document.getElementById('score-display');
+    
     answerDisplay = document.getElementById('answer-display');
     albumArt = document.getElementById('album-art');
-    songTitle = document.getElementById('song-title');
-    songDetails = document.getElementById('song-details');
+    correctArtist = document.getElementById('correct-artist');
+    correctTitle = document.getElementById('correct-title');
+    correctYear = document.getElementById('correct-year');
+    
     guessArea = document.getElementById('guess-area');
+    artistGuessInput = document.getElementById('artist-guess-input');
+    titleGuessInput = document.getElementById('title-guess-input');
     yearGuessInput = document.getElementById('year-guess-input');
     submitGuessBtn = document.getElementById('submit-guess-btn');
+    
     roundStatus = document.getElementById('round-status');
     gameControls = document.getElementById('game-controls');
     nextRoundBtn = document.getElementById('next-round-btn');
@@ -181,4 +205,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', playNextRound);
 });
-/* Version: #188 */
+/* Version: #193 */
