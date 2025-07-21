@@ -1,4 +1,4 @@
-/* Version: #191 */
+/* Version: #196 */
 
 /* === Game Container === */
 #game-container {
@@ -19,15 +19,25 @@
     gap: 20px; /* Mellomrom mellom elementene */
 }
 
-/* NYTT: Player HUD (Heads-Up Display) for poeng etc. */
+/* NYTT: Oppdatert Player HUD for å håndtere flere elementer */
 #player-hud {
     width: 100%;
-    text-align: right;
-    font-size: 1.2em;
+    display: flex; /* Bruker flexbox for å plassere elementer side-ved-side */
+    justify-content: space-between; /* Plasserer elementene på hver sin side */
+    align-items: center;
+    font-size: 1.1em; /* Justert fontstørrelse */
     font-weight: bold;
-    color: #1DB954;
     margin-bottom: 10px;
 }
+
+#score-display {
+    color: #1DB954; /* Grønn for poeng */
+}
+
+#handicap-display {
+    color: #b3b3b3; /* Grå for handicap */
+}
+
 
 /* === Answer Display (Album Art & Info) === */
 #answer-display {
@@ -48,7 +58,6 @@
     background-color: #333; 
 }
 
-/* NYTT: Styling for selve sang-info boksen */
 #song-info {
     text-align: left;
     width: 100%;
@@ -76,7 +85,6 @@
     gap: 15px;
 }
 
-/* Felles stiler for alle input-felt */
 #artist-guess-input,
 #title-guess-input,
 #year-guess-input {
@@ -116,4 +124,4 @@
     display: none !important;
 }
 
-/* Version: #191 */
+/* Version: #196 */
