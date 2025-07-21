@@ -1,4 +1,4 @@
-/* Version: #213 */
+/* Version: #216 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -11,7 +11,7 @@ let spotifyAccessToken = null;
 // === DOM ELEMENTS ===
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
     statusMessage, genresContainer, tagsContainer,
-    testSpotifyBtn, spotifyTestStatus; // NYE ELEMENTER
+    testSpotifyBtn, spotifyTestStatus;
 
 // === AUTHENTICATION FUNCTIONS ===
 async function signInWithGoogle() {
@@ -44,21 +44,39 @@ async function populateCheckboxes() {
     }
 }
 
-// NY FUNKSJON: Tester Spotify ID og autofyller skjemaet
+// ENDRET: Funksjonen er nå smartere og kan håndtere fulle URLer
 async function handleTestSpotifyId() {
-    const spotifyId = document.getElementById('spotifyId').value.trim();
-    spotifyTestStatus.textContent = ''; // Nullstill status
+    let spotifyIdInput = document.getElementById('spotifyId');
+    let rawInput = spotifyIdInput.value.trim();
+    spotifyTestStatus.textContent = '';
 
     if (!spotifyAccessToken) {
         spotifyTestStatus.textContent = 'Du må koble til Spotify på hovedsiden først.';
-        spotifyTestStatus.style.color = '#FF4136'; // Rød
+        spotifyTestStatus.style.color = '#FF4136';
         return;
     }
-    if (!spotifyId) {
-        spotifyTestStatus.textContent = 'Lim inn en Spotify ID for å teste.';
-        spotifyTestStatus.style.color = '#FFDC00'; // Gul
+    if (!rawInput) {
+        spotifyTestStatus.textContent = 'Lim inn en Spotify ID eller lenke for å teste.';
+        spotifyTestStatus.style.color = '#FFDC00';
         return;
     }
+
+    // --- NY LOGIKK FOR Å HÅNDTERE URL ---
+    let spotifyId = rawInput;
+    if (rawInput.includes('spotify.com/track/')) {
+        try {
+            // Prøver å trekke ut ID-en fra URL-en
+            const url = new URL(rawInput);
+            spotifyId = url.pathname.split('/track/')[1];
+        } catch (e) {
+            spotifyTestStatus.textContent = 'FEIL: Ugyldig Spotify lenke.';
+            spotifyTestStatus.style.color = '#FF4136';
+            return;
+        }
+    }
+    // Fjern eventuelle query-parametere som ?si=...
+    spotifyId = spotifyId.split('?')[0];
+    // --- SLUTT PÅ NY LOGIKK ---
 
     spotifyTestStatus.textContent = 'Tester ID...';
     spotifyTestStatus.style.color = '#fff';
@@ -75,22 +93,24 @@ async function handleTestSpotifyId() {
 
         const track = await response.json();
         
-        // Autofyll skjemaet
+        // Oppdater input-feltet med den rene ID-en
+        spotifyIdInput.value = spotifyId;
+
+        // Autofyll resten av skjemaet
         document.getElementById('artist').value = track.artists.map(a => a.name).join(', ');
         document.getElementById('title').value = track.name;
         document.getElementById('album').value = track.album.name;
         document.getElementById('year').value = track.album.release_date.substring(0, 4);
-        // Henter det største bildet (best kvalitet)
         if (track.album.images && track.album.images.length > 0) {
             document.getElementById('albumArtUrl').value = track.album.images[0].url;
         }
 
         spotifyTestStatus.textContent = '✓ Vellykket! Skjemaet er autofylt.';
-        spotifyTestStatus.style.color = '#1DB954'; // Grønn
+        spotifyTestStatus.style.color = '#1DB954';
 
     } catch (error) {
         spotifyTestStatus.textContent = `FEIL: ${error.message}`;
-        spotifyTestStatus.style.color = '#FF4136'; // Rød
+        spotifyTestStatus.style.color = '#FF4136';
         console.error("Feil ved test av Spotify ID:", error);
     }
 }
@@ -148,7 +168,7 @@ async function handleAddSong(event) {
     statusMessage.textContent = `Vellykket! "${songData.title}" er lagt til i databasen.`;
     statusMessage.style.color = '#1DB954';
     addSongForm.reset();
-    spotifyTestStatus.textContent = ''; // Nullstill test-status også
+    spotifyTestStatus.textContent = '';
     form.spotifyId.focus();
 }
 
@@ -168,13 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleAddSong);
-    testSpotifyBtn.addEventListener('click', handleTestSpotifyId); // NY EVENT LISTENER
+    testSpotifyBtn.addEventListener('click', handleTestSpotifyId);
 
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
             loginView.classList.add('hidden');
             mainView.classList.remove('hidden');
-            // Hent Spotify-token NÅR brukeren er logget inn
             spotifyAccessToken = localStorage.getItem('spotify_access_token');
             await populateCheckboxes();
         } else {
@@ -183,4 +202,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #213 */
+/* Version: #216 */
