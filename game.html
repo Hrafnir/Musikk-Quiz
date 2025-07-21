@@ -1,4 +1,4 @@
-<!-- Version: #190 -->
+<!-- Version: #195 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -20,17 +20,19 @@
     <div id="game-container">
         <h1>Musikk-Quiz</h1>
 
-        <!-- === FØR SPILLET-VISNING === -->
+        <!-- FØR SPILLET-VISNING -->
         <div id="pre-game-view">
             <p>Klar til å teste dine musikk-kunnskaper?</p>
             <button id="start-game-btn">Start Spill</button>
         </div>
 
-        <!-- === I SPILLET-VISNING === -->
+        <!-- I SPILLET-VISNING -->
         <div id="in-game-view" class="hidden">
 
-            <!-- NYTT: Poeng-visning -->
+            <!-- Player HUD (Heads-Up Display) -->
             <div id="player-hud">
+                <!-- NYTT: Egen div for handicap -->
+                <div id="handicap-display">Handicap: 5</div> 
                 <div id="score-display">Poeng: 0</div>
             </div>
 
@@ -46,7 +48,6 @@
 
             <!-- Gjette-område (vises under gjetning) -->
             <div id="guess-area">
-                <!-- NYTT: Lagt til input for artist og tittel -->
                 <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off">
                 <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
@@ -74,4 +75,4 @@
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #190 -->
+<!-- Version: #195 -->
