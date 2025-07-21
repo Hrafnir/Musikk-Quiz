@@ -1,4 +1,4 @@
-/* Version: #196 */
+/* Version: #255 */
 
 /* === Game Container === */
 #game-container {
@@ -11,33 +11,88 @@
     text-align: center;
 }
 
-/* === In-Game View Specifics === */
+/* === Pre-Game View (Spiller-oppsett) === */
+#pre-game-view h2 {
+    margin-bottom: 20px;
+}
+#player-setup-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+#player-name-input {
+    flex-grow: 1;
+    padding: 15px;
+    font-size: 16px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: #fff;
+}
+#add-player-btn {
+    flex-shrink: 0;
+    width: auto;
+    font-size: 16px;
+}
+#player-list-container {
+    text-align: left;
+    margin-bottom: 30px;
+}
+#player-list {
+    list-style: none;
+    padding: 0;
+}
+#player-list li {
+    background-color: #282828;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-top: 5px;
+    font-size: 1.1em;
+}
+
+
+/* === In-Game View === */
 #in-game-view {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px; /* Mellomrom mellom elementene */
+    gap: 20px;
 }
 
-/* NYTT: Oppdatert Player HUD for å håndtere flere elementer */
+/* NYTT: HUD for alle spillere */
 #player-hud {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
     width: 100%;
-    display: flex; /* Bruker flexbox for å plassere elementer side-ved-side */
-    justify-content: space-between; /* Plasserer elementene på hver sin side */
-    align-items: center;
-    font-size: 1.1em; /* Justert fontstørrelse */
+    margin-bottom: 10px;
+}
+.player-info {
+    background-color: #282828;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+.player-info.active-player {
+    border-color: #1DB954;
+    box-shadow: 0 0 10px #1DB954;
+}
+.player-info .player-name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.player-info .player-stats {
+    font-size: 0.9em;
+    color: #b3b3b3;
+}
+
+#turn-indicator {
+    font-size: 1.3em;
     font-weight: bold;
     margin-bottom: 10px;
 }
-
-#score-display {
-    color: #1DB954; /* Grønn for poeng */
-}
-
-#handicap-display {
-    color: #b3b3b3; /* Grå for handicap */
-}
-
 
 /* === Answer Display (Album Art & Info) === */
 #answer-display {
@@ -47,7 +102,6 @@
     gap: 15px;
     margin-bottom: 20px;
 }
-
 #album-art {
     width: 100%;
     max-width: 300px;
@@ -57,7 +111,6 @@
     min-height: 300px; 
     background-color: #333; 
 }
-
 #song-info {
     text-align: left;
     width: 100%;
@@ -66,7 +119,6 @@
     padding: 15px;
     border-radius: 5px;
 }
-
 #song-info p {
     margin: 5px 0;
     font-size: 1.1em;
@@ -76,7 +128,6 @@
     color: #fff;
 }
 
-
 /* === Guessing Area === */
 #guess-area {
     width: 100%;
@@ -84,7 +135,6 @@
     flex-direction: column;
     gap: 15px;
 }
-
 #artist-guess-input,
 #title-guess-input,
 #year-guess-input {
@@ -96,8 +146,6 @@
     border-radius: 5px;
     color: #fff;
 }
-
-/* Fjerner piler på nummer-input */
 #year-guess-input::-webkit-outer-spin-button,
 #year-guess-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -107,14 +155,12 @@
   -moz-appearance: textfield;
 }
 
-
 /* === Status & Controls === */
 #round-status {
     font-size: 1.2em;
     font-weight: bold;
     min-height: 25px; 
 }
-
 #game-controls {
     width: 100%;
 }
@@ -123,5 +169,4 @@
 .hidden {
     display: none !important;
 }
-
-/* Version: #196 */
+/* Version: #255 */
