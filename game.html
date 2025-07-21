@@ -1,18 +1,13 @@
-<!-- Version: #199 -->
+<!-- Version: #254 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQuiz - Spill</title>
-    <!-- Felles stiler -->
     <link rel="stylesheet" href="style.css">
-    <!-- Spill-spesifikke stiler -->
     <link rel="stylesheet" href="game.css">
-    
-    <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Spotify Web Playback SDK -->
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
@@ -20,20 +15,32 @@
     <div id="game-container">
         <h1>Musikk-Quiz</h1>
 
-        <!-- FØR SPILLET-VISNING -->
+        <!-- === FØR SPILLET-VISNING (HELOMBYGGET FOR FLERSPILLER) === -->
         <div id="pre-game-view">
-            <p>Klar til å teste dine musikk-kunnskaper?</p>
-            <button id="start-game-btn">Start Spill</button>
+            <h2>Legg til spillere</h2>
+            <div id="player-setup-area">
+                <input type="text" id="player-name-input" placeholder="Skriv inn spillernavn..." autocomplete="off">
+                <button id="add-player-btn">Legg til</button>
+            </div>
+            <div id="player-list-container">
+                <h3>Spillere:</h3>
+                <ul id="player-list">
+                    <!-- Spillerne vil bli lagt til her av JavaScript -->
+                </ul>
+            </div>
+            <button id="start-game-btn" disabled>Start Spill</button>
         </div>
 
-        <!-- I SPILLET-VISNING -->
+        <!-- === I SPILLET-VISNING === -->
         <div id="in-game-view" class="hidden">
 
             <!-- Player HUD (Heads-Up Display) -->
             <div id="player-hud">
-                <div id="handicap-display">Handicap: 5</div> 
-                <div id="score-display">Poeng: 0</div>
+                <!-- Vil bli fylt ut dynamisk av JavaScript -->
             </div>
+
+            <!-- Område for å vise hvem sin tur det er -->
+            <div id="turn-indicator"></div>
 
             <!-- Resultat-område (vises etter gjetning) -->
             <div id="answer-display" class="hidden">
@@ -47,7 +54,6 @@
 
             <!-- Gjette-område (vises under gjetning) -->
             <div id="guess-area">
-                <!-- ENDRET: Artist-input er nå koblet til en datalist -->
                 <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
                 <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
@@ -71,11 +77,11 @@
 
     </div>
 
-    <!-- NYTT: Datalist for autocomplete. Denne er usynlig. -->
+    <!-- Datalist for autocomplete. Denne er usynlig. -->
     <datalist id="artist-list"></datalist>
 
     <!-- Spill-logikk -->
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #199 -->
+<!-- Version: #254 -->
