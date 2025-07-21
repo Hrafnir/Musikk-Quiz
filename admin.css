@@ -1,0 +1,64 @@
+/* Version: #212 */
+
+/* === Spesifikk styling for admin-panelet === */
+
+/* Container for et input-felt og en knapp på samme linje */
+.input-with-button {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Mellomrom mellom input og knapp */
+}
+
+/* Sørger for at input-feltet fyller den tilgjengelige plassen */
+.input-with-button input {
+    flex-grow: 1; /* Vokser for å fylle plassen */
+}
+
+/* Mindre, mer kompakt knapp som passer ved siden av et felt */
+.input-with-button button {
+    flex-shrink: 0; /* Hindrer knappen fra å krympe */
+    padding: 10px 20px;
+    font-size: 14px;
+    width: auto; /* Lar bredden bestemmes av innholdet */
+}
+
+/* Styling for statusmeldingen under test-knappen */
+.test-status {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-top: 5px;
+    min-height: 1.2em; /* Forhindrer at layouten "hopper" */
+}
+
+/* Generell styling for skjemafelter i admin-panelet */
+#add-song-form label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#add-song-form input[type="text"],
+#add-song-form input[type="number"],
+#add-song-form textarea {
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 16px;
+}
+
+#add-song-form fieldset {
+    margin-top: 20px;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#add-song-form legend {
+    padding: 0 5px;
+}
+
+/* Version: #212 */
