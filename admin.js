@@ -1,47 +1,47 @@
-/* Version: #115 */
+/* Version: #117 */
 // === SUPABASE CONFIGURATION ===
-// Korrigert med den URL-en du verifiserte
-const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co'; 
+const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === DOM ELEMENTS ===
-const loginView = document.getElementById('admin-login-view');
-const mainView = document.getElementById('admin-main-view');
-const googleLoginBtn = document.getElementById('google-login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const addSongForm = document.getElementById('add-song-form');
-const statusMessage = document.getElementById('status-message');
-const genresContainer = document.getElementById('genres-container');
-const tagsContainer = document.getElementById('tags-container');
+let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
+    statusMessage, genresContainer, tagsContainer;
 
 // === AUTHENTICATION FUNCTIONS ===
 async function signInWithGoogle() {
-    console.log('Forsøker å logge inn med Google for admin...');
     await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-            redirectTo: 'https://hrafnir.github.io/Musikk-Quiz/admin.html'
-        }
+        options: { redirectTo: 'https://hrafnir.github.io/Musikk-Quiz/admin.html' }
     });
 }
 
 async function signOut() {
-    console.log('Forsøker å logge ut...');
     await supabaseClient.auth.signOut();
 }
 
 // === DATA & UI FUNCTIONS ===
 async function populateCheckboxes() {
+    genresContainer.innerHTML = 'Laster sjangre...';
+    tagsContainer.innerHTML = 'Laster tags...';
+
     const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
-    if (genresError) { genresContainer.textContent = 'Kunne ikke laste sjangre.'; console.error('Feil ved henting av sjangre:', genresError); }
-    else { genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join(''); }
+    if (genresError) {
+        genresContainer.textContent = 'Kunne ikke laste sjangre.';
+        console.error('Feil ved henting av sjangre:', genresError);
+    } else {
+        genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join('');
+    }
     
     const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
-    if (tagsError) { tagsContainer.textContent = 'Kunne ikke laste tags.'; console.error('Feil ved henting av tags:', tagsError); }
-    else { tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join(''); }
+    if (tagsError) {
+        tagsContainer.textContent = 'Kunne ikke laste tags.';
+        console.error('Feil ved henting av tags:', tagsError);
+    } else {
+        tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join('');
+    }
 }
 
 async function handleAddSong(event) {
@@ -49,7 +49,7 @@ async function handleAddSong(event) {
     statusMessage.textContent = 'Lagrer sang...';
     statusMessage.style.color = '#FFDC00';
     const form = event.target;
-    const songData = { artist: form.artist.value.trim(), title: form.title.value.trim(), album: form.album.value.trim() || null, year: parseInt(form.year.value, 10), spotifyId: form.spotifyId.value.trim(), albumArtUrl: form.albumArtUrl.value.trim() || null, trivia: form.trivia.value.trim() || null, };
+    const songData = { artist: form.artist.value.trim(), title: form.title.value.trim(), album: form.album.value.trim() || null, year: parseInt(form.year.value, 10), spotifyId: form.spotifyId.value.trim(), albumArtUrl: form.albumArtUrl.value.trim() || null, trivia: form.trivia.value.trim() || null };
     const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single();
     if (songError) { statusMessage.textContent = `FEIL ved lagring av sang: ${songError.message}`; statusMessage.style.color = '#FF4136'; console.error(songError); return; }
     const newSongId = newSong.id;
@@ -65,19 +65,34 @@ async function handleAddSong(event) {
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
+    // Tildel DOM-elementer når DOM er klar
+    loginView = document.getElementById('admin-login-view');
+    mainView = document.getElementById('admin-main-view');
+    googleLoginBtn = document.getElementById('google-login-btn');
+    logoutBtn = document.getElementById('logout-btn');
+    addSongForm = document.getElementById('add-song-form');
+    statusMessage = document.getElementById('status-message');
+    genresContainer = document.getElementById('genres-container');
+    tagsContainer = document.getElementById('tags-container');
+
+    // Sett opp lyttere
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleAddSong);
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
+    // Hovedlogikk for å håndtere innloggingsstatus
+    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
+            console.log("Bruker er logget inn. Viser hovedinnhold.");
             loginView.classList.add('hidden');
             mainView.classList.remove('hidden');
-            populateCheckboxes();
+            // Vent til UI er synlig før vi henter data
+            await populateCheckboxes();
         } else {
+            console.log("Bruker er logget ut. Viser innloggingsskjerm.");
             loginView.classList.remove('hidden');
             mainView.classList.add('hidden');
         }
     });
 });
-/* Version: #115 */
+/* Version: #117 */
