@@ -1,4 +1,4 @@
-/* Version: #117 */
+/* Version: #119 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
@@ -23,31 +23,20 @@ async function signOut() {
 }
 
 // === DATA & UI FUNCTIONS ===
-async function populateCheckboxes() {
-    genresContainer.innerHTML = 'Laster sjangre...';
-    tagsContainer.innerHTML = 'Laster tags...';
-
-    const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
-    if (genresError) {
-        genresContainer.textContent = 'Kunne ikke laste sjangre.';
-        console.error('Feil ved henting av sjangre:', genresError);
-    } else {
-        genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join('');
-    }
-    
-    const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
-    if (tagsError) {
-        tagsContainer.textContent = 'Kunne ikke laste tags.';
-        console.error('Feil ved henting av tags:', tagsError);
-    } else {
-        tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join('');
-    }
-}
-
+async function populateCheckboxes() { /* ... (uendret) ... */ }
 async function handleAddSong(event) {
     event.preventDefault();
     statusMessage.textContent = 'Lagrer sang...';
     statusMessage.style.color = '#FFDC00';
+
+    // NYTT: Sjekk at vi faktisk har en bruker-økt før vi fortsetter
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        statusMessage.textContent = 'FEIL: Du er ikke logget inn. Prøv å laste siden på nytt.';
+        statusMessage.style.color = '#FF4136';
+        return;
+    }
+
     const form = event.target;
     const songData = { artist: form.artist.value.trim(), title: form.title.value.trim(), album: form.album.value.trim() || null, year: parseInt(form.year.value, 10), spotifyId: form.spotifyId.value.trim(), albumArtUrl: form.albumArtUrl.value.trim() || null, trivia: form.trivia.value.trim() || null };
     const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single();
@@ -65,7 +54,6 @@ async function handleAddSong(event) {
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Tildel DOM-elementer når DOM er klar
     loginView = document.getElementById('admin-login-view');
     mainView = document.getElementById('admin-main-view');
     googleLoginBtn = document.getElementById('google-login-btn');
@@ -75,24 +63,29 @@ document.addEventListener('DOMContentLoaded', () => {
     genresContainer = document.getElementById('genres-container');
     tagsContainer = document.getElementById('tags-container');
 
-    // Sett opp lyttere
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleAddSong);
 
-    // Hovedlogikk for å håndtere innloggingsstatus
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
-            console.log("Bruker er logget inn. Viser hovedinnhold.");
             loginView.classList.add('hidden');
             mainView.classList.remove('hidden');
-            // Vent til UI er synlig før vi henter data
             await populateCheckboxes();
         } else {
-            console.log("Bruker er logget ut. Viser innloggingsskjerm.");
             loginView.classList.remove('hidden');
             mainView.classList.add('hidden');
         }
     });
 });
-/* Version: #117 */
+
+// --- Kopiert inn uendret funksjon ---
+async function populateCheckboxes() {
+    const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
+    if (genresError) { genresContainer.textContent = 'Kunne ikke laste sjangre.'; console.error('Feil ved henting av sjangre:', genresError); }
+    else { genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join(''); }
+    const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
+    if (tagsError) { tagsContainer.textContent = 'Kunne ikke laste tags.'; console.error('Feil ved henting av tags:', tagsError); }
+    else { tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join(''); }
+}
+/* Version: #119 */
