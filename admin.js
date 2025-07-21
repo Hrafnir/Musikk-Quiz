@@ -1,6 +1,6 @@
-/* Version: #112 */
+/* Version: #114 */
 // === SUPABASE CONFIGURATION ===
-const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
+const SUPABASE_URL = 'https://vqzyrmpfuxfnciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
@@ -16,47 +16,37 @@ const statusMessage = document.getElementById('status-message');
 const genresContainer = document.getElementById('genres-container');
 const tagsContainer = document.getElementById('tags-container');
 
-// === AUTH FUNCTIONS ===
+// === AUTHENTICATION FUNCTIONS ===
 async function signInWithGoogle() {
-    await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+    console.log('Forsøker å logge inn med Google for admin...');
+    await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: 'https://hrafnir.github.io/Musikk-Quiz/admin.html'
+        }
+    });
 }
+
 async function signOut() {
+    console.log('Forsøker å logge ut...');
     await supabaseClient.auth.signOut();
 }
 
-// === MAIN FUNCTIONS ===
-async function populateCheckboxes() { /* ... (som før) ... */ }
-async function handleAddSong(event) { /* ... (som før) ... */ }
-
-// === INITIALIZATION ===
-document.addEventListener('DOMContentLoaded', () => {
-    googleLoginBtn.addEventListener('click', signInWithGoogle);
-    logoutBtn.addEventListener('click', signOut);
-    addSongForm.addEventListener('submit', handleAddSong);
-
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
-        if (session) { // Bruker er logget inn
-            loginView.classList.add('hidden');
-            mainView.classList.remove('hidden');
-            populateCheckboxes();
-        } else { // Bruker er logget ut
-            loginView.classList.remove('hidden');
-            mainView.classList.add('hidden');
-        }
-    });
-});
-
-// --- Kopiert inn funksjoner (uendret) ---
+// === DATA & UI FUNCTIONS ===
 async function populateCheckboxes() {
     const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
     if (genresError) { genresContainer.textContent = 'Kunne ikke laste sjangre.'; console.error('Feil ved henting av sjangre:', genresError); }
     else { genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join(''); }
+    
     const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
     if (tagsError) { tagsContainer.textContent = 'Kunne ikke laste tags.'; console.error('Feil ved henting av tags:', tagsError); }
     else { tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join(''); }
 }
+
 async function handleAddSong(event) {
-    event.preventDefault(); statusMessage.textContent = 'Lagrer sang...'; statusMessage.style.color = '#FFDC00';
+    event.preventDefault();
+    statusMessage.textContent = 'Lagrer sang...';
+    statusMessage.style.color = '#FFDC00';
     const form = event.target;
     const songData = { artist: form.artist.value.trim(), title: form.title.value.trim(), album: form.album.value.trim() || null, year: parseInt(form.year.value, 10), spotifyId: form.spotifyId.value.trim(), albumArtUrl: form.albumArtUrl.value.trim() || null, trivia: form.trivia.value.trim() || null, };
     const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single();
@@ -66,6 +56,27 @@ async function handleAddSong(event) {
     if (selectedGenreIds.length > 0) { const songGenresData = selectedGenreIds.map(genreId => ({ song_id: newSongId, genre_id: genreId })); const { error: genreLinkError } = await supabaseClient.from('song_genres').insert(songGenresData); if (genreLinkError) { statusMessage.textContent = `FEIL ved kobling av sjangre: ${genreLinkError.message}`; return; } }
     const selectedTagIds = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => parseInt(cb.value, 10));
     if (selectedTagIds.length > 0) { const songTagsData = selectedTagIds.map(tagId => ({ song_id: newSongId, tag_id: tagId })); const { error: tagLinkError } = await supabaseClient.from('song_tags').insert(songTagsData); if (tagLinkError) { statusMessage.textContent = `FEIL ved kobling av tags: ${tagLinkError.message}`; return; } }
-    statusMessage.textContent = `Vellykket! "${songData.title}" er lagt til i databasen.`; statusMessage.style.color = '#1DB954'; addSongForm.reset(); form.artist.focus();
+    statusMessage.textContent = `Vellykket! "${songData.title}" er lagt til i databasen.`;
+    statusMessage.style.color = '#1DB954';
+    addSongForm.reset();
+    form.artist.focus();
 }
-/* Version: #112 */
+
+// === INITIALIZATION ===
+document.addEventListener('DOMContentLoaded', () => {
+    googleLoginBtn.addEventListener('click', signInWithGoogle);
+    logoutBtn.addEventListener('click', signOut);
+    addSongForm.addEventListener('submit', handleAddSong);
+
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+            loginView.classList.add('hidden');
+            mainView.classList.remove('hidden');
+            populateCheckboxes();
+        } else {
+            loginView.classList.remove('hidden');
+            mainView.classList.add('hidden');
+        }
+    });
+});
+/* Version: #114 */
