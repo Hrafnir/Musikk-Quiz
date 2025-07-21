@@ -1,4 +1,4 @@
-/* Version: #164 */
+/* Version: #176 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -68,8 +68,9 @@ async function handleAddSong(event) {
         title: form.title.value.trim(),
         album: form.album.value.trim() || null,
         year: parseInt(form.year.value, 10),
-        spotifyId: form.spotifyId.value.trim(),
-        // KORRIGERT: 'albumArtUrl' endret til 'albumarturl' for å matche databasen
+        // KORRIGERT: 'spotifyId' endret til 'spotifyid'
+        spotifyid: form.spotifyId.value.trim(),
+        // KORRIGERT: 'albumArtUrl' endret til 'albumarturl'
         albumarturl: form.albumArtUrl.value.trim() || null, 
         trivia: form.trivia.value.trim() || null,
         user_id: userId,
@@ -131,4 +132,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     populateCheckboxes();
 });
-/* Version: #164 */
+/* Version: #176 */
