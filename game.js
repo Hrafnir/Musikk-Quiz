@@ -1,4 +1,4 @@
-/* Version: #256 */
+/* Version: #258 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -13,8 +13,6 @@ let currentSong = null;
 let artistList = [];
 let songHistory = [];
 let totalSongsInDb = 0;
-
-// FLERSPILLER-STATE
 let players = [];
 let currentPlayerIndex = 0;
 
@@ -38,14 +36,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     }
 };
 
-function initializeSpotifyPlayer(token) {
-    // ... (uendret fra forrige versjon) ...
-}
-
-async function playTrack(spotifyTrackId) {
-    // ... (uendret fra forrige versjon) ...
-}
-
+// ... (Funksjoner som initializeSpotifyPlayer, playTrack etc. er uendret) ...
 
 // === PRE-GAME LOGIC (SPILLER-OPPSETT) ===
 function handleAddPlayer() {
@@ -55,7 +46,7 @@ function handleAddPlayer() {
             name: name,
             sp: 0,
             credits: 3,
-            handicap: 5 // Standard handicap for nå
+            handicap: 5
         });
         updatePlayerListView();
         playerNameInput.value = '';
@@ -73,14 +64,11 @@ function updatePlayerListView() {
     });
 }
 
-
 // === GAME LOGIC ===
 async function startGame() {
     if (players.length === 0) return;
-
     preGameView.classList.add('hidden');
     inGameView.classList.remove('hidden');
-    
     songHistory = [];
     currentPlayerIndex = 0;
     
@@ -154,8 +142,11 @@ function handleSubmitGuess() {
     showAnswer();
 }
 
+// ENDRET: Funksjonen som bytter spiller
 function advanceToNextPlayer() {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    // KORRIGERT: Oppdaterer HUD umiddelbart for å flytte den grønne borden
+    updateHud(); 
     playNextRound();
 }
 
@@ -224,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     startGameBtn.addEventListener('click', startGame);
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
-    nextRoundBtn.addEventListener('click', advanceToNextPlayer); // Endret til å bytte spiller
+    nextRoundBtn.addEventListener('click', advanceToNextPlayer);
 });
 
 // --- Kopiert inn uendrede hjelpefunksjoner ---
@@ -234,4 +225,4 @@ async function pauseTrack() { if (!deviceId) return; await fetch(`https://api.sp
 async function playTrack(spotifyTrackId) { if (!deviceId) { alert('Ingen aktiv Spotify-enhet funnet.'); return false; } await pauseTrack(); await new Promise(resolve => setTimeout(resolve, 100)); const trackUri = `spotify:track:${spotifyTrackId}`; const playUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`; const playOptions = { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` }, }; try { const response = await fetch(playUrl, playOptions); if (!response.ok) throw new Error(`Spotify API svarte med ${response.status}`); return true; } catch (error) { if (error.message.includes("403")) { await transferPlayback(); try { const retryResponse = await fetch(playUrl, playOptions); if (!retryResponse.ok) throw new Error(`Spotify API svarte med ${retryResponse.status} på nytt forsøk`); return true; } catch (retryError) { alert("Klarte ikke starte avspilling. Sjekk at Spotify er aktiv og prøv neste runde."); return false; } } else { return false; } } }
 async function populateArtistList() { const { data, error } = await supabaseClient.rpc('get_distinct_artists'); if (error) { console.error("Klarte ikke hente artistliste:", error); return; } artistList = data.map(item => item.artist_name); artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); }
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { songHistory = []; const { data: fallbackData } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); return fallbackData ? fallbackData[0] : null; } return data[0]; }
-/* Version: #256 */
+/* Version: #258 */
