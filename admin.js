@@ -1,4 +1,4 @@
-/* Version: #230 */
+/* Version: #234 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -9,8 +9,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let spotifyAccessToken = null;
 let spotifyPlayer = null;
 let deviceId = null;
-let allGenres = []; // NYTT: Mellomlagrer alle sjangre
-let allTags = [];   // NYTT: Mellomlagrer alle tags
+let allGenres = [];
+let allTags = [];
 
 // === DOM ELEMENTS ===
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
@@ -51,19 +51,18 @@ async function signOut() {
     await supabaseClient.auth.signOut();
 }
 
-// ENDRET: Mellomlagrer nå dataen for senere bruk
 async function populateCheckboxes() {
     const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
     if (genresError) { genresContainer.textContent = 'Kunne ikke laste sjangre.'; } 
     else { 
-        allGenres = genres; // Lagre for import-funksjonen
+        allGenres = genres;
         genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join('');
     }
 
     const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
     if (tagsError) { tagsContainer.textContent = 'Kunne ikke laste tags.'; } 
     else { 
-        allTags = tags; // Lagre for import-funksjonen
+        allTags = tags;
         tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join('');
     }
 }
@@ -139,7 +138,7 @@ async function handleAddSong(event) {
     form.spotifyId.focus();
 }
 
-// === MASSE-IMPORT FUNKSJONALITET (HELOMBYGGET) ===
+// === MASSE-IMPORT FUNKSJONALITET ===
 async function importSingleTrack(trackObject) {
     const { url, genres = [], tags = [] } = trackObject;
     let spotifyId = url;
@@ -162,12 +161,15 @@ async function importSingleTrack(trackObject) {
         };
 
         const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single();
+        
+        // ENDRET: Smart feilhåndtering for duplikater
         if (songError) {
-            if (error.code === '23505') return { success: false, message: `⚠️ "${songData.title}" finnes allerede.` };
+            if (songError.code === '23505') { // '23505' er koden for "unique_violation"
+                return { success: false, message: `⚠️ "${songData.title}" finnes allerede i databasen.` };
+            }
             throw new Error(`Supabase feil: ${songError.message}`);
         }
 
-        // Koble sjangre og tags
         const genreIdsToInsert = allGenres.filter(g => genres.includes(g.name)).map(g => g.id);
         if (genreIdsToInsert.length > 0) {
             await supabaseClient.from('song_genres').insert(genreIdsToInsert.map(id => ({ song_id: newSong.id, genre_id: id })));
@@ -254,4 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #230 */
+/* Version: #234 */
