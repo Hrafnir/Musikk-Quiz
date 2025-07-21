@@ -1,10 +1,11 @@
-/* Version: #129 */
+/* Version: #132 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_NYT_KEY);
+// KORRIGERT LINJE: Bruker riktig variabelnavn 'SUPABASE_ANON_KEY'
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === DOM ELEMENTS ===
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
@@ -145,4 +146,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Last inn sjangre og tags umiddelbart, uavhengig av innlogging
     populateCheckboxes();
 });
-/* Version: #129 */
+/* Version: #132 */
