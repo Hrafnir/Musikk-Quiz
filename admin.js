@@ -1,10 +1,10 @@
-/* Version: #121 */
+/* Version: #129 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://vqzyrmpfuxfnjciwgyge.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenlybXBmdXhmbmpjaXdneWdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMDQ0NjksImV4cCI6MjA2ODU4MDQ2OX0.NWYzvjHwsIVn1D78_I3sdXta1-03Lze7MXiQcole65M';
 
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_NYT_KEY);
 
 // === DOM ELEMENTS ===
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
@@ -59,6 +59,9 @@ async function handleAddSong(event) {
         statusMessage.style.color = '#FF4136';
         return;
     }
+    
+    // Hent brukerens ID fra økten
+    const userId = session.user.id;
 
     const form = event.target;
     const songData = {
@@ -69,6 +72,7 @@ async function handleAddSong(event) {
         spotifyId: form.spotifyId.value.trim(),
         albumArtUrl: form.albumArtUrl.value.trim() || null,
         trivia: form.trivia.value.trim() || null,
+        user_id: userId, // Legg til brukerens ID i objektet som sendes
     };
 
     // 1. Lagre sangen
@@ -109,6 +113,7 @@ async function handleAddSong(event) {
     form.artist.focus();
 }
 
+
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     // Hent DOM-elementer
@@ -140,4 +145,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Last inn sjangre og tags umiddelbart, uavhengig av innlogging
     populateCheckboxes();
 });
-/* Version: #121 */
+/* Version: #129 */
