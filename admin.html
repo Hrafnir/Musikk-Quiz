@@ -1,4 +1,4 @@
-<!-- Version: #223 -->
+<!-- Version: #229 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -55,12 +55,18 @@
                 <div id="status-message" style="margin-top: 20px; font-weight: bold;"></div>
             </details>
 
-            <!-- NY SEKSJON: Masse-import -->
+            <!-- ENDRET SEKSJON: Masse-import -->
             <details>
-                <summary>Masse-import av sanger</summary>
+                <summary>Masse-import av sanger (JSON)</summary>
                 <div class="bulk-import-container">
-                    <label for="bulk-import-input">Lim inn Spotify-lenker (én per linje):</label>
-                    <textarea id="bulk-import-input" rows="10" placeholder="https://open.spotify.com/track/...\nhttps://open.spotify.com/track/..."></textarea>
+                    <label for="bulk-import-input">Lim inn JSON-data her:</label>
+                    <textarea id="bulk-import-input" rows="10" placeholder='[
+  {
+    "url": "https://open.spotify.com/track/...",
+    "genres": ["Rock", "90s"],
+    "tags": ["Ikonisk video"]
+  }
+]'></textarea>
                     <button type="button" id="bulk-import-btn" style="margin-top: 10px;">Start Import</button>
                     <label>Import-logg:</label>
                     <div id="bulk-import-log"></div>
@@ -69,11 +75,11 @@
 
             <button id="logout-btn" style="margin-top: 20px;">Logg ut</button>
             <div style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px; text-align: center;">
-                <a href="index.html" style="color: #b3b3bə; text-decoration: none;">Tilbake til Quizen</a>
+                <a href="index.html" style="color: #b3b3b3; text-decoration: none;">Tilbake til Quizen</a>
             </div>
         </div>
     </div>
     <script src="admin.js"></script>
 </body>
 </html>
-<!-- Version: #223 -->
+<!-- Version: #229 -->
