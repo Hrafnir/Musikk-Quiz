@@ -1,4 +1,4 @@
-/* Version: #193 */
+/* Version: #197 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -10,11 +10,12 @@ let spotifyAccessToken = null;
 let spotifyPlayer = null;
 let deviceId = null;
 let currentSong = null;
-let score = 0; // NYTT: Poeng-variabel
+let score = 0;
+let handicap = 5; // NYTT: Handicap-verdi
 
 // === DOM ELEMENTS ===
 let preGameView, inGameView, startGameBtn,
-    playerHud, scoreDisplay,
+    playerHud, scoreDisplay, handicapDisplay, // NYTT: handicapDisplay
     answerDisplay, albumArt, correctArtist, correctTitle, correctYear,
     guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
     roundStatus, gameControls, nextRoundBtn;
@@ -104,8 +105,9 @@ async function fetchRandomSong() {
 function startGame() {
     preGameView.classList.add('hidden');
     inGameView.classList.remove('hidden');
-    score = 0; // Nullstill poeng ved start
-    updateScoreDisplay(); // Vis start-poengsum
+    score = 0;
+    updateScoreDisplay();
+    updateHandicapDisplay(); // NYTT: Vis handicap ved start
     playNextRound();
 }
 
@@ -116,7 +118,6 @@ async function playNextRound() {
     answerDisplay.classList.add('hidden');
     nextRoundBtn.classList.add('hidden');
     
-    // Tøm alle input-felt
     artistGuessInput.value = '';
     titleGuessInput.value = '';
     yearGuessInput.value = '';
@@ -127,7 +128,7 @@ async function playNextRound() {
     if (currentSong) {
         roundStatus.textContent = 'Sangen spilles...';
         await playTrack(currentSong.spotifyid);
-        artistGuessInput.focus(); // Sett fokus på første felt
+        artistGuessInput.focus();
     } else {
         roundStatus.textContent = 'Klarte ikke hente en sang. Prøv igjen.';
     }
@@ -145,7 +146,11 @@ function handleSubmitGuess() {
 
     if (artistGuess === correctArtist) roundScore++;
     if (titleGuess === correctTitle) roundScore++;
-    if (yearGuess === correctYear) roundScore++;
+    
+    // ENDRET: Sjekker om gjettet er innenfor handicap-marginen
+    if (yearGuess && Math.abs(yearGuess - correctYear) <= handicap) {
+        roundScore++;
+    }
 
     score += roundScore;
     updateScoreDisplay();
@@ -167,8 +172,14 @@ function showAnswer() {
     nextRoundBtn.classList.remove('hidden');
 }
 
+// === UI UPDATE FUNCTIONS ===
 function updateScoreDisplay() {
     scoreDisplay.textContent = `Poeng: ${score}`;
+}
+
+// NYTT: Funksjon for å oppdatere handicap-visning
+function updateHandicapDisplay() {
+    handicapDisplay.textContent = `Handicap: ${handicap}`;
 }
 
 
@@ -181,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     playerHud = document.getElementById('player-hud');
     scoreDisplay = document.getElementById('score-display');
+    handicapDisplay = document.getElementById('handicap-display'); // NYTT
     
     answerDisplay = document.getElementById('answer-display');
     albumArt = document.getElementById('album-art');
@@ -205,4 +217,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', playNextRound);
 });
-/* Version: #193 */
+/* Version: #197 */
