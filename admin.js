@@ -1,14 +1,17 @@
-/* Version: #176 */
+/* Version: #213 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
 
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// === STATE ===
+let spotifyAccessToken = null;
 
 // === DOM ELEMENTS ===
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
-    statusMessage, genresContainer, tagsContainer;
+    statusMessage, genresContainer, tagsContainer,
+    testSpotifyBtn, spotifyTestStatus; // NYE ELEMENTER
 
 // === AUTHENTICATION FUNCTIONS ===
 async function signInWithGoogle() {
@@ -22,32 +25,77 @@ async function signOut() {
     await supabaseClient.auth.signOut();
 }
 
-// === DATA FETCHING ===
+// === DATA FETCHING & HANDLING ===
 async function populateCheckboxes() {
-    // Henter sjangre
     const { data: genres, error: genresError } = await supabaseClient.from('genre').select('id, name');
     if (genresError) {
         genresContainer.textContent = 'Kunne ikke laste sjangre.';
         console.error('Feil ved henting av sjangre:', genresError);
     } else {
-        genresContainer.innerHTML = genres
-            .map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`)
-            .join('');
+        genresContainer.innerHTML = genres.map(g => `<div><input type="checkbox" id="genre-${g.id}" name="genre" value="${g.id}"><label for="genre-${g.id}">${g.name}</label></div>`).join('');
     }
 
-    // Henter tags
     const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name');
     if (tagsError) {
         tagsContainer.textContent = 'Kunne ikke laste tags.';
         console.error('Feil ved henting av tags:', tagsError);
     } else {
-        tagsContainer.innerHTML = tags
-            .map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`)
-            .join('');
+        tagsContainer.innerHTML = tags.map(t => `<div><input type="checkbox" id="tag-${t.id}" name="tag" value="${t.id}"><label for="tag-${t.id}">${t.name}</label></div>`).join('');
     }
 }
 
-// === FORM HANDLING ===
+// NY FUNKSJON: Tester Spotify ID og autofyller skjemaet
+async function handleTestSpotifyId() {
+    const spotifyId = document.getElementById('spotifyId').value.trim();
+    spotifyTestStatus.textContent = ''; // Nullstill status
+
+    if (!spotifyAccessToken) {
+        spotifyTestStatus.textContent = 'Du må koble til Spotify på hovedsiden først.';
+        spotifyTestStatus.style.color = '#FF4136'; // Rød
+        return;
+    }
+    if (!spotifyId) {
+        spotifyTestStatus.textContent = 'Lim inn en Spotify ID for å teste.';
+        spotifyTestStatus.style.color = '#FFDC00'; // Gul
+        return;
+    }
+
+    spotifyTestStatus.textContent = 'Tester ID...';
+    spotifyTestStatus.style.color = '#fff';
+
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${spotifyId}`, {
+            headers: { 'Authorization': `Bearer ${spotifyAccessToken}` }
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) throw new Error('Ugyldig Spotify ID.');
+            throw new Error(`Spotify API svarte med status ${response.status}`);
+        }
+
+        const track = await response.json();
+        
+        // Autofyll skjemaet
+        document.getElementById('artist').value = track.artists.map(a => a.name).join(', ');
+        document.getElementById('title').value = track.name;
+        document.getElementById('album').value = track.album.name;
+        document.getElementById('year').value = track.album.release_date.substring(0, 4);
+        // Henter det største bildet (best kvalitet)
+        if (track.album.images && track.album.images.length > 0) {
+            document.getElementById('albumArtUrl').value = track.album.images[0].url;
+        }
+
+        spotifyTestStatus.textContent = '✓ Vellykket! Skjemaet er autofylt.';
+        spotifyTestStatus.style.color = '#1DB954'; // Grønn
+
+    } catch (error) {
+        spotifyTestStatus.textContent = `FEIL: ${error.message}`;
+        spotifyTestStatus.style.color = '#FF4136'; // Rød
+        console.error("Feil ved test av Spotify ID:", error);
+    }
+}
+
+
 async function handleAddSong(event) {
     event.preventDefault();
     statusMessage.textContent = 'Lagrer sang...';
@@ -55,7 +103,7 @@ async function handleAddSong(event) {
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-        statusMessage.textContent = 'FEIL: Du er ikke logget inn. Prøv å laste siden på nytt.';
+        statusMessage.textContent = 'FEIL: Du er ikke logget inn.';
         statusMessage.style.color = '#FF4136';
         return;
     }
@@ -68,9 +116,7 @@ async function handleAddSong(event) {
         title: form.title.value.trim(),
         album: form.album.value.trim() || null,
         year: parseInt(form.year.value, 10),
-        // KORRIGERT: 'spotifyId' endret til 'spotifyid'
         spotifyid: form.spotifyId.value.trim(),
-        // KORRIGERT: 'albumArtUrl' endret til 'albumarturl'
         albumarturl: form.albumArtUrl.value.trim() || null, 
         trivia: form.trivia.value.trim() || null,
         user_id: userId,
@@ -102,7 +148,8 @@ async function handleAddSong(event) {
     statusMessage.textContent = `Vellykket! "${songData.title}" er lagt til i databasen.`;
     statusMessage.style.color = '#1DB954';
     addSongForm.reset();
-    form.artist.focus();
+    spotifyTestStatus.textContent = ''; // Nullstill test-status også
+    form.spotifyId.focus();
 }
 
 // === INITIALIZATION ===
@@ -115,21 +162,25 @@ document.addEventListener('DOMContentLoaded', () => {
     statusMessage = document.getElementById('status-message');
     genresContainer = document.getElementById('genres-container');
     tagsContainer = document.getElementById('tags-container');
+    testSpotifyBtn = document.getElementById('test-spotify-btn');
+    spotifyTestStatus = document.getElementById('spotify-test-status');
 
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleAddSong);
+    testSpotifyBtn.addEventListener('click', handleTestSpotifyId); // NY EVENT LISTENER
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
+    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
             loginView.classList.add('hidden');
             mainView.classList.remove('hidden');
+            // Hent Spotify-token NÅR brukeren er logget inn
+            spotifyAccessToken = localStorage.getItem('spotify_access_token');
+            await populateCheckboxes();
         } else {
             loginView.classList.remove('hidden');
             mainView.classList.add('hidden');
         }
     });
-    
-    populateCheckboxes();
 });
-/* Version: #176 */
+/* Version: #213 */
