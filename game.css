@@ -1,4 +1,4 @@
-/* Version: #268 */
+/* Version: #273 */
 
 /* === Game Container === */
 #game-container {
@@ -127,6 +127,12 @@
     color: #fff;
 }
 
+/* NYTT: Container for handlinger under sang-info */
+.answer-actions {
+    display: flex;
+    gap: 10px;
+}
+
 /* === Guessing Area === */
 #guess-area {
     width: 100%;
@@ -164,7 +170,7 @@
     width: 100%;
 }
 
-/* NYTT: Styling for mindre knapper */
+/* Styling for mindre knapper */
 .small-btn {
     padding: 8px 15px;
     font-size: 12px;
@@ -182,4 +188,4 @@
 .hidden {
     display: none !important;
 }
-/* Version: #268 */
+/* Version: #273 */
