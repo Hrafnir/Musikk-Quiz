@@ -1,4 +1,4 @@
-/* Version: #304 */
+/* Version: #305 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -16,18 +16,18 @@ let players = [];
 let currentPlayerIndex = 0;
 let allTags = [];
 let victoryPoints = 10;
-let currentRoundHandicap = 0; // NYTT
+let currentRoundHandicap = 0;
 
 // === DOM ELEMENTS ===
 let preGameView, inGameView, startGameBtn,
     playerNameInput, addPlayerBtn, playerList, playerHandicapInput,
     victoryPointsInput,
     playerHud, turnIndicator,
-    answerDisplay, albumArt, correctArtist, correctTitle, correctYear, reportErrorBtn, editSongBtn,
+    answerDisplay, albumArt, correctArtist, correctTitle, correctYear, reportErrorBtn, editSongBtn, brokenSongBtn, // Endret
     guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
     roundStatus, gameControls, nextRoundBtn,
     artistDataList, titleDataList,
-    buyHandicapBtn, skipSongBtn; // NYTT
+    buyHandicapBtn, skipSongBtn;
 
 // === DOCUMENT READY ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     correctYear = document.getElementById('correct-year');
     reportErrorBtn = document.getElementById('report-error-btn');
     editSongBtn = document.getElementById('edit-song-btn');
+    brokenSongBtn = document.getElementById('broken-song-btn'); // Nytt
     guessArea = document.getElementById('guess-area');
     artistGuessInput = document.getElementById('artist-guess-input');
     titleGuessInput = document.getElementById('title-guess-input');
@@ -59,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
     nextRoundBtn = document.getElementById('next-round-btn');
     artistDataList = document.getElementById('artist-list');
     titleDataList = document.getElementById('title-list');
-    buyHandicapBtn = document.getElementById('buy-handicap-btn'); // NYTT
-    skipSongBtn = document.getElementById('skip-song-btn'); // NYTT
+    buyHandicapBtn = document.getElementById('buy-handicap-btn');
+    skipSongBtn = document.getElementById('skip-song-btn');
 
     // Sett opp event listeners
     addPlayerBtn.addEventListener('click', handleAddPlayer);
@@ -68,9 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
     startGameBtn.addEventListener('click', startGame);
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', advanceToNextPlayer);
-    reportErrorBtn.addEventListener('click', handleReportError);
-    buyHandicapBtn.addEventListener('click', handleBuyHandicap); // NYTT
-    skipSongBtn.addEventListener('click', handleSkipSong); // NYTT
+    reportErrorBtn.addEventListener('click', () => handleGenericReport('Trenger sjekk'));
+    brokenSongBtn.addEventListener('click', handleBrokenSong); // Nytt
+    buyHandicapBtn.addEventListener('click', handleBuyHandicap);
+    skipSongBtn.addEventListener('click', handleSkipSong);
     
     editSongBtn.addEventListener('click', () => {
         if (currentSong) {
@@ -79,7 +81,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// === NYE FUNKSJONER ===
+// === NY FUNKSJON ===
+async function handleBrokenSong() {
+    const success = await handleGenericReport('Feil årstall', brokenSongBtn);
+    if (success) {
+        await pauseTrack();
+        roundStatus.textContent = '✓ Rapportert! Gir ny sang...';
+        roundStatus.style.color = '#1DB954';
+        // Gir ny sang til samme spiller etter en kort forsinkelse
+        setTimeout(() => playNextRound(true), 1500);
+    }
+}
+
+
 function handleBuyHandicap() {
     const currentPlayer = players[currentPlayerIndex];
     if (currentPlayer.credits >= 1) {
@@ -100,7 +114,6 @@ async function handleSkipSong() {
         currentPlayer.credits -= 1;
         updateHud();
         await pauseTrack();
-        // Starter ny runde for SAMME spiller
         playNextRound(true); 
     } else {
         roundStatus.textContent = 'Ikke nok credits!';
@@ -110,16 +123,18 @@ async function handleSkipSong() {
 
 // === ENDRET FUNKSJON ===
 async function playNextRound(isSkip = false) {
-    // Nullstill midlertidig handicap for runden
     currentRoundHandicap = 0; 
     
     if (!isSkip) {
         updateTurnIndicator();
     }
     
+    // Nullstill knapper
     reportErrorBtn.disabled = false;
-    reportErrorBtn.textContent = 'Rapporter feil';
+    reportErrorBtn.textContent = 'Rapporter Annen Feil';
     editSongBtn.disabled = false;
+    brokenSongBtn.disabled = false; // Nytt
+
     roundStatus.textContent = 'Henter en ny sang...';
     roundStatus.style.color = '#fff';
     guessArea.classList.remove('hidden');
@@ -145,7 +160,53 @@ async function playNextRound(isSkip = false) {
     }
 }
 
-// === ENDRET FUNKSJON ===
+// === ENDRET/GENERALISERT FUNKSJON ===
+async function handleGenericReport(tagName, button = reportErrorBtn) {
+    if (!currentSong) return false;
+
+    const errorTag = allTags.find(tag => tag.name === tagName);
+    if (!errorTag) {
+        console.error(`Taggen "${tagName}" finnes ikke i databasen.`);
+        button.textContent = 'Feil: Tag mangler';
+        return false;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Rapporterer...';
+
+    const { data, error: checkError } = await supabaseClient
+        .from('song_tags')
+        .select()
+        .eq('song_id', currentSong.id)
+        .eq('tag_id', errorTag.id);
+
+    if (checkError) {
+        console.error("Feil ved sjekk av tag:", checkError);
+        button.textContent = 'Feil oppstod';
+        return false;
+    }
+
+    if (data.length > 0) {
+        button.textContent = 'Allerede rapportert';
+        return true; // Returnerer true selv om den var rapportert fra før
+    }
+
+    const { error: insertError } = await supabaseClient
+        .from('song_tags')
+        .insert({ song_id: currentSong.id, tag_id: errorTag.id });
+
+    if (insertError) {
+        console.error("Klarte ikke rapportere:", insertError);
+        button.textContent = 'Feil oppstod';
+        button.disabled = false;
+        return false;
+    }
+    
+    button.textContent = '✓ Rapportert!';
+    return true;
+}
+
+
 function handleSubmitGuess() {
     const currentPlayer = players[currentPlayerIndex];
     const artistGuess = artistGuessInput.value.trim().toLowerCase();
@@ -160,7 +221,6 @@ function handleSubmitGuess() {
     let roundCredits = 0;
     let feedbackMessages = [];
 
-    // --- Artist & Tittel-evaluering ---
     const artistIsCorrect = artistGuess !== '' && artistGuess === correctArtistNormalized;
     const titleIsCorrect = titleGuess !== '' && titleGuess === correctTitleNormalized;
 
@@ -185,7 +245,6 @@ function handleSubmitGuess() {
         }
     }
 
-    // --- Årstall-evaluering ---
     if (!isNaN(yearGuess)) {
         currentPlayer.stats.yearGuesses++;
         const yearDifference = Math.abs(yearGuess - correctYear);
@@ -196,7 +255,6 @@ function handleSubmitGuess() {
             feedbackMessages.push("Perfekt år: +3 credits!");
         }
 
-        // Bruker spillerens base-handicap PLUSS det kjøpte handicapet
         if (yearDifference <= (currentPlayer.handicap + currentRoundHandicap)) {
             roundSp += 1;
             currentPlayer.stats.yearCorrect++;
@@ -204,7 +262,6 @@ function handleSubmitGuess() {
         }
     }
 
-    // --- Oppdater poeng og UI ---
     currentPlayer.sp += roundSp;
     currentPlayer.credits += roundCredits;
     updateHud();
@@ -220,11 +277,10 @@ function handleSubmitGuess() {
     showAnswer();
 }
 
-// === ENDRET FUNKSJON ===
 function advanceToNextPlayer() {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
     updateHud();
-    playNextRound(false); // Sørger for at det ikke telles som et skip
+    playNextRound(false);
 }
 
 
@@ -238,9 +294,8 @@ function handleAddPlayer() { const name = playerNameInput.value.trim(); const ha
 function updatePlayerListView() { playerList.innerHTML = ''; players.forEach(player => { const li = document.createElement('li'); li.textContent = `${player.name} (Handicap: ${player.handicap})`; playerList.appendChild(li); }); }
 async function startGame() { if (players.length === 0) return; victoryPoints = parseInt(victoryPointsInput.value, 10) || 10; preGameView.classList.add('hidden'); inGameView.classList.remove('hidden'); songHistory = []; currentPlayerIndex = 0; const { count, error } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true }); if (!error) totalSongsInDb = count; await populateAutocompleteLists(); updateHud(); playNextRound(false); }
 async function populateAutocompleteLists() { const { data: artists, error: artistError } = await supabaseClient.rpc('get_distinct_artists'); if (artistError) { console.error("Klarte ikke hente artistliste:", artistError); } else { artistList = artists.map(item => item.artist_name); artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } const { data: titles, error: titleError } = await supabaseClient.rpc('get_distinct_titles'); if (titleError) { console.error("Klarte ikke hente tittelliste:", titleError); } else { titleList = titles.map(item => item.title_name); titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name'); if (tagsError) { console.error("Kunne ikke hente tags for rapportering"); } else { allTags = tags; } }
-async function handleReportError() { if (!currentSong) return; const errorTag = allTags.find(tag => tag.name === 'Trenger sjekk'); if (!errorTag) { console.error('"Trenger sjekk"-taggen finnes ikke.'); reportErrorBtn.textContent = 'Feil: Tag mangler'; return; } reportErrorBtn.disabled = true; reportErrorBtn.textContent = 'Rapporterer...'; const { data, error: checkError } = await supabaseClient.from('song_tags').select().eq('song_id', currentSong.id).eq('tag_id', errorTag.id); if (checkError) { console.error("Feil ved sjekk:", checkError); reportErrorBtn.textContent = 'Feil oppstod'; return; } if (data.length > 0) { reportErrorBtn.textContent = 'Allerede rapportert'; return; } const { error: insertError } = await supabaseClient.from('song_tags').insert({ song_id: currentSong.id, tag_id: errorTag.id }); if (insertError) { console.error("Klarte ikke rapportere:", insertError); reportErrorBtn.textContent = 'Feil oppstod'; reportErrorBtn.disabled = false; } else { reportErrorBtn.textContent = '✓ Rapportert!'; } }
 function updateHud() { playerHud.innerHTML = ''; players.forEach((player, index) => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (index === currentPlayerIndex) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = ` <div class="player-name">${player.name}</div> <div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div> `; playerHud.appendChild(playerInfoDiv); }); }
 function updateTurnIndicator() { turnIndicator.textContent = `${players[currentPlayerIndex].name} sin tur!`; }
 function showAnswer() { albumArt.src = currentSong.albumarturl || ''; correctArtist.textContent = currentSong.artist; correctTitle.textContent = currentSong.title; correctYear.textContent = currentSong.year; answerDisplay.classList.remove('hidden'); guessArea.classList.add('hidden'); nextRoundBtn.classList.remove('hidden'); }
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { songHistory = []; const { data: fallbackData } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); return fallbackData ? fallbackData[0] : null; } return data[0]; }
-/* Version: #304 */
+/* Version: #305 */
