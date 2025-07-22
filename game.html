@@ -1,4 +1,4 @@
-<!-- Version: #254 -->
+<!-- Version: #262 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -15,7 +15,7 @@
     <div id="game-container">
         <h1>Musikk-Quiz</h1>
 
-        <!-- === FØR SPILLET-VISNING (HELOMBYGGET FOR FLERSPILLER) === -->
+        <!-- FØR SPILLET-VISNING -->
         <div id="pre-game-view">
             <h2>Legg til spillere</h2>
             <div id="player-setup-area">
@@ -24,25 +24,17 @@
             </div>
             <div id="player-list-container">
                 <h3>Spillere:</h3>
-                <ul id="player-list">
-                    <!-- Spillerne vil bli lagt til her av JavaScript -->
-                </ul>
+                <ul id="player-list"></ul>
             </div>
             <button id="start-game-btn" disabled>Start Spill</button>
         </div>
 
-        <!-- === I SPILLET-VISNING === -->
+        <!-- I SPILLET-VISNING -->
         <div id="in-game-view" class="hidden">
 
-            <!-- Player HUD (Heads-Up Display) -->
-            <div id="player-hud">
-                <!-- Vil bli fylt ut dynamisk av JavaScript -->
-            </div>
-
-            <!-- Område for å vise hvem sin tur det er -->
+            <div id="player-hud"></div>
             <div id="turn-indicator"></div>
 
-            <!-- Resultat-område (vises etter gjetning) -->
             <div id="answer-display" class="hidden">
                 <img id="album-art" src="" alt="Album Cover">
                 <div id="song-info">
@@ -52,18 +44,16 @@
                 </div>
             </div>
 
-            <!-- Gjette-område (vises under gjetning) -->
             <div id="guess-area">
                 <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
-                <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
+                <!-- ENDRET: Tittel-input er nå koblet til en datalist -->
+                <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
                 <button id="submit-guess-btn">Gjett</button>
             </div>
 
-            <!-- Status-melding for runden -->
             <div id="round-status"></div>
 
-            <!-- Knapper for å styre spillet -->
             <div id="game-controls">
                 <button id="next-round-btn" class="hidden">Neste Runde</button>
             </div>
@@ -77,11 +67,13 @@
 
     </div>
 
-    <!-- Datalist for autocomplete. Denne er usynlig. -->
+    <!-- Datalister for autocomplete -->
     <datalist id="artist-list"></datalist>
+    <!-- NYTT: Datalist for titler -->
+    <datalist id="title-list"></datalist>
 
     <!-- Spill-logikk -->
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #254 -->
+<!-- Version: #262 -->
