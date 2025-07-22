@@ -1,4 +1,4 @@
-/* Version: #310 */
+/* Version: #311 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -24,7 +24,7 @@ let preGameView, inGameView, startGameBtn, victoryView,
     victoryPointsInput,
     playerHud, turnIndicator,
     answerDisplay, albumArt, correctArtist, correctTitle, correctYear, reportErrorBtn, editSongBtn, brokenSongBtn,
-    guessArea, artistGuessInput, titleGuessInput, yearGuessInput, yearRangeDisplay, // Endret
+    guessArea, artistGuessInput, titleGuessInput, yearGuessInput, yearRangeDisplay,
     submitGuessBtn, roundStatus, gameControls, nextRoundBtn,
     artistDataList, titleDataList,
     buyHandicapBtn, skipSongBtn,
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     artistGuessInput = document.getElementById('artist-guess-input');
     titleGuessInput = document.getElementById('title-guess-input');
     yearGuessInput = document.getElementById('year-guess-input');
-    yearRangeDisplay = document.getElementById('year-range-display'); // Ny
+    yearRangeDisplay = document.getElementById('year-range-display');
     submitGuessBtn = document.getElementById('submit-guess-btn');
     roundStatus = document.getElementById('round-status');
     gameControls = document.getElementById('game-controls');
@@ -74,12 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sett opp event listeners
     addPlayerBtn.addEventListener('click', handleAddPlayer);
     playerNameInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') handleAddPlayer(); });
-    yearGuessInput.addEventListener('keyup', updateYearGuessRange); // Ny
+    yearGuessInput.addEventListener('keyup', updateYearGuessRange);
     startGameBtn.addEventListener('click', startGame);
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', advanceToNextPlayer);
     reportErrorBtn.addEventListener('click', () => handleGenericReport('Trenger sjekk'));
-    brokenSongBtn.addEventListener('click', handleBrokenSong);
+    brokenSongBtn.addEventListener('click', handleBrokenSong); // Endret
     buyHandicapBtn.addEventListener('click', handleBuyHandicap);
     skipSongBtn.addEventListener('click', handleSkipSong);
     playAgainBtn.addEventListener('click', handlePlayAgain);
@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// === NY FUNKSJON ===
 function updateYearGuessRange() {
     const yearGuess = parseInt(yearGuessInput.value, 10);
     if (isNaN(yearGuess) || yearGuessInput.value.length < 4) {
@@ -202,7 +201,7 @@ function advanceToNextPlayer() { currentPlayerIndex = (currentPlayerIndex + 1) %
 
 async function playNextRound(isSkip = false) {
     currentRoundHandicap = 0;
-    if (!isSkip) { updateTurnIndicator(); }
+    if (!isSkip) { updateTurnIndicator(); } else { updateTurnIndicator(); /* Oppdater handicap-visning også ved skip */ }
     reportErrorBtn.disabled = false;
     reportErrorBtn.textContent = 'Rapporter Annen Feil';
     editSongBtn.disabled = false;
@@ -215,7 +214,7 @@ async function playNextRound(isSkip = false) {
     artistGuessInput.value = '';
     titleGuessInput.value = '';
     yearGuessInput.value = '';
-    yearRangeDisplay.textContent = ''; // Nullstill range-visning
+    yearRangeDisplay.textContent = '';
     albumArt.src = '';
     currentSong = await fetchRandomSong();
     if (currentSong) {
@@ -227,29 +226,48 @@ async function playNextRound(isSkip = false) {
 }
 
 // === HJELPEFUNKSJONER ===
-// ENDRET: Viser nå handicap
 function updateTurnIndicator() {
     const currentPlayer = players[currentPlayerIndex];
     const totalHandicap = currentPlayer.handicap + currentRoundHandicap;
     turnIndicator.textContent = `${currentPlayer.name} sin tur (Handicap: ${totalHandicap})`;
 }
 
-// ENDRET: Kaller nå de nye visningsfunksjonene
+// ENDRET: Forenklet for å kun gi ny sang
+async function handleBrokenSong() {
+    await pauseTrack();
+    roundStatus.textContent = 'Gir ny sang...';
+    roundStatus.style.color = '#1DB954';
+    playNextRound(true); // Gir ny sang til samme spiller
+}
+
 function handleBuyHandicap() {
     const currentPlayer = players[currentPlayerIndex];
     if (currentPlayer.credits >= 1) {
         currentPlayer.credits -= 1;
         currentRoundHandicap += 2;
         updateHud();
-        updateTurnIndicator(); // Oppdaterer handicap-visning
-        updateYearGuessRange(); // Oppdaterer range-visning
+        updateTurnIndicator();
+        updateYearGuessRange();
     } else {
         roundStatus.textContent = 'Ikke nok credits!';
         roundStatus.style.color = '#FF4136';
     }
 }
 
-// ... (resten av hjelpefunksjonene er uendret) ...
+async function handleSkipSong() {
+    const currentPlayer = players[currentPlayerIndex];
+    if (currentPlayer.credits >= 1) {
+        currentPlayer.credits -= 1;
+        updateHud();
+        await pauseTrack();
+        playNextRound(true);
+    } else {
+        roundStatus.textContent = 'Ikke nok credits!';
+        roundStatus.style.color = '#FF4136';
+    }
+}
+
+// ... (resten av funksjonene er uendret) ...
 window.onSpotifyWebPlaybackSDKReady = () => { spotifyAccessToken = localStorage.getItem('spotify_access_token'); if (spotifyAccessToken) { initializeSpotifyPlayer(spotifyAccessToken); } else { alert('Spotify-tilkobling mangler. Sender deg tilbake til hovedsiden.'); window.location.href = 'index.html'; } };
 function initializeSpotifyPlayer(token) { if (spotifyPlayer) return; spotifyPlayer = new Spotify.Player({ name: 'MQuiz Spiller', getOAuthToken: cb => { cb(token); }, volume: 0.5 }); spotifyPlayer.addListener('ready', ({ device_id }) => { console.log('Spotify-spiller er klar med enhet-ID:', device_id); deviceId = device_id; startGameBtn.disabled = true; startGameBtn.textContent = 'Legg til spillere for å starte'; }); spotifyPlayer.addListener('not_ready', ({ device_id }) => { console.log('Enhet har gått offline', device_id); }); spotifyPlayer.addListener('authentication_error', ({ message }) => { console.error('Autentisering feilet:', message); alert('Spotify-autentisering feilet. Prøv å koble til på nytt fra hovedsiden.'); window.location.href = 'index.html'; }); spotifyPlayer.connect(); }
 async function transferPlayback() { if (!deviceId) return; await fetch(`https://api.spotify.com/v1/me/player`, { method: 'PUT', body: JSON.stringify({ device_ids: [deviceId], play: false }), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` }, }); await new Promise(resolve => setTimeout(resolve, 500)); }
@@ -258,10 +276,8 @@ async function playTrack(spotifyTrackId) { if (!deviceId) { alert('Ingen aktiv S
 function handleAddPlayer() { const name = playerNameInput.value.trim(); const handicap = parseInt(playerHandicapInput.value, 10); if (name && !players.some(p => p.name === name) && !isNaN(handicap) && handicap >= 0 && handicap <= 5) { players.push({ name: name, sp: 0, credits: 3, handicap: handicap, stats: { artistGuesses: 0, artistCorrect: 0, titleGuesses: 0, titleCorrect: 0, yearGuesses: 0, yearCorrect: 0, perfectYearGuesses: 0 } }); updatePlayerListView(); playerNameInput.value = ''; startGameBtn.disabled = false; } playerNameInput.focus(); }
 function updatePlayerListView() { playerList.innerHTML = ''; players.forEach(player => { const li = document.createElement('li'); li.textContent = `${player.name} (Handicap: ${player.handicap})`; playerList.appendChild(li); }); }
 async function populateAutocompleteLists() { if(artistList.length > 0) return; const { data: artists, error: artistError } = await supabaseClient.rpc('get_distinct_artists'); if (artistError) { console.error("Klarte ikke hente artistliste:", artistError); } else { artistList = artists.map(item => item.artist_name); artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } const { data: titles, error: titleError } = await supabaseClient.rpc('get_distinct_titles'); if (titleError) { console.error("Klarte ikke hente tittelliste:", titleError); } else { titleList = titles.map(item => item.title_name); titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } const { data: tags, error: tagsError } = await supabaseClient.from('tags').select('id, name'); if (tagsError) { console.error("Kunne ikke hente tags for rapportering"); } else { allTags = tags; } }
-async function handleBrokenSong() { const success = await handleGenericReport('Feil årstall', brokenSongBtn); if (success) { await pauseTrack(); roundStatus.textContent = '✓ Rapportert! Gir ny sang...'; roundStatus.style.color = '#1DB954'; setTimeout(() => playNextRound(true), 1500); } }
-async function handleSkipSong() { const currentPlayer = players[currentPlayerIndex]; if (currentPlayer.credits >= 1) { currentPlayer.credits -= 1; updateHud(); await pauseTrack(); playNextRound(true); } else { roundStatus.textContent = 'Ikke nok credits!'; roundStatus.style.color = '#FF4136'; } }
-async function handleGenericReport(tagName, button = reportErrorBtn) { if (!currentSong) return false; const errorTag = allTags.find(tag => tag.name === tagName); if (!errorTag) { console.error(`Taggen "${tagName}" finnes ikke i databasen.`); button.textContent = 'Feil: Tag mangler'; return false; } button.disabled = true; button.textContent = 'Rapporterer...'; const { data, error: checkError } = await supabaseClient.from('song_tags').select().eq('song_id', currentSong.id).eq('tag_id', errorTag.id); if (checkError) { console.error("Feil ved sjekk av tag:", checkError); button.textContent = 'Feil oppstod'; return false; } if (data.length > 0) { button.textContent = 'Allerede rapportert'; return true; } const { error: insertError } = await supabaseClient.from('song_tags').insert({ song_id: currentSong.id, tag_id: id }); if (insertError) { console.error("Klarte ikke rapportere:", insertError); button.textContent = 'Feil oppstod'; button.disabled = false; return false; } button.textContent = '✓ Rapportert!'; return true; }
+async function handleGenericReport(tagName, button = reportErrorBtn) { if (!currentSong) return false; const errorTag = allTags.find(tag => tag.name === tagName); if (!errorTag) { console.error(`Taggen "${tagName}" finnes ikke i databasen.`); button.textContent = 'Feil: Tag mangler'; return false; } button.disabled = true; button.textContent = 'Rapporterer...'; const { data, error: checkError } = await supabaseClient.from('song_tags').select().eq('song_id', currentSong.id).eq('tag_id', errorTag.id); if (checkError) { console.error("Feil ved sjekk av tag:", checkError); button.textContent = 'Feil oppstod'; return false; } if (data.length > 0) { button.textContent = 'Allerede rapportert'; return true; } const { error: insertError } = await supabaseClient.from('song_tags').insert({ song_id: currentSong.id, tag_id: errorTag.id }); if (insertError) { console.error("Klarte ikke rapportere:", insertError); button.textContent = 'Feil oppstod'; button.disabled = false; return false; } button.textContent = '✓ Rapportert!'; return true; }
 function updateHud() { playerHud.innerHTML = ''; players.forEach((player, index) => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (index === currentPlayerIndex) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = ` <div class="player-name">${player.name}</div> <div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div> `; playerHud.appendChild(playerInfoDiv); }); }
 function showAnswer() { albumArt.src = currentSong.albumarturl || ''; correctArtist.textContent = currentSong.artist; correctTitle.textContent = currentSong.title; correctYear.textContent = currentSong.year; answerDisplay.classList.remove('hidden'); guessArea.classList.add('hidden'); nextRoundBtn.classList.remove('hidden'); nextRoundBtn.disabled = false; }
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { songHistory = []; const { data: fallbackData } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); return fallbackData ? fallbackData[0] : null; } return data[0]; }
-/* Version: #310 */
+/* Version: #311 */
