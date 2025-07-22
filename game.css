@@ -1,4 +1,4 @@
-/* Version: #273 */
+/* Version: #302 */
 
 /* === Game Container === */
 #game-container {
@@ -15,6 +15,42 @@
 #pre-game-view h2 {
     margin-bottom: 20px;
 }
+
+/* NYTT: Styling for spill-innstillinger */
+.game-setting {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    background-color: #282828;
+    padding: 15px;
+    border-radius: 5px;
+}
+.game-setting label {
+    font-weight: bold;
+}
+.game-setting input[type="number"] {
+    width: 80px;
+    padding: 10px;
+    font-size: 16px;
+    text-align: center;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: #fff;
+}
+/* Fjerner piler fra number input */
+.game-setting input::-webkit-outer-spin-button,
+.game-setting input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.game-setting input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
 #player-setup-area {
     display: flex;
     gap: 10px;
@@ -29,6 +65,29 @@
     border-radius: 5px;
     color: #fff;
 }
+/* NYTT: Styling for handicap-input */
+#player-handicap-input {
+    width: 80px;
+    flex-shrink: 0;
+    padding: 15px;
+    font-size: 16px;
+    text-align: center;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: #fff;
+}
+/* Fjerner piler fra number input */
+#player-handicap-input::-webkit-outer-spin-button,
+#player-handicap-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#player-handicap-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
 #add-player-btn {
     flex-shrink: 0;
     width: auto;
@@ -127,7 +186,6 @@
     color: #fff;
 }
 
-/* NYTT: Container for handlinger under sang-info */
 .answer-actions {
     display: flex;
     gap: 10px;
@@ -188,4 +246,4 @@
 .hidden {
     display: none !important;
 }
-/* Version: #273 */
+/* Version: #302 */
