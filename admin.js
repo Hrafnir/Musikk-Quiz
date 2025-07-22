@@ -1,4 +1,4 @@
-/* Version: #285 */
+/* Version: #286 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -220,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await populateCheckboxes();
             await fetchAndDisplaySongs();
-            
             const urlParams = new URLSearchParams(window.location.search);
             const songIdToEdit = urlParams.get('editSongId');
             if (songIdToEdit) {
@@ -233,4 +232,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #285 */
+/* Version: #286 */
