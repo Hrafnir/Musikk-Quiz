@@ -1,4 +1,4 @@
-/* Version: #304 */
+/* Version: #305 */
 
 /* === Game Container === */
 #game-container {
@@ -185,6 +185,8 @@
 .answer-actions {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap; /* Tillater wrapping på små skjermer */
+    justify-content: center;
 }
 
 /* === Guessing Area === */
@@ -214,7 +216,6 @@
   -moz-appearance: textfield;
 }
 
-/* NYTT: Container for credit-knapper */
 #credit-actions {
     display: flex;
     justify-content: center;
@@ -245,9 +246,17 @@
     background-color: #777;
 }
 
+/* NYTT: Farge for "Feil Årstall"-knappen */
+#broken-song-btn {
+    background-color: #FF851B; /* Oransje */
+}
+#broken-song-btn:hover {
+    background-color: #ff9a40;
+}
+
 
 /* === Utility === */
 .hidden {
     display: none !important;
 }
-/* Version: #304 */
+/* Version: #305 */
