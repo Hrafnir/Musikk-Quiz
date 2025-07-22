@@ -1,4 +1,4 @@
-/* Version: #302 */
+/* Version: #304 */
 
 /* === Game Container === */
 #game-container {
@@ -16,7 +16,6 @@
     margin-bottom: 20px;
 }
 
-/* NYTT: Styling for spill-innstillinger */
 .game-setting {
     display: flex;
     justify-content: center;
@@ -40,7 +39,6 @@
     border-radius: 5px;
     color: #fff;
 }
-/* Fjerner piler fra number input */
 .game-setting input::-webkit-outer-spin-button,
 .game-setting input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -65,7 +63,6 @@
     border-radius: 5px;
     color: #fff;
 }
-/* NYTT: Styling for handicap-input */
 #player-handicap-input {
     width: 80px;
     flex-shrink: 0;
@@ -77,7 +74,6 @@
     border-radius: 5px;
     color: #fff;
 }
-/* Fjerner piler fra number input */
 #player-handicap-input::-webkit-outer-spin-button,
 #player-handicap-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -218,6 +214,15 @@
   -moz-appearance: textfield;
 }
 
+/* NYTT: Container for credit-knapper */
+#credit-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+
 /* === Status & Controls === */
 #round-status {
     font-size: 1.2em;
@@ -235,7 +240,6 @@
     font-weight: normal;
     background-color: #555;
     width: auto;
-    margin-top: 10px;
 }
 .small-btn:hover {
     background-color: #777;
@@ -246,4 +250,4 @@
 .hidden {
     display: none !important;
 }
-/* Version: #302 */
+/* Version: #304 */
