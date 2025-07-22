@@ -1,4 +1,4 @@
-/* Version: #290 */
+/* Version: #292 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -16,7 +16,8 @@ let allTags = [];
 let loginView, mainView, googleLoginBtn, logoutBtn, addSongForm, 
     statusMessage, genresContainer, tagsContainer,
     testSpotifyBtn, spotifyTestStatus, testCoverArt,
-    bulkImportInput, bulkImportBtn, bulkImportLog;
+    bulkImportInput, bulkImportBtn, bulkImportLog,
+    formSummary; // Lagt til for å endre tittel
 
 // === SPOTIFY PLAYER INITIALIZATION ===
 window.onSpotifyWebPlaybackSDKReady = () => {
@@ -146,11 +147,19 @@ async function handleAddSong(event) {
 }
 
 // === MASSE-IMPORT FUNKSJONALITET ===
-async function importSingleTrack(trackObject) { /* ... (uendret) ... */ }
-async function handleBulkImport() { /* ... (uendret) ... */ }
+async function importSingleTrack(trackObject) { const { url, genres = [], tags = [] } = trackObject; let spotifyId = url; if (url.includes('spotify.com/track/')) { try { spotifyId = new URL(url).pathname.split('/track/')[1].split('?')[0]; } catch (e) { return { success: false, message: `✗ Ugyldig lenke: ${url}` }; } } try { const response = await fetch(`https://api.spotify.com/v1/tracks/${spotifyId}`, { headers: { 'Authorization': `Bearer ${spotifyAccessToken}` } }); if (!response.ok) throw new Error(`Spotify feil (${response.status})`); const track = await response.json(); const { data: { session } } = await supabaseClient.auth.getSession(); const songData = { artist: track.artists.map(a => a.name).join(', '), title: track.name, album: track.album.name, year: parseInt(track.album.release_date.substring(0, 4), 10), spotifyid: spotifyId, albumarturl: (track.album.images && track.album.images.length > 0) ? track.album.images[0].url : null, user_id: session.user.id }; const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single(); if (songError) { if (songError.code === '23505') return { success: false, message: `⚠️ "${songData.title}" finnes allerede.` }; throw new Error(`Supabase feil: ${songError.message}`); } const genreIdsToInsert = allGenres.filter(g => genres.includes(g.name)).map(g => g.id); if (genreIdsToInsert.length > 0) await supabaseClient.from('song_genres').insert(genreIdsToInsert.map(id => ({ song_id: newSong.id, genre_id: id }))); const tagIdsToInsert = allTags.filter(t => tags.includes(t.name)).map(t => t.id); if (tagIdsToInsert.length > 0) await supabaseClient.from('song_tags').insert(tagIdsToInsert.map(id => ({ song_id: newSong.id, tag_id: id }))); return { success: true, message: `✓ Importerte "${songData.title}"` }; } catch (error) { return { success: false, message: `✗ FEIL for ${spotifyId}: ${error.message}` }; } }
+async function handleBulkImport() { const rawInput = bulkImportInput.value.trim(); let songsToImport; try { songsToImport = JSON.parse(rawInput); if (!Array.isArray(songsToImport)) throw new Error(); } catch (e) { bulkImportLog.innerHTML = 'FEIL: Ugyldig JSON-format.'; return; } if (songsToImport.length === 0) { bulkImportLog.innerHTML = 'JSON-listen er tom.'; return; } bulkImportLog.innerHTML = `Starter import av ${songsToImport.length} sanger...\n\n`; bulkImportBtn.disabled = true; bulkImportBtn.textContent = 'Importerer...'; for (let i = 0; i < songsToImport.length; i++) { const result = await importSingleTrack(songsToImport[i]); bulkImportLog.innerHTML += `(${i + 1}/${songsToImport.length}) ${result.message}\n`; bulkImportLog.scrollTop = bulkImportLog.scrollHeight; await new Promise(resolve => setTimeout(resolve, 300)); } bulkImportLog.innerHTML += '\nImport fullført!'; bulkImportBtn.disabled = false; bulkImportBtn.textContent = 'Start Import'; }
+
+// === NYTT: Funksjon for å laste sangdata for redigering ===
+async function loadSongForEditing(songId) {
+    console.log(`Klargjør for redigering av sang med ID: ${songId}`);
+    statusMessage.textContent = `Laster sangdata for redigering (ID: ${songId})...`;
+    // Fremtidig logikk for å fylle skjemaet vil komme her.
+}
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
+    // Hent alle DOM-elementer
     loginView = document.getElementById('admin-login-view');
     mainView = document.getElementById('admin-main-view');
     googleLoginBtn = document.getElementById('google-login-btn');
@@ -165,32 +174,44 @@ document.addEventListener('DOMContentLoaded', () => {
     bulkImportInput = document.getElementById('bulk-import-input');
     bulkImportBtn = document.getElementById('bulk-import-btn');
     bulkImportLog = document.getElementById('bulk-import-log');
+    formSummary = document.getElementById('form-summary');
 
+    // Sjekk om vi er i redigeringsmodus
+    const urlParams = new URLSearchParams(window.location.search);
+    const songIdToEdit = urlParams.get('editSongId');
+
+    // Sett opp event listeners
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleAddSong);
     testSpotifyBtn.addEventListener('click', handleTestSpotifyId);
     bulkImportBtn.addEventListener('click', handleBulkImport);
     
+    // Håndter autentisering og visning
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        // KORRIGERT: Kaller populateCheckboxes() her for å garantere at Supabase-klienten er klar.
-        await populateCheckboxes(); 
-
         if (session) {
             loginView.classList.add('hidden');
             mainView.classList.remove('hidden');
+            
+            // FIKS: Populer sjekkbokser KUN ETTER at en gyldig sesjon er bekreftet.
+            await populateCheckboxes(); 
+
+            // Initialiser Spotify-spiller hvis token finnes
             spotifyAccessToken = localStorage.getItem('spotify_access_token');
             if (window.Spotify && spotifyAccessToken) {
                 initializeSpotifyPlayer(spotifyAccessToken);
             }
+
+            // Håndter redigeringsmodus hvis en sang-ID er tilstede i URL-en
+            if (songIdToEdit) {
+                formSummary.textContent = `Redigerer sang (ID: ${songIdToEdit})`;
+                await loadSongForEditing(songIdToEdit);
+            }
+
         } else {
             loginView.classList.remove('hidden');
             mainView.classList.add('hidden');
         }
     });
 });
-
-// --- Kopiert inn uendrede funksjoner ---
-async function importSingleTrack(trackObject) { const { url, genres = [], tags = [] } = trackObject; let spotifyId = url; if (url.includes('spotify.com/track/')) { try { spotifyId = new URL(url).pathname.split('/track/')[1].split('?')[0]; } catch (e) { return { success: false, message: `✗ Ugyldig lenke: ${url}` }; } } try { const response = await fetch(`https://api.spotify.com/v1/tracks/${spotifyId}`, { headers: { 'Authorization': `Bearer ${spotifyAccessToken}` } }); if (!response.ok) throw new Error(`Spotify feil (${response.status})`); const track = await response.json(); const { data: { session } } = await supabaseClient.auth.getSession(); const songData = { artist: track.artists.map(a => a.name).join(', '), title: track.name, album: track.album.name, year: parseInt(track.album.release_date.substring(0, 4), 10), spotifyid: spotifyId, albumarturl: (track.album.images && track.album.images.length > 0) ? track.album.images[0].url : null, user_id: session.user.id }; const { data: newSong, error: songError } = await supabaseClient.from('songs').insert(songData).select('id').single(); if (songError) { if (songError.code === '23505') return { success: false, message: `⚠️ "${songData.title}" finnes allerede.` }; throw new Error(`Supabase feil: ${songError.message}`); } const genreIdsToInsert = allGenres.filter(g => genres.includes(g.name)).map(g => g.id); if (genreIdsToInsert.length > 0) await supabaseClient.from('song_genres').insert(genreIdsToInsert.map(id => ({ song_id: newSong.id, genre_id: id }))); const tagIdsToInsert = allTags.filter(t => tags.includes(t.name)).map(t => t.id); if (tagIdsToInsert.length > 0) await supabaseClient.from('song_tags').insert(tagIdsToInsert.map(id => ({ song_id: newSong.id, tag_id: id }))); return { success: true, message: `✓ Importerte "${songData.title}"` }; } catch (error) { return { success: false, message: `✗ FEIL for ${spotifyId}: ${error.message}` }; } }
-async function handleBulkImport() { const rawInput = bulkImportInput.value.trim(); let songsToImport; try { songsToImport = JSON.parse(rawInput); if (!Array.isArray(songsToImport)) throw new Error(); } catch (e) { bulkImportLog.innerHTML = 'FEIL: Ugyldig JSON-format.'; return; } if (songsToImport.length === 0) { bulkImportLog.innerHTML = 'JSON-listen er tom.'; return; } bulkImportLog.innerHTML = `Starter import av ${songsToImport.length} sanger...\n\n`; bulkImportBtn.disabled = true; bulkImportBtn.textContent = 'Importerer...'; for (let i = 0; i < songsToImport.length; i++) { const result = await importSingleTrack(songsToImport[i]); bulkImportLog.innerHTML += `(${i + 1}/${songsToImport.length}) ${result.message}\n`; bulkImportLog.scrollTop = bulkImportLog.scrollHeight; await new Promise(resolve => setTimeout(resolve, 300)); } bulkImportLog.innerHTML += '\nImport fullført!'; bulkImportBtn.disabled = false; bulkImportBtn.textContent = 'Start Import'; }
-/* Version: #290 */
+/* Version: #292 */
