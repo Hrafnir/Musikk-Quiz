@@ -1,9 +1,9 @@
-/* Version: #274 */
-// === CONFIGURATION ===
-const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
+/* Version: #297 */
+// === INITIALIZATION ===
+// Nøklene hentes nå fra config.js
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === STATE ===
 let spotifyAccessToken = null;
@@ -22,17 +22,13 @@ let allTags = [];
 let preGameView, inGameView, startGameBtn,
     playerNameInput, addPlayerBtn, playerList,
     playerHud, turnIndicator,
-    answerDisplay, albumArt, correctArtist, correctTitle, correctYear, reportErrorBtn, editSongBtn, // NYTT
+    answerDisplay, albumArt, correctArtist, correctTitle, correctYear, reportErrorBtn, editSongBtn,
     guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
     roundStatus, gameControls, nextRoundBtn,
     artistDataList, titleDataList;
 
-// ... (Uendrede funksjoner som initializeSpotifyPlayer, playTrack etc.) ...
-// ... (Uendrede funksjoner for pre-game og game-logic) ...
-
-// === INITIALIZATION ===
+// === DOCUMENT READY ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Hent alle DOM-elementer
     preGameView = document.getElementById('pre-game-view');
     inGameView = document.getElementById('in-game-view');
     startGameBtn = document.getElementById('start-game-btn');
@@ -47,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     correctTitle = document.getElementById('correct-title');
     correctYear = document.getElementById('correct-year');
     reportErrorBtn = document.getElementById('report-error-btn');
-    editSongBtn = document.getElementById('edit-song-btn'); // NYTT
+    editSongBtn = document.getElementById('edit-song-btn');
     guessArea = document.getElementById('guess-area');
     artistGuessInput = document.getElementById('artist-guess-input');
     titleGuessInput = document.getElementById('title-guess-input');
@@ -59,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     artistDataList = document.getElementById('artist-list');
     titleDataList = document.getElementById('title-list');
 
-    // Sett opp event listeners
     addPlayerBtn.addEventListener('click', handleAddPlayer);
     playerNameInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') handleAddPlayer(); });
     startGameBtn.addEventListener('click', startGame);
@@ -67,17 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
     nextRoundBtn.addEventListener('click', advanceToNextPlayer);
     reportErrorBtn.addEventListener('click', handleReportError);
     
-    // NY EVENT LISTENER
     editSongBtn.addEventListener('click', () => {
         if (currentSong) {
-            // Åpner admin-siden i en ny fane med sang-IDen i URLen
             window.open(`admin.html?editSongId=${currentSong.id}`, '_blank');
         }
     });
 });
 
 
-// --- Kopier inn ALLE uendrede funksjoner for en komplett, fungerende fil ---
+// ... (Resten av funksjonene er uendret) ...
 window.onSpotifyWebPlaybackSDKReady = () => { spotifyAccessToken = localStorage.getItem('spotify_access_token'); if (spotifyAccessToken) { initializeSpotifyPlayer(spotifyAccessToken); } else { alert('Spotify-tilkobling mangler. Sender deg tilbake til hovedsiden.'); window.location.href = 'index.html'; } };
 function initializeSpotifyPlayer(token) { if (spotifyPlayer) return; spotifyPlayer = new Spotify.Player({ name: 'MQuiz Spiller', getOAuthToken: cb => { cb(token); }, volume: 0.5 }); spotifyPlayer.addListener('ready', ({ device_id }) => { console.log('Spotify-spiller er klar med enhet-ID:', device_id); deviceId = device_id; startGameBtn.disabled = true; startGameBtn.textContent = 'Legg til spillere for å starte'; }); spotifyPlayer.addListener('not_ready', ({ device_id }) => { console.log('Enhet har gått offline', device_id); }); spotifyPlayer.addListener('authentication_error', ({ message }) => { console.error('Autentisering feilet:', message); alert('Spotify-autentisering feilet. Prøv å koble til på nytt fra hovedsiden.'); window.location.href = 'index.html'; }); spotifyPlayer.connect(); }
 async function transferPlayback() { if (!deviceId) return; await fetch(`https://api.spotify.com/v1/me/player`, { method: 'PUT', body: JSON.stringify({ device_ids: [deviceId], play: false }), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` }, }); await new Promise(resolve => setTimeout(resolve, 500)); }
@@ -95,4 +88,4 @@ function updateHud() { playerHud.innerHTML = ''; players.forEach((player, index)
 function updateTurnIndicator() { turnIndicator.textContent = `${players[currentPlayerIndex].name} sin tur!`; }
 function showAnswer() { albumArt.src = currentSong.albumarturl || ''; correctArtist.textContent = currentSong.artist; correctTitle.textContent = currentSong.title; correctYear.textContent = currentSong.year; answerDisplay.classList.remove('hidden'); guessArea.classList.add('hidden'); nextRoundBtn.classList.remove('hidden'); }
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { songHistory = []; const { data: fallbackData } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); return fallbackData ? fallbackData[0] : null; } return data[0]; }
-/* Version: #274 */
+/* Version: #297 */
