@@ -1,9 +1,121 @@
-/* Version: #305 */
+<!-- Version: #308 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz - Spill</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="game.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>Musikk-Quiz</h1>
+
+        <!-- FØR SPILLET-VISNING -->
+        <div id="pre-game-view">
+            <h2>Spill-innstillinger</h2>
+            <div class="game-setting">
+                <label for="victory-points-input">Poeng for seier:</label>
+                <input type="number" id="victory-points-input" value="10" min="1">
+            </div>
+            <h2 style="margin-top: 20px;">Legg til spillere</h2>
+            <div id="player-setup-area">
+                <input type="text" id="player-name-input" placeholder="Spillernavn..." autocomplete="off">
+                <input type="number" id="player-handicap-input" value="5" min="0" max="5" title="Handicap (0-5 år)">
+                <button id="add-player-btn">Legg til</button>
+            </div>
+            <div id="player-list-container">
+                <h3>Spillere:</h3>
+                <ul id="player-list"></ul>
+            </div>
+            <button id="start-game-btn" disabled>Start Spill</button>
+        </div>
+
+        <!-- I SPILLET-VISNING -->
+        <div id="in-game-view" class="hidden">
+            <div id="player-hud"></div>
+            <div id="turn-indicator"></div>
+            <div id="answer-display" class="hidden">
+                <img id="album-art" src="" alt="Album Cover">
+                <div id="song-info">
+                    <p><strong>Artist:</strong> <span id="correct-artist"></span></p>
+                    <p><strong>Tittel:</strong> <span id="correct-title"></span></p>
+                    <p><strong>År:</strong> <span id="correct-year"></span></p>
+                </div>
+                <div class="answer-actions">
+                    <button id="broken-song-btn" class="small-btn">Feil Årstall! (Ny Sang)</button>
+                    <button id="report-error-btn" class="small-btn">Rapporter Annen Feil</button>
+                    <button id="edit-song-btn" class="small-btn">Rediger sang</button>
+                </div>
+            </div>
+            <div id="guess-area">
+                <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
+                <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
+                <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
+                <button id="submit-guess-btn">Gjett</button>
+                <div id="credit-actions">
+                    <button id="buy-handicap-btn" class="small-btn">Kjøp Handicap (+-2 år) - 1 Credit</button>
+                    <button id="skip-song-btn" class="small-btn">Ny Sang - 1 Credit</button>
+                </div>
+            </div>
+            <div id="round-status"></div>
+            <div id="game-controls">
+                <button id="next-round-btn" class="hidden">Neste Runde</button>
+            </div>
+        </div>
+
+        <!-- NYTT: SEIERSSKJERM -->
+        <div id="victory-view" class="hidden">
+            <h2 id="winner-announcement"></h2>
+            <h3>Spillstatistikk</h3>
+            <div id="victory-stats-container">
+                <!-- Statistikk-tabell genereres her av JS -->
+            </div>
+            <div class="victory-actions">
+                <button id="play-again-btn">Spill igjen (samme spillere)</button>
+                <button id="new-game-btn">Nytt spill (nye spillere)</button>
+            </div>
+        </div>
+
+
+        <!-- Tilbake-lenke -->
+        <div id="main-menu-link" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px; text-align: center;">
+            <a href="index.html" style="color: #b3b3b3; text-decoration: none;">Tilbake til hovedmenyen</a>
+        </div>
+
+    </div>
+
+    <!-- Datalister for autocomplete -->
+    <datalist id="artist-list"></datalist>
+    <datalist id="title-list"></datalist>
+
+    <!-- Spill-logikk -->
+    <script src="config.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
+<!-- Version: #308 -->
+```**Filnavn:** `game.html`
+**Ny versjon:** `#308`
+**Handling:** Erstatt HELE filen.
+
+---
+
+### Steg 4.2: Oppdater `game.css`
+
+Jeg legger til styling for den nye seiersskjermen, inkludert tabellen og knappene.
+
+```css
+/* Version: #308 */
 
 /* === Game Container === */
 #game-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 600px; /* Økt bredde for statistikk-tabell */
     padding: 40px;
     background-color: #1e1e1e;
     border-radius: 8px;
@@ -185,7 +297,7 @@
 .answer-actions {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap; /* Tillater wrapping på små skjermer */
+    flex-wrap: wrap;
     justify-content: center;
 }
 
@@ -234,7 +346,7 @@
     width: 100%;
 }
 
-/* Styling for mindre knapper */
+/* === Mindre knapper === */
 .small-btn {
     padding: 8px 15px;
     font-size: 12px;
@@ -246,12 +358,47 @@
     background-color: #777;
 }
 
-/* NYTT: Farge for "Feil Årstall"-knappen */
 #broken-song-btn {
-    background-color: #FF851B; /* Oransje */
+    background-color: #FF851B;
 }
 #broken-song-btn:hover {
     background-color: #ff9a40;
+}
+
+/* === NYTT: Styling for seiersskjerm === */
+#victory-view h2, #victory-view h3 {
+    margin-bottom: 15px;
+}
+#winner-announcement {
+    color: #1DB954;
+    font-size: 2em;
+}
+#victory-stats-container {
+    margin-bottom: 30px;
+    overflow-x: auto; /* For små skjermer */
+}
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+.stats-table th, .stats-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #444;
+}
+.stats-table th {
+    background-color: #282828;
+}
+.stats-table tr:last-child td {
+    border-bottom: none;
+}
+.stats-table td:nth-child(n+2) { /* Tallkolonner sentrert */
+    text-align: center;
+}
+.victory-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 
@@ -259,4 +406,4 @@
 .hidden {
     display: none !important;
 }
-/* Version: #305 */
+/* Version: #308 */
