@@ -1,4 +1,4 @@
-/* Version: #284 */
+/* Version: #285 */
 // === SUPABASE CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -62,7 +62,7 @@ async function populateCheckboxes() {
     }
 }
 
-// === SONG EDITING FUNCTIONS (NY VERSJON) ===
+// === SONG EDITING FUNCTIONS ===
 function populateSongEditList(songsToDisplay) {
     songEditList.innerHTML = '';
     if (!songsToDisplay || songsToDisplay.length === 0) {
@@ -182,7 +182,6 @@ async function importSingleTrack(trackObject) { const { url, genres = [], tags =
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Hent alle DOM-elementer
     loginView = document.getElementById('admin-login-view');
     mainView = document.getElementById('admin-main-view');
     googleLoginBtn = document.getElementById('google-login-btn');
@@ -203,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
     searchSongsInput = document.getElementById('search-songs-input');
     songEditList = document.getElementById('song-edit-list');
 
-    // Sett opp event listeners
     googleLoginBtn.addEventListener('click', signInWithGoogle);
     logoutBtn.addEventListener('click', signOut);
     addSongForm.addEventListener('submit', handleFormSubmit);
@@ -212,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelEditBtn.addEventListener('click', cancelEditMode);
     searchSongsInput.addEventListener('input', handleSearchSongs);
     
-    // Håndter auth state
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
             loginView.classList.add('hidden');
@@ -221,8 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.Spotify && spotifyAccessToken) {
                 initializeSpotifyPlayer(spotifyAccessToken);
             }
-            
-            await loadInitialData();
+            await populateCheckboxes();
             await fetchAndDisplaySongs();
             
             const urlParams = new URLSearchParams(window.location.search);
@@ -237,4 +233,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #284 */
+/* Version: #285 */
