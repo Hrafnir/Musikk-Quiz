@@ -1,4 +1,4 @@
-<!-- Version: #308 -->
+<!-- Version: #310 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -38,7 +38,9 @@
         <!-- I SPILLET-VISNING -->
         <div id="in-game-view" class="hidden">
             <div id="player-hud"></div>
+            <!-- ENDRET: Inneholder nå en span for handicap -->
             <div id="turn-indicator"></div>
+
             <div id="answer-display" class="hidden">
                 <img id="album-art" src="" alt="Album Cover">
                 <div id="song-info">
@@ -52,10 +54,17 @@
                     <button id="edit-song-btn" class="small-btn">Rediger sang</button>
                 </div>
             </div>
+
             <div id="guess-area">
                 <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
                 <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
-                <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
+                
+                <!-- ENDRET: Wrapper for input og range-visning -->
+                <div class="input-with-helper">
+                    <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
+                    <span id="year-range-display"></span>
+                </div>
+
                 <button id="submit-guess-btn">Gjett</button>
                 <div id="credit-actions">
                     <button id="buy-handicap-btn" class="small-btn">Kjøp Handicap (+-2 år) - 1 Credit</button>
@@ -68,19 +77,16 @@
             </div>
         </div>
 
-        <!-- NYTT: SEIERSSKJERM -->
+        <!-- SEIERSSKJERM -->
         <div id="victory-view" class="hidden">
             <h2 id="winner-announcement"></h2>
             <h3>Spillstatistikk</h3>
-            <div id="victory-stats-container">
-                <!-- Statistikk-tabell genereres her av JS -->
-            </div>
+            <div id="victory-stats-container"></div>
             <div class="victory-actions">
                 <button id="play-again-btn">Spill igjen (samme spillere)</button>
                 <button id="new-game-btn">Nytt spill (nye spillere)</button>
             </div>
         </div>
-
 
         <!-- Tilbake-lenke -->
         <div id="main-menu-link" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px; text-align: center;">
@@ -98,4 +104,4 @@
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #308 -->
+<!-- Version: #310 -->
