@@ -1,17 +1,9 @@
-/* Version: #186 */
-// === SUPABASE CONFIGURATION ===
-const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
+/* Version: #297 */
+// === INITIALIZATION ===
+// Nøklene hentes nå fra config.js
 
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// === SPOTIFY CONFIGURATION ===
-const SPOTIFY_CLIENT_ID = '61939bcc94514b76bcdc268a7b258740';
-const SPOTIFY_REDIRECT_URI = 'https://hrafnir.github.io/Musikk-Quiz/index.html';
-const SPOTIFY_SCOPES = [
-    'streaming', 'user-read-email', 'user-read-private', 'user-modify-playback-state'
-];
 
 // === STATE ===
 let spotifyAccessToken = null;
@@ -19,14 +11,12 @@ let spotifyPlayer = null;
 let deviceId = null;
 
 // === DOM ELEMENTS ===
-// NY: Lagt til startQuizBtn
 let loginView, loggedInView, googleLoginBtn, logoutBtn, userEmailSpan,
     spotifyConnectView, spotifyConnectedView, spotifyLoginBtn, testPlayBtn, startQuizBtn;
 
 // === SPOTIFY SDK INITIALIZATION ===
 window.onSpotifyWebPlaybackSDKReady = () => {
     console.log('Spotify SDK er klar.');
-    // Henter token fra localStorage i tilfelle siden lastes på nytt
     spotifyAccessToken = localStorage.getItem('spotify_access_token');
     if (spotifyAccessToken) {
         initializeSpotifyPlayer();
@@ -45,9 +35,8 @@ function updateSpotifyUI(isConnected) { if (isConnected) { spotifyConnectView.cl
 function initializeSpotifyPlayer() { if (spotifyPlayer) return; spotifyPlayer = new Spotify.Player({ name: 'MQuiz Spiller', getOAuthToken: cb => { cb(spotifyAccessToken); }, volume: 0.5 }); spotifyPlayer.addListener('ready', ({ device_id }) => { console.log('Spilleren er klar med Device ID:', device_id); deviceId = device_id; }); spotifyPlayer.addListener('authentication_error', () => { localStorage.removeItem('spotify_access_token'); spotifyAccessToken = null; updateSpotifyUI(false); }); spotifyPlayer.connect(); }
 async function playTrack(trackUri) { if (!deviceId) { alert('Ingen aktiv Spotify-enhet funnet. Åpne Spotify på en enhet og prøv igjen.'); return; } const url = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`; await fetch(url, { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` }, }); }
 
-// === INITIALIZATION ===
+// === DOCUMENT READY ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Henter DOM-elementer
     loginView = document.getElementById('auth-login'); 
     loggedInView = document.getElementById('auth-loggedin'); 
     googleLoginBtn = document.getElementById('google-login-btn'); 
@@ -57,20 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
     spotifyConnectedView = document.getElementById('spotify-connected-view'); 
     spotifyLoginBtn = document.getElementById('spotify-login-btn'); 
     testPlayBtn = document.getElementById('test-play-btn');
-    // NY: Henter den nye knappen
     startQuizBtn = document.getElementById('start-quiz-btn');
 
-    // Setter opp event listeners
     googleLoginBtn.addEventListener('click', signInWithGoogle); 
     logoutBtn.addEventListener('click', signOut); 
     spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin); 
     testPlayBtn.addEventListener('click', () => playTrack('spotify:track:2WfaOiMkCvy7F5fcp2zZ8L'));
-    // NY: Legger til event listener for den nye knappen
     startQuizBtn.addEventListener('click', () => {
         window.location.href = 'game.html';
     });
     
-    // Håndterer auth state
     supabaseClient.auth.onAuthStateChange((_event, session) => {
         updateUI(session?.user ?? null);
         if (session) {
@@ -90,4 +75,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-/* Version: #186 */
+/* Version: #297 */
