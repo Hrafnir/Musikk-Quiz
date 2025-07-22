@@ -1,4 +1,4 @@
-<!-- Version: #302 -->
+<!-- Version: #304 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -19,7 +19,6 @@
         <div id="pre-game-view">
             <h2>Spill-innstillinger</h2>
             
-            <!-- NYTT: Innstilling for seierspoeng -->
             <div class="game-setting">
                 <label for="victory-points-input">Poeng for seier:</label>
                 <input type="number" id="victory-points-input" value="10" min="1">
@@ -28,7 +27,6 @@
             <h2 style="margin-top: 20px;">Legg til spillere</h2>
             <div id="player-setup-area">
                 <input type="text" id="player-name-input" placeholder="Spillernavn..." autocomplete="off">
-                <!-- NYTT: Input for handicap -->
                 <input type="number" id="player-handicap-input" value="5" min="0" max="5" title="Handicap (0-5 år)">
                 <button id="add-player-btn">Legg til</button>
             </div>
@@ -63,6 +61,12 @@
                 <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
                 <button id="submit-guess-btn">Gjett</button>
+                
+                <!-- NYTT: Knapper for å bruke credits -->
+                <div id="credit-actions">
+                    <button id="buy-handicap-btn" class="small-btn">Kjøp Handicap (+-2 år) - 1 Credit</button>
+                    <button id="skip-song-btn" class="small-btn">Ny Sang - 1 Credit</button>
+                </div>
             </div>
 
             <div id="round-status"></div>
@@ -89,4 +93,4 @@
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #302 -->
+<!-- Version: #304 -->
