@@ -1,4 +1,4 @@
-<!-- Version: #300 -->
+<!-- Version: #302 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -17,9 +17,19 @@
 
         <!-- FØR SPILLET-VISNING -->
         <div id="pre-game-view">
-            <h2>Legg til spillere</h2>
+            <h2>Spill-innstillinger</h2>
+            
+            <!-- NYTT: Innstilling for seierspoeng -->
+            <div class="game-setting">
+                <label for="victory-points-input">Poeng for seier:</label>
+                <input type="number" id="victory-points-input" value="10" min="1">
+            </div>
+
+            <h2 style="margin-top: 20px;">Legg til spillere</h2>
             <div id="player-setup-area">
-                <input type="text" id="player-name-input" placeholder="Skriv inn spillernavn..." autocomplete="off">
+                <input type="text" id="player-name-input" placeholder="Spillernavn..." autocomplete="off">
+                <!-- NYTT: Input for handicap -->
+                <input type="number" id="player-handicap-input" value="5" min="0" max="5" title="Handicap (0-5 år)">
                 <button id="add-player-btn">Legg til</button>
             </div>
             <div id="player-list-container">
@@ -42,7 +52,6 @@
                     <p><strong>Tittel:</strong> <span id="correct-title"></span></p>
                     <p><strong>År:</strong> <span id="correct-year"></span></p>
                 </div>
-                <!-- Container for knapper under sang-info -->
                 <div class="answer-actions">
                     <button id="report-error-btn" class="small-btn">Rapporter feil</button>
                     <button id="edit-song-btn" class="small-btn">Rediger sang</button>
@@ -80,4 +89,4 @@
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #300 -->
+<!-- Version: #302 -->
