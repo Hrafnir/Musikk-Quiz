@@ -1,4 +1,4 @@
-<!-- Version: #262 -->
+<!-- Version: #267 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -42,11 +42,12 @@
                     <p><strong>Tittel:</strong> <span id="correct-title"></span></p>
                     <p><strong>År:</strong> <span id="correct-year"></span></p>
                 </div>
+                <!-- NYTT: Knappen for å rapportere feil -->
+                <button id="report-error-btn" class="small-btn">Rapporter feil på sang</button>
             </div>
 
             <div id="guess-area">
                 <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
-                <!-- ENDRET: Tittel-input er nå koblet til en datalist -->
                 <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                 <input type="number" id="year-guess-input" placeholder="Gjett årstall..." autocomplete="off">
                 <button id="submit-guess-btn">Gjett</button>
@@ -69,11 +70,10 @@
 
     <!-- Datalister for autocomplete -->
     <datalist id="artist-list"></datalist>
-    <!-- NYTT: Datalist for titler -->
     <datalist id="title-list"></datalist>
 
     <!-- Spill-logikk -->
     <script src="game.js"></script>
 </body>
 </html>
-<!-- Version: #262 -->
+<!-- Version: #267 -->
