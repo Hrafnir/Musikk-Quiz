@@ -1,4 +1,4 @@
-/* Version: #258 */
+/* Version: #263 */
 // === CONFIGURATION ===
 const SUPABASE_URL = 'https://ldmkhaeauldafjzaxozp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbWtoYWVhdWxkYWZqemF4b3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNjY0MTgsImV4cCI6MjA2ODY0MjQxOH0.78PkucLIkoclk6Wd6Lvcml0SPPEmUDpEQ1Ou7MPOPLM';
@@ -11,6 +11,7 @@ let spotifyPlayer = null;
 let deviceId = null;
 let currentSong = null;
 let artistList = [];
+let titleList = []; // NYTT: For å holde på listen over titler
 let songHistory = [];
 let totalSongsInDb = 0;
 let players = [];
@@ -23,7 +24,7 @@ let preGameView, inGameView, startGameBtn,
     answerDisplay, albumArt, correctArtist, correctTitle, correctYear,
     guessArea, artistGuessInput, titleGuessInput, yearGuessInput, submitGuessBtn,
     roundStatus, gameControls, nextRoundBtn,
-    artistDataList;
+    artistDataList, titleDataList; // NYTT: titleDataList
 
 // === SPOTIFY SDK & PLAYER ===
 window.onSpotifyWebPlaybackSDKReady = () => {
@@ -36,18 +37,13 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     }
 };
 
-// ... (Funksjoner som initializeSpotifyPlayer, playTrack etc. er uendret) ...
+// ... (Uendrede funksjoner som initializeSpotifyPlayer, playTrack etc.) ...
 
 // === PRE-GAME LOGIC (SPILLER-OPPSETT) ===
 function handleAddPlayer() {
     const name = playerNameInput.value.trim();
     if (name && !players.some(p => p.name === name)) {
-        players.push({
-            name: name,
-            sp: 0,
-            credits: 3,
-            handicap: 5
-        });
+        players.push({ name: name, sp: 0, credits: 3, handicap: 5 });
         updatePlayerListView();
         playerNameInput.value = '';
         startGameBtn.disabled = false;
@@ -75,9 +71,32 @@ async function startGame() {
     const { count, error } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true });
     if (!error) totalSongsInDb = count;
 
-    await populateArtistList();
+    // Laster begge autocomplete-listene
+    await populateAutocompleteLists();
     updateHud();
     playNextRound();
+}
+
+// ENDRET: Henter og fyller begge autocomplete-listene
+async function populateAutocompleteLists() {
+    console.log("Henter autocomplete-lister...");
+    // Artist-liste
+    const { data: artists, error: artistError } = await supabaseClient.rpc('get_distinct_artists');
+    if (artistError) { console.error("Klarte ikke hente artistliste:", artistError); } 
+    else {
+        artistList = artists.map(item => item.artist_name);
+        artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join('');
+        console.log(`Artistliste lastet med ${artistList.length} artister.`);
+    }
+
+    // Tittel-liste
+    const { data: titles, error: titleError } = await supabaseClient.rpc('get_distinct_titles');
+    if (titleError) { console.error("Klarte ikke hente tittelliste:", titleError); } 
+    else {
+        titleList = titles.map(item => item.title_name);
+        titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join('');
+        console.log(`Tittelliste lastet med ${titleList.length} titler.`);
+    }
 }
 
 async function playNextRound() {
@@ -135,52 +154,21 @@ function handleSubmitGuess() {
     currentPlayer.credits += roundCredits;
     
     updateHud();
-
     roundStatus.textContent = `Du fikk ${roundSp} SP og ${roundCredits} Credits!`;
     roundStatus.style.color = (roundSp > 0 || roundCredits > 0) ? '#1DB954' : '#FF4136';
-
     showAnswer();
 }
 
-// ENDRET: Funksjonen som bytter spiller
 function advanceToNextPlayer() {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-    // KORRIGERT: Oppdaterer HUD umiddelbart for å flytte den grønne borden
     updateHud(); 
     playNextRound();
 }
 
 // === UI UPDATE FUNCTIONS ===
-function updateHud() {
-    playerHud.innerHTML = '';
-    players.forEach((player, index) => {
-        const playerInfoDiv = document.createElement('div');
-        playerInfoDiv.className = 'player-info';
-        if (index === currentPlayerIndex) {
-            playerInfoDiv.classList.add('active-player');
-        }
-        playerInfoDiv.innerHTML = `
-            <div class="player-name">${player.name}</div>
-            <div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>
-        `;
-        playerHud.appendChild(playerInfoDiv);
-    });
-}
-
-function updateTurnIndicator() {
-    turnIndicator.textContent = `${players[currentPlayerIndex].name} sin tur!`;
-}
-
-function showAnswer() {
-    albumArt.src = currentSong.albumarturl || '';
-    correctArtist.textContent = currentSong.artist;
-    correctTitle.textContent = currentSong.title;
-    correctYear.textContent = currentSong.year;
-    
-    answerDisplay.classList.remove('hidden');
-    guessArea.classList.add('hidden');
-    nextRoundBtn.classList.remove('hidden');
-}
+function updateHud() { /* ... (uendret) ... */ }
+function updateTurnIndicator() { /* ... (uendret) ... */ }
+function showAnswer() { /* ... (uendret) ... */ }
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -207,12 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
     gameControls = document.getElementById('game-controls');
     nextRoundBtn = document.getElementById('next-round-btn');
     artistDataList = document.getElementById('artist-list');
+    titleDataList = document.getElementById('title-list'); // NYTT
 
     // Sett opp event listeners
     addPlayerBtn.addEventListener('click', handleAddPlayer);
-    playerNameInput.addEventListener('keyup', (event) => {
-        if (event.key === 'Enter') handleAddPlayer();
-    });
+    playerNameInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') handleAddPlayer(); });
     startGameBtn.addEventListener('click', startGame);
     submitGuessBtn.addEventListener('click', handleSubmitGuess);
     nextRoundBtn.addEventListener('click', advanceToNextPlayer);
@@ -223,6 +210,8 @@ function initializeSpotifyPlayer(token) { if (spotifyPlayer) return; spotifyPlay
 async function transferPlayback() { if (!deviceId) return; await fetch(`https://api.spotify.com/v1/me/player`, { method: 'PUT', body: JSON.stringify({ device_ids: [deviceId], play: false }), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` }, }); await new Promise(resolve => setTimeout(resolve, 500)); }
 async function pauseTrack() { if (!deviceId) return; await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${spotifyAccessToken}` }, }); }
 async function playTrack(spotifyTrackId) { if (!deviceId) { alert('Ingen aktiv Spotify-enhet funnet.'); return false; } await pauseTrack(); await new Promise(resolve => setTimeout(resolve, 100)); const trackUri = `spotify:track:${spotifyTrackId}`; const playUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`; const playOptions = { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${spotifyAccessToken}` }, }; try { const response = await fetch(playUrl, playOptions); if (!response.ok) throw new Error(`Spotify API svarte med ${response.status}`); return true; } catch (error) { if (error.message.includes("403")) { await transferPlayback(); try { const retryResponse = await fetch(playUrl, playOptions); if (!retryResponse.ok) throw new Error(`Spotify API svarte med ${retryResponse.status} på nytt forsøk`); return true; } catch (retryError) { alert("Klarte ikke starte avspilling. Sjekk at Spotify er aktiv og prøv neste runde."); return false; } } else { return false; } } }
-async function populateArtistList() { const { data, error } = await supabaseClient.rpc('get_distinct_artists'); if (error) { console.error("Klarte ikke hente artistliste:", error); return; } artistList = data.map(item => item.artist_name); artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); }
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { songHistory = []; const { data: fallbackData } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); return fallbackData ? fallbackData[0] : null; } return data[0]; }
-/* Version: #258 */
+function updateHud() { playerHud.innerHTML = ''; players.forEach((player, index) => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (index === currentPlayerIndex) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = ` <div class="player-name">${player.name}</div> <div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div> `; playerHud.appendChild(playerInfoDiv); }); }
+function updateTurnIndicator() { turnIndicator.textContent = `${players[currentPlayerIndex].name} sin tur!`; }
+function showAnswer() { albumArt.src = currentSong.albumarturl || ''; correctArtist.textContent = currentSong.artist; correctTitle.textContent = currentSong.title; correctYear.textContent = currentSong.year; answerDisplay.classList.remove('hidden'); guessArea.classList.add('hidden'); nextRoundBtn.classList.remove('hidden'); }
+/* Version: #263 */
