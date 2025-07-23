@@ -1,4 +1,4 @@
-<!-- Version: #324 -->
+<!-- Version: #348 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQuiz</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="game.css"> <!-- Gjenbruker styling -->
+    <link rel="stylesheet" href="game.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -21,9 +21,12 @@
             <p id="join-status" style="margin-top: 15px;"></p>
         </div>
 
-        <!-- NYTT: SPILL-VISNING (erstatter waiting-view) -->
+        <!-- SPILL-VISNING -->
         <div id="game-view" class="hidden">
             
+            <!-- NYTT: Poengtavle for klienten -->
+            <div id="player-hud" style="margin-bottom: 20px;"></div>
+
             <!-- Vises når det er din tur -->
             <div id="my-turn-view" class="hidden">
                 <h2>Din tur!</h2>
@@ -49,4 +52,4 @@
     <script src="client.js"></script>
 </body>
 </html>
-<!-- Version: #324 -->
+<!-- Version: #348 -->
