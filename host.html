@@ -1,4 +1,4 @@
-<!-- Version: #348 -->
+<!-- Version: #353 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -12,6 +12,12 @@
 </head>
 <body>
     <div id="game-container">
+
+        <!-- NYTT: Permanent Header for spillkode -->
+        <div id="game-header" class="hidden">
+            <span>Spillkode:</span>
+            <strong id="game-code-display-permanent">...</strong>
+        </div>
 
         <!-- FASE 1: LOBBY-VISNING -->
         <div id="host-lobby-view">
@@ -36,9 +42,7 @@
 
         <!-- FASE 3: SPILL-VISNING -->
         <div id="host-game-view" class="hidden">
-            <!-- NYTT: Poengtavle -->
             <div id="player-hud"></div>
-            
             <div id="host-turn-indicator"></div>
             <div id="host-song-display">
                 <h2>Sangen spilles...</h2>
@@ -68,4 +72,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #348 -->
+<!-- Version: #353 -->
