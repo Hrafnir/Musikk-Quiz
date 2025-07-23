@@ -1,4 +1,4 @@
-/* Version: #324 */
+/* Version: #333 */
 
 /* === Game Container === */
 #game-container {
@@ -45,9 +45,22 @@
 #turn-indicator, #host-turn-indicator { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
 #answer-display, #host-answer-display { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px; width: 100%; }
 #album-art { width: 100%; max-width: 300px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); min-height: 300px; background-color: #333; }
-#song-info, #received-answer-info { text-align: left; width: 100%; max-width: 300px; background-color: #282828; padding: 15px; border-radius: 5px; }
-#song-info p, #received-answer-info p { margin: 5px 0; font-size: 1.1em; color: #b3b3b3; }
-#song-info p strong, #received-answer-info p strong { color: #fff; }
+#song-info, #received-answer-info, #fasit-info {
+    text-align: left; 
+    width: 100%; 
+    max-width: 300px; 
+    background-color: #282828; 
+    padding: 15px; 
+    border-radius: 5px; 
+}
+#song-info p, #received-answer-info p, #fasit-info p {
+    margin: 5px 0; 
+    font-size: 1.1em; 
+    color: #b3b3b3; 
+}
+#song-info p strong, #received-answer-info p strong, #fasit-info p strong {
+    color: #fff; 
+}
 .answer-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 #guess-area { width: 100%; display: flex; flex-direction: column; gap: 15px; }
 #artist-guess-input, #title-guess-input, #year-guess-input { padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
@@ -75,4 +88,4 @@
 .stats-table td:nth-child(n+2) { text-align: center; }
 .victory-actions { display: flex; flex-direction: column; gap: 15px; }
 .hidden { display: none !important; }
-/* Version: #324 */
+/* Version: #333 */
