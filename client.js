@@ -1,4 +1,4 @@
-/* Version: #324 */
+/* Version: #350 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -18,25 +18,42 @@ const artistGuessInput = document.getElementById('artist-guess-input');
 const titleGuessInput = document.getElementById('title-guess-input');
 const yearGuessInput = document.getElementById('year-guess-input');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
+const playerHud = document.getElementById('player-hud'); // Nytt
 
 // === STATE ===
 let gameChannel = null;
 let myName = '';
+let players = []; // Nytt
+let currentPlayerName = ''; // Nytt
 
-// === FUNCTIONS ===
+// === FUNKSJONER ===
+
+// NY: Viser poengtavlen
+function updateHud() {
+    if (!playerHud) return;
+    playerHud.innerHTML = '';
+    players.forEach(player => {
+        const playerInfoDiv = document.createElement('div');
+        playerInfoDiv.className = 'player-info';
+        if (player.name === currentPlayerName) {
+            playerInfoDiv.classList.add('active-player');
+        }
+        playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`;
+        playerHud.appendChild(playerInfoDiv);
+    });
+}
+
 function submitAnswer() {
     const answer = {
         artist: artistGuessInput.value.trim(),
         title: titleGuessInput.value.trim(),
         year: yearGuessInput.value.trim()
     };
-    console.log("Sender svar:", answer);
     gameChannel.send({
         type: 'broadcast',
         event: 'submit_answer',
         payload: answer
     });
-    // Skjul input-felt etter å ha sendt svar
     myTurnView.classList.add('hidden');
     waitingStatus.textContent = "Svaret ditt er sendt! Venter på resultat...";
     waitingForOthersView.classList.remove('hidden');
@@ -59,28 +76,32 @@ async function joinGame() {
 
     // LYTTERE FOR SPILLHENDELSER
     gameChannel.on('broadcast', { event: 'game_start' }, () => {
-        console.log("Mottok game_start!");
         joinView.classList.add('hidden');
         gameView.classList.remove('hidden');
     });
 
     gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => {
-        const activePlayerName = payload.payload.name;
-        console.log(`Ny tur for: ${activePlayerName}`);
-        
-        if (activePlayerName === myName) {
-            // Det er min tur!
+        currentPlayerName = payload.payload.name;
+        if (players.length > 0) updateHud(); // Oppdater HUD for å vise aktiv spiller
+
+        if (currentPlayerName === myName) {
             waitingForOthersView.classList.add('hidden');
             myTurnView.classList.remove('hidden');
             artistGuessInput.value = '';
             titleGuessInput.value = '';
             yearGuessInput.value = '';
         } else {
-            // Det er noen andres tur
             myTurnView.classList.add('hidden');
-            waitingStatus.textContent = `Venter på ${activePlayerName}...`;
+            waitingStatus.textContent = `Venter på ${currentPlayerName}...`;
             waitingForOthersView.classList.remove('hidden');
         }
+    });
+
+    // NY LYTTER: Mottar resultater og oppdatert poengstilling
+    gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
+        players = payload.payload.players;
+        updateHud();
+        // TODO: Vis en mer detaljert oppsummering av runden
     });
 
     gameChannel.subscribe((status) => {
@@ -91,7 +112,7 @@ async function joinGame() {
                 payload: { name: myName },
             });
             joinView.classList.add('hidden');
-            gameView.classList.remove('hidden'); // Gå til spill-visning (venterom)
+            gameView.classList.remove('hidden');
             displayPlayerName.textContent = myName;
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             joinStatus.textContent = 'Feil: Fant ikke spillet. Sjekk koden.';
@@ -103,4 +124,4 @@ async function joinGame() {
 // === EVENT LISTENERS ===
 joinBtn.addEventListener('click', joinGame);
 submitAnswerBtn.addEventListener('click', submitAnswer);
-/* Version: #324 */
+/* Version: #350 */
