@@ -1,4 +1,4 @@
-/* Version: #389 */
+/* Version: #395 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -18,8 +18,8 @@ let joinView, gameView, myTurnView, waitingForOthersView, roundSummaryView,
 let gameChannel = null, myName = '', players = [], currentPlayerName = '', attackInterval = null;
 
 // === FUNKSJONER ===
-function populateAutocompleteLists(artistList, titleList) { /* ... (uendret) ... */ }
-function updateHud() { /* ... (uendret) ... */ }
+function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
+function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
 function submitAnswer() {
     const answer = { name: myName, artist: artistGuessInput.value.trim(), title: titleGuessInput.value.trim(), year: yearGuessInput.value.trim() };
     gameChannel.send({ type: 'broadcast', event: 'submit_answer', payload: answer });
@@ -29,8 +29,6 @@ function submitAnswer() {
 }
 function buyHandicap() { gameChannel.send({ type: 'broadcast', event: 'buy_handicap', payload: { name: myName } }); }
 function skipSong() { gameChannel.send({ type: 'broadcast', event: 'skip_song', payload: { name: myName } }); }
-
-// --- NYE ANGREPSFUNKSJONER ---
 function chooseAttack(choice) {
     attackView.classList.add('hidden');
     gameChannel.send({ type: 'broadcast', event: 'choose_attack', payload: { name: myName, choice } });
@@ -65,6 +63,15 @@ function submitHijack() {
     waitingStatus.textContent = "Hijack-bud sendt! Venter på resultat...";
     waitingForOthersView.classList.remove('hidden');
 }
+function handleNewGameLink(event) {
+    event.preventDefault();
+    const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?");
+    if (confirmed) {
+        localStorage.removeItem('mquiz_gamecode');
+        localStorage.removeItem('mquiz_playername');
+        window.location.reload();
+    }
+}
 
 async function joinGame(code, name) {
     joinStatus.textContent = 'Kobler til...';
@@ -73,12 +80,20 @@ async function joinGame(code, name) {
     gameChannel = supabaseClient.channel(channelName);
 
     // LYTTERE FOR SPILLHENDELSER
-    gameChannel.on('broadcast', { event: 'game_start' }, (payload) => { /* ... (uendret) ... */ });
+    gameChannel.on('broadcast', { event: 'game_start' }, (payload) => {
+        joinView.classList.add('hidden');
+        gameView.classList.remove('hidden');
+        const { players: newPlayers, artistList, titleList } = payload.payload;
+        players = newPlayers;
+        populateAutocompleteLists(artistList, titleList);
+        updateHud();
+    });
     gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => {
+        clearInterval(attackInterval);
         currentPlayerName = payload.payload.name;
         if (players.length > 0) updateHud();
         roundSummaryView.classList.add('hidden');
-        attackView.classList.add('hidden'); // Skjul angrepsvisning ved ny runde
+        attackView.classList.add('hidden');
         if (currentPlayerName === myName) {
             waitingForOthersView.classList.add('hidden');
             myTurnView.classList.remove('hidden');
@@ -90,7 +105,7 @@ async function joinGame(code, name) {
         }
     });
     gameChannel.on('broadcast', { event: 'attack_phase_start' }, (payload) => {
-        if (myName === payload.payload.attacker) return; // Den som svarte kan ikke angripe
+        if (myName === payload.payload.attacker) return;
         waitingForOthersView.classList.add('hidden');
         attackView.classList.remove('hidden');
         besserwisserBtn.classList.toggle('hidden', !payload.payload.canBesserwiss);
@@ -109,7 +124,7 @@ async function joinGame(code, name) {
         }, 1000);
     });
     gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
-        clearInterval(attackInterval); // Stopp timer i tilfelle den fortsatt kjører
+        clearInterval(attackInterval);
         const { players: newPlayers, feedback, song, attackResultsHTML } = payload.payload;
         players = newPlayers;
         updateHud();
@@ -117,7 +132,7 @@ async function joinGame(code, name) {
         clientFasitArtist.textContent = song.artist;
         clientFasitTitle.textContent = song.title;
         clientFasitYear.textContent = song.year;
-        clientRoundFeedback.innerHTML = feedback + attackResultsHTML; // Viser både feedback og angrepsresultater
+        clientRoundFeedback.innerHTML = `<p>${feedback}</p>${attackResultsHTML}`;
         myTurnView.classList.add('hidden');
         waitingForOthersView.classList.add('hidden');
         attackView.classList.add('hidden');
@@ -125,11 +140,35 @@ async function joinGame(code, name) {
         hijackInputView.classList.add('hidden');
         roundSummaryView.classList.remove('hidden');
     });
-    gameChannel.on('broadcast', { event: 'player_update' }, (payload) => { /* ... (uendret) ... */ });
+    gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
+        players = payload.payload.players;
+        const { artistList, titleList } = payload.payload;
+        if (artistList && titleList) {
+            populateAutocompleteLists(artistList, titleList);
+        }
+        updateHud();
+    });
 
-    gameChannel.subscribe((status) => { /* ... (uendret) ... */ });
+    gameChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            localStorage.setItem('mquiz_gamecode', code);
+            localStorage.setItem('mquiz_playername', name);
+            gameChannel.send({
+                type: 'broadcast',
+                event: 'player_join',
+                payload: { name: name },
+            });
+            joinView.classList.add('hidden');
+            gameView.classList.remove('hidden');
+            displayPlayerName.textContent = name;
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            joinStatus.textContent = 'Feil: Fant ikke spillet. Sjekk koden.';
+            joinBtn.disabled = false;
+            localStorage.removeItem('mquiz_gamecode');
+            localStorage.removeItem('mquiz_playername');
+        }
+    });
 }
-function handleNewGameLink(event) { /* ... (uendret) ... */ }
 
 // === HOVED-INNGANGSPUNKT ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -174,7 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
     hijackYearInput = document.getElementById('hijack-year-input');
     submitHijackBtn = document.getElementById('submit-hijack-btn');
 
-    // Sjekk for lagret spill
     const savedCode = localStorage.getItem('mquiz_gamecode');
     const savedName = localStorage.getItem('mquiz_playername');
     if (savedCode && savedName) {
@@ -182,13 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
         joinGame(savedCode, savedName);
     }
 
-    // Sett opp event listeners
     joinBtn.addEventListener('click', () => {
         const code = gameCodeInput.value.trim();
         const name = playerNameInput.value.trim();
         if (code && name) { myName = name; joinGame(code, name); } 
         else { joinStatus.textContent = 'Du må fylle ut både spillkode og navn.'; }
     });
+    
     submitAnswerBtn.addEventListener('click', submitAnswer);
     newGameLink.addEventListener('click', handleNewGameLink);
     buyHandicapBtn.addEventListener('click', buyHandicap);
@@ -198,12 +236,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBesserwisserBtn.addEventListener('click', submitBesserwisser);
     submitHijackBtn.addEventListener('click', submitHijack);
 });
-
-// --- Kopiert inn uendrede funksjoner ---
-function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
-function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
-gameChannel.on('broadcast', { event: 'game_start' }, (payload) => { joinView.classList.add('hidden'); gameView.classList.remove('hidden'); const { players: newPlayers, artistList, titleList } = payload.payload; players = newPlayers; populateAutocompleteLists(artistList, titleList); updateHud(); });
-gameChannel.on('broadcast', { event: 'player_update' }, (payload) => { players = payload.payload.players; const { artistList, titleList } = payload.payload; if (artistList && titleList) { populateAutocompleteLists(artistList, titleList); } updateHud(); });
-gameChannel.subscribe((status) => { if (status === 'SUBSCRIBED') { localStorage.setItem('mquiz_gamecode', code); localStorage.setItem('mquiz_playername', name); gameChannel.send({ type: 'broadcast', event: 'player_join', payload: { name: name }, }); joinView.classList.add('hidden'); gameView.classList.remove('hidden'); displayPlayerName.textContent = name; } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { joinStatus.textContent = 'Feil: Fant ikke spillet. Sjekk koden.'; joinBtn.disabled = false; localStorage.removeItem('mquiz_gamecode'); localStorage.removeItem('mquiz_playername'); } });
-function handleNewGameLink(event) { event.preventDefault(); const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?"); if (confirmed) { localStorage.removeItem('mquiz_gamecode'); localStorage.removeItem('mquiz_playername'); window.location.reload(); } }
-/* Version: #389 */
+/* Version: #395 */
