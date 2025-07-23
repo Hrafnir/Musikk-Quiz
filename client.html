@@ -1,0 +1,36 @@
+<!-- Version: #318 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="app-container">
+        
+        <!-- Visning for å bli med i spillet -->
+        <div id="join-view">
+            <h1>Bli med i MQuiz</h1>
+            <input type="number" id="game-code-input" placeholder="Spillkode..." style="margin-bottom: 10px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
+            <input type="text" id="player-name-input" placeholder="Ditt navn..." style="margin-bottom: 20px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
+            <button id="join-btn">Bli med</button>
+            <p id="join-status" style="margin-top: 15px;"></p>
+        </div>
+
+        <!-- Visning mens man venter -->
+        <div id="waiting-view" class="hidden">
+            <h1>Du er med!</h1>
+            <p>Se på hovedskjermen for å starte spillet.</p>
+            <p>Du er logget inn som: <strong id="display-player-name"></strong></p>
+        </div>
+        
+    </div>
+
+    <script src="config.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
+<!-- Version: #318 -->
