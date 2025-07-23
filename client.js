@@ -1,4 +1,4 @@
-/* Version: #365 */
+/* Version: #367 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -20,8 +20,8 @@ const yearGuessInput = document.getElementById('year-guess-input');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
 const playerHud = document.getElementById('player-hud');
 const newGameLink = document.getElementById('new-game-link');
-const artistDataList = document.getElementById('artist-list'); // Nytt
-const titleDataList = document.getElementById('title-list'); // Nytt
+const artistDataList = document.getElementById('artist-list');
+const titleDataList = document.getElementById('title-list');
 
 // === STATE ===
 let gameChannel = null;
@@ -30,8 +30,6 @@ let players = [];
 let currentPlayerName = '';
 
 // === FUNKSJONER ===
-
-// NY: Fyller ut autocomplete-listene
 function populateAutocompleteLists(artistList, titleList) {
     if (artistList) {
         artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join('');
@@ -83,7 +81,6 @@ async function joinGame(code, name) {
     gameChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         joinView.classList.add('hidden');
         gameView.classList.remove('hidden');
-        
         const { players: newPlayers, artistList, titleList } = payload.payload;
         players = newPlayers;
         populateAutocompleteLists(artistList, titleList);
@@ -93,7 +90,6 @@ async function joinGame(code, name) {
     gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => {
         currentPlayerName = payload.payload.name;
         if (players.length > 0) updateHud();
-
         if (currentPlayerName === myName) {
             waitingForOthersView.classList.add('hidden');
             myTurnView.classList.remove('hidden');
@@ -116,6 +112,11 @@ async function joinGame(code, name) {
 
     gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
         players = payload.payload.players;
+        const { artistList, titleList } = payload.payload;
+        // Fyll ut lister hvis de blir sendt (for join mid-game)
+        if (artistList && titleList) {
+            populateAutocompleteLists(artistList, titleList);
+        }
         updateHud();
     });
 
@@ -174,4 +175,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitAnswerBtn.addEventListener('click', submitAnswer);
     newGameLink.addEventListener('click', handleNewGameLink);
 });
-/* Version: #365 */
+/* Version: #367 */
