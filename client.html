@@ -1,4 +1,4 @@
-<!-- Version: #360 -->
+<!-- Version: #363 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -30,8 +30,9 @@
             <div id="my-turn-view" class="hidden">
                 <h2>Din tur!</h2>
                 <div id="guess-area">
-                    <input type="text" id="artist-guess-input" placeholder="Gjett artist...">
-                    <input type="text" id="title-guess-input" placeholder="Gjett tittel...">
+                    <!-- ENDRET: Lagt til list-attributter -->
+                    <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
+                    <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                     <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
                     <button id="submit-answer-btn">Send Svar</button>
                 </div>
@@ -43,7 +44,6 @@
                 <p>Du er med som: <strong id="display-player-name"></strong></p>
             </div>
 
-            <!-- NYTT: Område for å starte på nytt -->
             <div id="client-actions" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
                 <a href="#" id="new-game-link" style="color: #b3b3b3; font-size: 0.9em;">Ikke riktig spill? Start på nytt</a>
             </div>
@@ -52,8 +52,12 @@
         
     </div>
 
+    <!-- NYTT: Datalister for autocomplete -->
+    <datalist id="artist-list"></datalist>
+    <datalist id="title-list"></datalist>
+
     <script src="config.js"></script>
     <script src="client.js"></script>
 </body>
 </html>
-<!-- Version: #360 -->
+<!-- Version: #363 -->
