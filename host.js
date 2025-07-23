@@ -1,4 +1,4 @@
-/* Version: #330 */
+/* Version: #334 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -17,6 +17,11 @@ const receivedArtist = document.getElementById('received-artist');
 const receivedTitle = document.getElementById('received-title');
 const receivedYear = document.getElementById('received-year');
 const hostSongDisplay = document.getElementById('host-song-display');
+const hostFasitDisplay = document.getElementById('host-fasit-display');
+const fasitArtist = document.getElementById('fasit-artist');
+const fasitTitle = document.getElementById('fasit-title');
+const fasitYear = document.getElementById('fasit-year');
+const nextTurnBtn = document.getElementById('next-turn-btn');
 
 // === STATE ===
 let players = [];
@@ -40,7 +45,7 @@ async function redirectToSpotifyLogin() {
 }
 async function fetchSpotifyAccessToken(code) {
     const codeVerifier = localStorage.getItem('spotify_code_verifier');
-    if (!codeVerifier) return;
+    if (!codeVerifier) return false;
     const redirectUri = window.location.origin + window.location.pathname;
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
@@ -69,15 +74,12 @@ async function refreshSpotifyToken() { const refreshToken = localStorage.getItem
 async function getValidSpotifyToken() { const expiresAt = localStorage.getItem('spotify_token_expires_at'); const accessToken = localStorage.getItem('spotify_access_token'); if (!accessToken || !expiresAt) return null; if (Date.now() > parseInt(expiresAt) - (5 * 60 * 1000)) { return await refreshSpotifyToken(); } return accessToken; }
 
 // === SPOTIFY PLAYER FUNCTIONS ===
-// KORRIGERT: Denne funksjonen er nå den ENESTE som kaller initializeSpotifyPlayer
 window.onSpotifyWebPlaybackSDKReady = () => {
     console.log("Spotify SDK er nå klar.");
-    // Sjekk om vi allerede er autentisert, hvis ja, start spilleren
     if (localStorage.getItem('spotify_access_token')) {
         initializeSpotifyPlayer();
     }
 };
-
 function initializeSpotifyPlayer() {
     if (spotifyPlayer) return;
     console.log("Kaller new Spotify.Player()...");
@@ -103,26 +105,117 @@ async function playTrack(spotifyTrackId) { if (!deviceId) { alert('Ingen aktiv S
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { songHistory = []; const { data: fallbackData } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); return fallbackData ? fallbackData[0] : null; } return data[0]; }
 
 // === LOBBY & GAME FLOW ===
-function updatePlayerLobby() { playerLobbyList.innerHTML = ''; players.forEach(player => { const li = document.createElement('li'); li.textContent = player.name; playerLobbyList.appendChild(li); }); if (players.length > 0 && deviceId) { startGameBtn.disabled = false; startGameBtn.textContent = `Start Spill (${players.length} spillere)`; } else if (players.length > 0 && !deviceId) { startGameBtn.disabled = true; startGameBtn.textContent = 'Venter på Spotify...'; } else { startGameBtn.disabled = true; startGameBtn.textContent = 'Venter på spillere...'; } }
-async function startGame() { console.log("Starter spillet..."); hostLobbyView.classList.add('hidden'); hostGameView.classList.remove('hidden'); const { count, error } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true }); if (!error) totalSongsInDb = count; gameChannel.send({ type: 'broadcast', event: 'game_start' }); currentPlayerIndex = 0; await startTurn(); }
-async function startTurn() { const currentPlayer = players[currentPlayerIndex]; console.log(`Starter tur for ${currentPlayer.name}`); hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`; hostAnswerDisplay.classList.add('hidden'); hostSongDisplay.innerHTML = '<h2>Henter en ny sang...</h2>'; currentSong = await fetchRandomSong(); if (currentSong) { songHistory.push(currentSong.id); const playbackSuccess = await playTrack(currentSong.spotifyid); if (playbackSuccess) { hostSongDisplay.innerHTML = '<h2>Sangen spilles...</h2>'; gameChannel.send({ type: 'broadcast', event: 'new_turn', payload: { name: currentPlayer.name } }); } else { hostSongDisplay.innerHTML = '<h2 style="color: red;">Avspilling feilet!</h2>'; } } else { hostSongDisplay.innerHTML = '<h2 style="color: red;">Klarte ikke hente sang!</h2>'; } }
-function handleAnswer(payload) { console.log("Svar mottatt:", payload); const { artist, title, year } = payload.payload; receivedArtist.textContent = artist || 'Ikke besvart'; receivedTitle.textContent = title || 'Ikke besvart'; receivedYear.textContent = year || 'Ikke besvart'; hostTurnIndicator.textContent = `${players[currentPlayerIndex].name} har svart!`; hostAnswerDisplay.classList.remove('hidden'); }
-async function setupGame() { gameCode = Math.floor(100000 + Math.random() * 900000).toString(); gameCodeDisplay.textContent = gameCode; const channelName = `game-${gameCode}`; gameChannel = supabaseClient.channel(channelName); gameChannel.on('broadcast', { event: 'player_join' }, (payload) => { const newPlayerName = payload.payload.name; if (!players.some(p => p.name === newPlayerName)) { players.push({ name: newPlayerName }); updatePlayerLobby(); } }); gameChannel.on('broadcast', { event: 'submit_answer' }, handleAnswer); gameChannel.subscribe((status) => { if (status === 'SUBSCRIBED') { console.log(`Host er klar og lytter på kanalen: ${channelName}`); } else { console.error('Host kunne ikke koble seg til kanalen.'); gameCodeDisplay.textContent = "FEIL"; } }); }
+function updatePlayerLobby() {
+    playerLobbyList.innerHTML = '';
+    players.forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = player.name;
+        playerLobbyList.appendChild(li);
+    });
+    if (players.length > 0 && deviceId) {
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = `Start Spill (${players.length} spillere)`;
+    } else if (players.length > 0 && !deviceId) {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = 'Venter på Spotify...';
+    } else {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = 'Venter på spillere...';
+    }
+}
+async function startGame() {
+    console.log("Starter spillet...");
+    hostLobbyView.classList.add('hidden');
+    hostGameView.classList.remove('hidden');
+    const { count, error } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true });
+    if (!error) totalSongsInDb = count;
+    gameChannel.send({ type: 'broadcast', event: 'game_start' });
+    currentPlayerIndex = 0;
+    await startTurn();
+}
+async function startTurn() {
+    const currentPlayer = players[currentPlayerIndex];
+    console.log(`Starter tur for ${currentPlayer.name}`);
+    hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`;
+    hostAnswerDisplay.classList.add('hidden');
+    hostSongDisplay.innerHTML = '<h2>Henter en ny sang...</h2>';
+    hostSongDisplay.classList.remove('hidden');
+    currentSong = await fetchRandomSong();
+    if (currentSong) {
+        songHistory.push(currentSong.id);
+        const playbackSuccess = await playTrack(currentSong.spotifyid);
+        if (playbackSuccess) {
+            hostSongDisplay.innerHTML = '<h2>Sangen spilles...</h2>';
+            gameChannel.send({
+                type: 'broadcast',
+                event: 'new_turn',
+                payload: { name: currentPlayer.name }
+            });
+        } else {
+            hostSongDisplay.innerHTML = '<h2 style="color: red;">Avspilling feilet!</h2>';
+        }
+    } else {
+        hostSongDisplay.innerHTML = '<h2 style="color: red;">Klarte ikke hente sang!</h2>';
+    }
+}
+async function handleAnswer(payload) {
+    console.log("Svar mottatt:", payload);
+    const { artist, title, year } = payload.payload;
+    receivedArtist.textContent = artist || 'Ikke besvart';
+    receivedTitle.textContent = title || 'Ikke besvart';
+    receivedYear.textContent = year || 'Ikke besvart';
+    hostTurnIndicator.textContent = `${players[currentPlayerIndex].name} har svart!`;
+    hostAnswerDisplay.classList.remove('hidden');
+    await pauseTrack();
+    fasitArtist.textContent = currentSong.artist;
+    fasitTitle.textContent = currentSong.title;
+    fasitYear.textContent = currentSong.year;
+    hostFasitDisplay.classList.remove('hidden');
+    hostSongDisplay.classList.add('hidden');
+    nextTurnBtn.classList.remove('hidden');
+}
+async function advanceToNextTurn() {
+    hostFasitDisplay.classList.add('hidden');
+    nextTurnBtn.classList.add('hidden');
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    await startTurn();
+}
+
+// === SETUP ===
+async function setupGame() {
+    gameCode = Math.floor(100000 + Math.random() * 900000).toString();
+    gameCodeDisplay.textContent = gameCode;
+    const channelName = `game-${gameCode}`;
+    gameChannel = supabaseClient.channel(channelName);
+    gameChannel.on('broadcast', { event: 'player_join' }, (payload) => {
+        const newPlayerName = payload.payload.name;
+        if (!players.some(p => p.name === newPlayerName)) {
+            players.push({ name: newPlayerName });
+            updatePlayerLobby();
+        }
+    });
+    gameChannel.on('broadcast', { event: 'submit_answer' }, handleAnswer);
+    gameChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log(`Host er klar og lytter på kanalen: ${channelName}`);
+        } else {
+            console.error('Host kunne ikke koble seg til kanalen.');
+            gameCodeDisplay.textContent = "FEIL";
+        }
+    });
+}
 
 // === HOVEDLOGIKK ===
 document.addEventListener('DOMContentLoaded', async () => {
     const spotifyCode = new URLSearchParams(window.location.search).get('code');
-
     const handleSuccessfulAuth = () => {
         spotifyConnectView.classList.add('hidden');
         hostLobbyView.classList.remove('hidden');
         setupGame();
-        // Hvis SDK allerede er lastet, start spilleren. Ellers venter vi på onSpotifyWebPlaybackSDKReady.
         if (window.Spotify) {
             initializeSpotifyPlayer();
         }
     };
-
     if (spotifyCode) {
         const success = await fetchSpotifyAccessToken(spotifyCode);
         if (success) {
@@ -146,4 +239,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 // === EVENT LISTENERS ===
 spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
 startGameBtn.addEventListener('click', startGame);
-/* Version: #330 */
+nextTurnBtn.addEventListener('click', advanceToNextTurn);
+/* Version: #334 */
