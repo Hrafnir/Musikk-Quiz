@@ -1,4 +1,4 @@
-/* Version: #359 */
+/* Version: #360 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -19,6 +19,7 @@ const titleGuessInput = document.getElementById('title-guess-input');
 const yearGuessInput = document.getElementById('year-guess-input');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
 const playerHud = document.getElementById('player-hud');
+const newGameLink = document.getElementById('new-game-link'); // Nytt
 
 // === STATE ===
 let gameChannel = null;
@@ -94,7 +95,6 @@ async function joinGame(code, name) {
         players = payload.payload.players;
         const feedback = payload.payload.feedback;
         updateHud();
-        // Vis belønningsmeldingen
         waitingStatus.textContent = feedback;
     });
 
@@ -124,6 +124,18 @@ async function joinGame(code, name) {
     });
 }
 
+// NY FUNKSJON: Håndterer "Start på nytt"
+function handleNewGameLink(event) {
+    event.preventDefault(); // Forhindrer at lenken navigerer
+    const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?");
+    if (confirmed) {
+        localStorage.removeItem('mquiz_gamecode');
+        localStorage.removeItem('mquiz_playername');
+        window.location.reload();
+    }
+}
+
+
 // === HOVED-INNGANGSPUNKT ===
 document.addEventListener('DOMContentLoaded', () => {
     const savedCode = localStorage.getItem('mquiz_gamecode');
@@ -146,5 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     submitAnswerBtn.addEventListener('click', submitAnswer);
+    newGameLink.addEventListener('click', handleNewGameLink); // Nytt
 });
-/* Version: #359 */
+/* Version: #360 */
