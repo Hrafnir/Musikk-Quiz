@@ -1,4 +1,4 @@
-<!-- Version: #341 -->
+<!-- Version: #348 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -13,7 +13,7 @@
 <body>
     <div id="game-container">
 
-        <!-- FASE 1: LOBBY-VISNING (Vises først) -->
+        <!-- FASE 1: LOBBY-VISNING -->
         <div id="host-lobby-view">
             <h1>MQuiz Lobby</h1>
             <div id="lobby-info">
@@ -27,15 +27,18 @@
             <button id="start-game-btn" disabled>Venter på spillere...</button>
         </div>
 
-        <!-- FASE 2: SPOTIFY CONNECT-VISNING (Skjult) -->
+        <!-- FASE 2: SPOTIFY CONNECT-VISNING -->
         <div id="spotify-connect-view" class="hidden">
             <h1>Klar til start!</h1>
             <p>Koble til Spotify for å starte musikken og spillet.</p>
             <button id="spotify-login-btn">Koble til Spotify</button>
         </div>
 
-        <!-- FASE 3: SPILL-VISNING (Skjult) -->
+        <!-- FASE 3: SPILL-VISNING -->
         <div id="host-game-view" class="hidden">
+            <!-- NYTT: Poengtavle -->
+            <div id="player-hud"></div>
+            
             <div id="host-turn-indicator"></div>
             <div id="host-song-display">
                 <h2>Sangen spilles...</h2>
@@ -65,4 +68,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #341 -->
+<!-- Version: #348 -->
