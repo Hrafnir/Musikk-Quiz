@@ -1,4 +1,4 @@
-/* Version: #345 */
+/* Version: #346 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -50,7 +50,6 @@ function updatePlayerLobby() {
         li.textContent = player.name;
         playerLobbyList.appendChild(li);
     });
-    // KORRIGERT: Sjekker nå kun for spillere, Spotify-sjekk er unødvendig her
     if (players.length > 0) {
         startGameBtn.disabled = false;
         startGameBtn.textContent = `Start Spill (${players.length} spillere)`;
@@ -62,10 +61,9 @@ function updatePlayerLobby() {
 async function setupGameLobby() {
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     gameCodeDisplay.textContent = gameCode;
-    reconnectToChannel(gameCode); // Bruker en gjenbrukbar funksjon
+    reconnectToChannel(gameCode);
 }
 
-// NY FUNKSJON: Gjenbrukbar for å koble til en kanal
 function reconnectToChannel(code) {
     const channelName = `game-${code}`;
     gameChannel = supabaseClient.channel(channelName);
@@ -87,6 +85,7 @@ function reconnectToChannel(code) {
 async function fetchRandomSong() { /* ... (uendret) ... */ }
 async function startGameLoop() {
     console.log("Starter spill-loopen med spillere:", players);
+    hostLobbyView.classList.add('hidden'); // FIKS: Skjul lobby
     spotifyConnectView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
 
@@ -107,6 +106,7 @@ async function startTurn() {
     nextTurnBtn.classList.add('hidden');
     hostSongDisplay.innerHTML = '<h2>Henter en ny sang...</h2>';
     hostSongDisplay.classList.remove('hidden');
+    
     currentSong = await fetchRandomSong();
     if (currentSong) {
         const playbackSuccess = await playTrack(currentSong.spotifyid);
@@ -120,8 +120,29 @@ async function startTurn() {
         hostSongDisplay.innerHTML = '<h2 style="color: red;">Klarte ikke hente sang!</h2>';
     }
 }
-async function handleAnswer(payload) { /* ... (uendret) ... */ }
-async function advanceToNextTurn() { /* ... (uendret) ... */ }
+async function handleAnswer(payload) {
+    const { artist, title, year } = payload.payload;
+    receivedArtist.textContent = artist || 'Ikke besvart';
+    receivedTitle.textContent = title || 'Ikke besvart';
+    receivedYear.textContent = year || 'Ikke besvart';
+    hostTurnIndicator.textContent = `${players[currentPlayerIndex].name} har svart!`;
+    hostAnswerDisplay.classList.remove('hidden');
+    
+    // FIKS: IKKE pause musikken her
+    // await pauseTrack(); 
+    
+    fasitArtist.textContent = currentSong.artist;
+    fasitTitle.textContent = currentSong.title;
+    fasitYear.textContent = currentSong.year;
+    hostFasitDisplay.classList.remove('hidden');
+    hostSongDisplay.classList.add('hidden');
+    nextTurnBtn.classList.remove('hidden');
+}
+async function advanceToNextTurn() {
+    await pauseTrack(); // FIKS: Pause musikken NÅ
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    await startTurn();
+}
 
 // === HOVED-INNGANGSPUNKT: DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', async () => {
@@ -157,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (storedPlayers && storedGameCode) {
                 players = JSON.parse(storedPlayers);
                 gameCode = storedGameCode;
-                reconnectToChannel(gameCode); // Gjenopprett kanalen
+                reconnectToChannel(gameCode);
                 await startGameLoop();
             } else {
                 alert("Feil: Fant ikke spilldata etter Spotify-innlogging. Gå tilbake og start på nytt.");
@@ -171,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     startGameBtn.addEventListener('click', () => {
         sessionStorage.setItem('mquiz_players', JSON.stringify(players));
-        sessionStorage.setItem('mquiz_gamecode', gameCode); // Lagre spillkoden
+        sessionStorage.setItem('mquiz_gamecode', gameCode);
         hostLobbyView.classList.add('hidden');
         spotifyConnectView.classList.remove('hidden');
     });
@@ -190,6 +211,4 @@ async function fetchWithFreshToken(url, options = {}) { const token = await getV
 async function playTrack(spotifyTrackId) { if (!deviceId) { alert('Ingen aktiv Spotify-enhet funnet.'); return false; } await pauseTrack(); await new Promise(resolve => setTimeout(resolve, 100)); const trackUri = `spotify:track:${spotifyTrackId}`; const playUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`; const playOptions = { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }), }; try { const response = await fetchWithFreshToken(playUrl, playOptions); if (!response.ok) throw new Error(`Spotify API svarte med ${response.status}`); return true; } catch (error) { console.error("Playtrack feilet:", error); return false; } }
 async function pauseTrack() { if (!deviceId) return; await fetchWithFreshToken(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, { method: 'PUT', }); }
 async function fetchRandomSong() { if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; } const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory }); if (error || !data || !data[0]) { return null; } return data[0]; }
-async function handleAnswer(payload) { const { artist, title, year } = payload.payload; receivedArtist.textContent = artist || 'Ikke besvart'; receivedTitle.textContent = title || 'Ikke besvart'; receivedYear.textContent = year || 'Ikke besvart'; hostTurnIndicator.textContent = `${players[currentPlayerIndex].name} har svart!`; hostAnswerDisplay.classList.remove('hidden'); await pauseTrack(); fasitArtist.textContent = currentSong.artist; fasitTitle.textContent = currentSong.title; fasitYear.textContent = currentSong.year; hostFasitDisplay.classList.remove('hidden'); hostSongDisplay.classList.add('hidden'); nextTurnBtn.classList.remove('hidden'); }
-async function advanceToNextTurn() { currentPlayerIndex = (currentPlayerIndex + 1) % players.length; await startTurn(); }
-/* Version: #345 */
+/* Version: #346 */
