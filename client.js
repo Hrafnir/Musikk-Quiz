@@ -1,4 +1,4 @@
-/* Version: #351 */
+/* Version: #359 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -43,7 +43,7 @@ function updateHud() {
 
 function submitAnswer() {
     const answer = {
-        name: myName, // Inkluder navnet for sikkerhets skyld
+        name: myName,
         artist: artistGuessInput.value.trim(),
         title: titleGuessInput.value.trim(),
         year: yearGuessInput.value.trim()
@@ -69,7 +69,7 @@ async function joinGame(code, name) {
     gameChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         joinView.classList.add('hidden');
         gameView.classList.remove('hidden');
-        players = payload.payload.players; // Motta start-tilstand
+        players = payload.payload.players;
         updateHud();
     });
 
@@ -92,7 +92,10 @@ async function joinGame(code, name) {
 
     gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
         players = payload.payload.players;
+        const feedback = payload.payload.feedback;
         updateHud();
+        // Vis belønningsmeldingen
+        waitingStatus.textContent = feedback;
     });
 
     gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
@@ -102,24 +105,20 @@ async function joinGame(code, name) {
 
     gameChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-            // Lagre info for reconnection
             localStorage.setItem('mquiz_gamecode', code);
             localStorage.setItem('mquiz_playername', name);
-            
-            // Send melding til host
             gameChannel.send({
                 type: 'broadcast',
                 event: 'player_join',
                 payload: { name: name },
             });
-            
             joinView.classList.add('hidden');
             gameView.classList.remove('hidden');
             displayPlayerName.textContent = name;
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             joinStatus.textContent = 'Feil: Fant ikke spillet. Sjekk koden.';
             joinBtn.disabled = false;
-            localStorage.removeItem('mquiz_gamecode'); // Rydd opp ved feil
+            localStorage.removeItem('mquiz_gamecode');
             localStorage.removeItem('mquiz_playername');
         }
     });
@@ -131,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedName = localStorage.getItem('mquiz_playername');
 
     if (savedCode && savedName) {
-        // Prøv å koble til på nytt automatisk
         myName = savedName;
         joinGame(savedCode, savedName);
     }
@@ -149,4 +147,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     submitAnswerBtn.addEventListener('click', submitAnswer);
 });
-/* Version: #351 */
+/* Version: #359 */
