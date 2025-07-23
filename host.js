@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     submitBesserwisserBtn.addEventListener('click', submitBesserwisser);
     submitHijackBtn.addEventListener('click', submitHijack);
 });
+});
 
 // --- Kopiert inn uendrede funksjoner ---
 async function redirectToSpotifyLogin() { const codeVerifier = generateRandomString(128); const codeChallenge = await generateCodeChallenge(codeVerifier); localStorage.setItem('spotify_code_verifier', codeVerifier); const redirectUri = window.location.origin + window.location.pathname; const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SPOTIFY_SCOPES.join(' '))}&code_challenge_method=S256&code_challenge=${codeChallenge}`; window.location = authUrl; }
