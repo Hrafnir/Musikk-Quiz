@@ -1,4 +1,4 @@
-<!-- Version: #376 -->
+<!-- Version: #379 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -29,17 +29,24 @@
                 <h3>Spillere:</h3>
                 <ul id="player-lobby-list"></ul>
             </div>
-            <button id="start-game-btn" disabled>Venter på spillere...</button>
+            <button id="start-game-btn" disabled>Start Spill</button>
         </div>
 
         <!-- FASE 2: SPOTIFY CONNECT-VISNING -->
         <div id="spotify-connect-view" class="hidden">
-            <h1>Klar til start!</h1>
-            <p>Koble til Spotify for å starte musikken og spillet.</p>
+            <h1>Nesten klar!</h1>
+            <p>Koble til Spotify for å kunne spille av musikk.</p>
             <button id="spotify-login-btn">Koble til Spotify</button>
         </div>
+        
+        <!-- NY FASE 3: KLAR TIL START-VISNING -->
+        <div id="ready-to-play-view" class="hidden">
+            <h1 style="color: #1DB954;">✓ Spotify er tilkoblet!</h1>
+            <p>Spillerne er klare. Trykk start for å begynne første runde.</p>
+            <button id="start-first-round-btn">Start Første Runde</button>
+        </div>
 
-        <!-- FASE 3: SPILL-VISNING -->
+        <!-- FASE 4: SPILL-VISNING -->
         <div id="host-game-view" class="hidden">
             <div id="player-hud"></div>
             <div id="host-turn-indicator"></div>
@@ -52,7 +59,6 @@
                     <p><strong>Artist:</strong> <span id="received-artist"></span></p>
                     <p><strong>Tittel:</strong> <span id="received-title"></span></p>
                     <p><strong>År:</strong> <span id="received-year"></span></p>
-                    <!-- NYTT: Viser brukt handicap -->
                     <p><strong>Gjett (±HC):</strong> <span id="received-year-range"></span></p>
                 </div>
             </div>
@@ -74,4 +80,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #376 -->
+<!-- Version: #379 -->
