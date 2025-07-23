@@ -1,4 +1,4 @@
-/* Version: #367 */
+/* Version: #368 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -77,7 +77,7 @@ async function joinGame(code, name) {
     const channelName = `game-${code}`;
     gameChannel = supabaseClient.channel(channelName);
 
-    // LYTTERE FOR SPILLHENDELSER
+    // Sett opp alle lyttere FØR vi abonnerer
     gameChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         joinView.classList.add('hidden');
         gameView.classList.remove('hidden');
@@ -113,22 +113,26 @@ async function joinGame(code, name) {
     gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
         players = payload.payload.players;
         const { artistList, titleList } = payload.payload;
-        // Fyll ut lister hvis de blir sendt (for join mid-game)
         if (artistList && titleList) {
             populateAutocompleteLists(artistList, titleList);
         }
         updateHud();
     });
 
+    // KORRIGERT LOGIKK: Send melding kun ETTER at subscribe er bekreftet.
     gameChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
+            console.log("Klient er SUBSCRIBED. Sender nå player_join.");
             localStorage.setItem('mquiz_gamecode', code);
             localStorage.setItem('mquiz_playername', name);
+            
+            // Send meldingen her, etter bekreftelse.
             gameChannel.send({
                 type: 'broadcast',
                 event: 'player_join',
                 payload: { name: name },
             });
+            
             joinView.classList.add('hidden');
             gameView.classList.remove('hidden');
             displayPlayerName.textContent = name;
@@ -175,4 +179,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitAnswerBtn.addEventListener('click', submitAnswer);
     newGameLink.addEventListener('click', handleNewGameLink);
 });
-/* Version: #367 */
+/* Version: #368 */
