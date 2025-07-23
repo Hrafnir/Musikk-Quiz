@@ -1,4 +1,4 @@
-<!-- Version: #332 -->
+<!-- Version: #341 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -13,7 +13,7 @@
 <body>
     <div id="game-container">
 
-        <!-- LOBBY-VISNING -->
+        <!-- FASE 1: LOBBY-VISNING (Vises først) -->
         <div id="host-lobby-view">
             <h1>MQuiz Lobby</h1>
             <div id="lobby-info">
@@ -21,21 +21,25 @@
                 <h2 id="game-code-display">Laster...</h2>
             </div>
             <div id="player-lobby-container">
-                <h3>Spillere som har blitt med:</h3>
+                <h3>Spillere:</h3>
                 <ul id="player-lobby-list"></ul>
             </div>
             <button id="start-game-btn" disabled>Venter på spillere...</button>
         </div>
 
-        <!-- SPILL-VISNING -->
+        <!-- FASE 2: SPOTIFY CONNECT-VISNING (Skjult) -->
+        <div id="spotify-connect-view" class="hidden">
+            <h1>Klar til start!</h1>
+            <p>Koble til Spotify for å starte musikken og spillet.</p>
+            <button id="spotify-login-btn">Koble til Spotify</button>
+        </div>
+
+        <!-- FASE 3: SPILL-VISNING (Skjult) -->
         <div id="host-game-view" class="hidden">
             <div id="host-turn-indicator"></div>
-            
             <div id="host-song-display">
                 <h2>Sangen spilles...</h2>
             </div>
-
-            <!-- Vises når en spiller har svart -->
             <div id="host-answer-display" class="hidden">
                 <h3>Svar mottatt:</h3>
                 <div id="received-answer-info">
@@ -44,8 +48,6 @@
                     <p><strong>År:</strong> <span id="received-year"></span></p>
                 </div>
             </div>
-
-            <!-- Vises når fasit avsløres -->
             <div id="host-fasit-display" class="hidden">
                 <h3>Riktig svar:</h3>
                 <div id="fasit-info">
@@ -54,8 +56,6 @@
                     <p><strong>År:</strong> <span id="fasit-year"></span></p>
                 </div>
             </div>
-
-            <!-- Knapp for å gå videre -->
             <button id="next-turn-btn" class="hidden">Neste Runde</button>
         </div>
 
@@ -65,4 +65,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #332 -->
+<!-- Version: #341 -->
