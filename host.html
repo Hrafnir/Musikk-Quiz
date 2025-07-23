@@ -1,0 +1,34 @@
+<!-- Version: #318 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz Host</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="game.css"> <!-- Gjenbruker litt styling -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="game-container">
+        <h1>MQuiz Lobby</h1>
+        <div id="lobby-info">
+            <p>Gå til <strong>[DIN NETTADRESSE]</strong> og skriv inn koden:</p>
+            <h2 id="game-code-display">Laster...</h2>
+        </div>
+
+        <div id="player-lobby-container">
+            <h3>Spillere som har blitt med:</h3>
+            <ul id="player-lobby-list">
+                <!-- Spillere vil dukke opp her -->
+            </ul>
+        </div>
+
+        <button id="start-game-btn" disabled>Venter på spillere...</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="host.js"></script>
+</body>
+</html>
+<!-- Version: #318 -->
