@@ -1,4 +1,4 @@
-/* Version: #368 */
+/* Version: #373 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -22,6 +22,8 @@ const playerHud = document.getElementById('player-hud');
 const newGameLink = document.getElementById('new-game-link');
 const artistDataList = document.getElementById('artist-list');
 const titleDataList = document.getElementById('title-list');
+const buyHandicapBtn = document.getElementById('buy-handicap-btn'); // Nytt
+const skipSongBtn = document.getElementById('skip-song-btn'); // Nytt
 
 // === STATE ===
 let gameChannel = null;
@@ -30,29 +32,8 @@ let players = [];
 let currentPlayerName = '';
 
 // === FUNKSJONER ===
-function populateAutocompleteLists(artistList, titleList) {
-    if (artistList) {
-        artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join('');
-    }
-    if (titleList) {
-        titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join('');
-    }
-}
-
-function updateHud() {
-    if (!playerHud) return;
-    playerHud.innerHTML = '';
-    players.forEach(player => {
-        const playerInfoDiv = document.createElement('div');
-        playerInfoDiv.className = 'player-info';
-        if (player.name === currentPlayerName) {
-            playerInfoDiv.classList.add('active-player');
-        }
-        playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`;
-        playerHud.appendChild(playerInfoDiv);
-    });
-}
-
+function populateAutocompleteLists(artistList, titleList) { /* ... (uendret) ... */ }
+function updateHud() { /* ... (uendret) ... */ }
 function submitAnswer() {
     const answer = {
         name: myName,
@@ -60,14 +41,20 @@ function submitAnswer() {
         title: titleGuessInput.value.trim(),
         year: yearGuessInput.value.trim()
     };
-    gameChannel.send({
-        type: 'broadcast',
-        event: 'submit_answer',
-        payload: answer
-    });
+    gameChannel.send({ type: 'broadcast', event: 'submit_answer', payload: answer });
     myTurnView.classList.add('hidden');
     waitingStatus.textContent = "Svaret ditt er sendt! Venter på resultat...";
     waitingForOthersView.classList.remove('hidden');
+}
+
+// NYE FUNKSJONER for å sende meldinger til host
+function buyHandicap() {
+    console.log("Sender buy_handicap melding");
+    gameChannel.send({ type: 'broadcast', event: 'buy_handicap', payload: { name: myName } });
+}
+function skipSong() {
+    console.log("Sender skip_song melding");
+    gameChannel.send({ type: 'broadcast', event: 'skip_song', payload: { name: myName } });
 }
 
 async function joinGame(code, name) {
@@ -77,62 +64,21 @@ async function joinGame(code, name) {
     const channelName = `game-${code}`;
     gameChannel = supabaseClient.channel(channelName);
 
-    // Sett opp alle lyttere FØR vi abonnerer
-    gameChannel.on('broadcast', { event: 'game_start' }, (payload) => {
-        joinView.classList.add('hidden');
-        gameView.classList.remove('hidden');
-        const { players: newPlayers, artistList, titleList } = payload.payload;
-        players = newPlayers;
-        populateAutocompleteLists(artistList, titleList);
-        updateHud();
-    });
+    // LYTTERE FOR SPILLHENDELSER
+    gameChannel.on('broadcast', { event: 'game_start' }, (payload) => { /* ... (uendret) ... */ });
+    gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => { /* ... (uendret) ... */ });
+    gameChannel.on('broadcast', { event: 'round_result' }, (payload) => { /* ... (uendret) ... */ });
+    gameChannel.on('broadcast', { event: 'player_update' }, (payload) => { /* ... (uendret) ... */ });
 
-    gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => {
-        currentPlayerName = payload.payload.name;
-        if (players.length > 0) updateHud();
-        if (currentPlayerName === myName) {
-            waitingForOthersView.classList.add('hidden');
-            myTurnView.classList.remove('hidden');
-            artistGuessInput.value = '';
-            titleGuessInput.value = '';
-            yearGuessInput.value = '';
-        } else {
-            myTurnView.classList.add('hidden');
-            waitingStatus.textContent = `Venter på ${currentPlayerName}...`;
-            waitingForOthersView.classList.remove('hidden');
-        }
-    });
-
-    gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
-        players = payload.payload.players;
-        const feedback = payload.payload.feedback;
-        updateHud();
-        waitingStatus.textContent = feedback;
-    });
-
-    gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
-        players = payload.payload.players;
-        const { artistList, titleList } = payload.payload;
-        if (artistList && titleList) {
-            populateAutocompleteLists(artistList, titleList);
-        }
-        updateHud();
-    });
-
-    // KORRIGERT LOGIKK: Send melding kun ETTER at subscribe er bekreftet.
     gameChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-            console.log("Klient er SUBSCRIBED. Sender nå player_join.");
             localStorage.setItem('mquiz_gamecode', code);
             localStorage.setItem('mquiz_playername', name);
-            
-            // Send meldingen her, etter bekreftelse.
             gameChannel.send({
                 type: 'broadcast',
                 event: 'player_join',
                 payload: { name: name },
             });
-            
             joinView.classList.add('hidden');
             gameView.classList.remove('hidden');
             displayPlayerName.textContent = name;
@@ -144,16 +90,7 @@ async function joinGame(code, name) {
         }
     });
 }
-
-function handleNewGameLink(event) {
-    event.preventDefault();
-    const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?");
-    if (confirmed) {
-        localStorage.removeItem('mquiz_gamecode');
-        localStorage.removeItem('mquiz_playername');
-        window.location.reload();
-    }
-}
+function handleNewGameLink(event) { /* ... (uendret) ... */ }
 
 // === HOVED-INNGANGSPUNKT ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -178,5 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     submitAnswerBtn.addEventListener('click', submitAnswer);
     newGameLink.addEventListener('click', handleNewGameLink);
+    buyHandicapBtn.addEventListener('click', buyHandicap); // Nytt
+    skipSongBtn.addEventListener('click', skipSong); // Nytt
 });
-/* Version: #368 */
+
+// --- Kopiert inn uendrede funksjoner ---
+function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
+function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
+gameChannel.on('broadcast', { event: 'game_start' }, (payload) => { joinView.classList.add('hidden'); gameView.classList.remove('hidden'); const { players: newPlayers, artistList, titleList } = payload.payload; players = newPlayers; populateAutocompleteLists(artistList, titleList); updateHud(); });
+gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => { currentPlayerName = payload.payload.name; if (players.length > 0) updateHud(); if (currentPlayerName === myName) { waitingForOthersView.classList.add('hidden'); myTurnView.classList.remove('hidden'); artistGuessInput.value = ''; titleGuessInput.value = ''; yearGuessInput.value = ''; } else { myTurnView.classList.add('hidden'); waitingStatus.textContent = `Venter på ${currentPlayerName}...`; waitingForOthersView.classList.remove('hidden'); } });
+gameChannel.on('broadcast', { event: 'round_result' }, (payload) => { players = payload.payload.players; const feedback = payload.payload.feedback; updateHud(); waitingStatus.textContent = feedback; });
+gameChannel.on('broadcast', { event: 'player_update' }, (payload) => { players = payload.payload.players; const { artistList, titleList } = payload.payload; if (artistList && titleList) { populateAutocompleteLists(artistList, titleList); } updateHud(); });
+function handleNewGameLink(event) { event.preventDefault(); const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?"); if (confirmed) { localStorage.removeItem('mquiz_gamecode'); localStorage.removeItem('mquiz_playername'); window.location.reload(); } }
+/* Version: #373 */
