@@ -1,4 +1,4 @@
-<!-- Version: #318 -->
+<!-- Version: #324 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQuiz</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="game.css"> <!-- Gjenbruker styling -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -20,11 +21,26 @@
             <p id="join-status" style="margin-top: 15px;"></p>
         </div>
 
-        <!-- Visning mens man venter -->
-        <div id="waiting-view" class="hidden">
-            <h1>Du er med!</h1>
-            <p>Se på hovedskjermen for å starte spillet.</p>
-            <p>Du er logget inn som: <strong id="display-player-name"></strong></p>
+        <!-- NYTT: SPILL-VISNING (erstatter waiting-view) -->
+        <div id="game-view" class="hidden">
+            
+            <!-- Vises når det er din tur -->
+            <div id="my-turn-view" class="hidden">
+                <h2>Din tur!</h2>
+                <div id="guess-area">
+                    <input type="text" id="artist-guess-input" placeholder="Gjett artist...">
+                    <input type="text" id="title-guess-input" placeholder="Gjett tittel...">
+                    <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
+                    <button id="submit-answer-btn">Send Svar</button>
+                </div>
+            </div>
+
+            <!-- Vises når du venter på andre -->
+            <div id="waiting-for-others-view">
+                <h2 id="waiting-status">Venter på at spillet skal starte...</h2>
+                <p>Du er med som: <strong id="display-player-name"></strong></p>
+            </div>
+
         </div>
         
     </div>
@@ -33,4 +49,4 @@
     <script src="client.js"></script>
 </body>
 </html>
-<!-- Version: #318 -->
+<!-- Version: #324 -->
