@@ -1,7 +1,8 @@
-/* Version: #318 */
+/* Version: #320 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+console.log('host.js lastet. Supabase-klient klar.');
 
 // === DOM ELEMENTS ===
 const gameCodeDisplay = document.getElementById('game-code-display');
@@ -14,9 +15,8 @@ let gameCode = '';
 let gameChannel = null;
 
 // === FUNCTIONS ===
-
-// Oppdaterer spillerlisten i UI
 function updatePlayerLobby() {
+    console.log('updatePlayerLobby() kalt. Spillere nå:', players);
     playerLobbyList.innerHTML = '';
     players.forEach(player => {
         const li = document.createElement('li');
@@ -33,44 +33,45 @@ function updatePlayerLobby() {
     }
 }
 
-// Hovedfunksjon for å sette opp spillet
 async function setupGame() {
-    // 1. Generer en unik, 6-sifret kode
+    console.log('setupGame() starter.');
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     gameCodeDisplay.textContent = gameCode;
+    console.log(`Generert spillkode: ${gameCode}`);
 
-    // 2. Opprett en unik sanntidskanal for dette spillet
-    gameChannel = supabaseClient.channel(`game-${gameCode}`);
+    const channelName = `game-${gameCode}`;
+    gameChannel = supabaseClient.channel(channelName);
+    console.log(`Opprettet referanse til kanal: ${channelName}`);
 
-    // 3. Sett opp en lytter for når spillere blir med
     gameChannel.on('broadcast', { event: 'player_join' }, (payload) => {
-        console.log('Spiller ble med:', payload);
-        const newPlayerName = payload.payload.name;
+        console.log('--- MOTTOK "player_join" MELDING! ---');
+        console.log('Payload mottatt:', payload);
         
-        // Unngå duplikater
+        const newPlayerName = payload.payload.name;
         if (!players.some(p => p.name === newPlayerName)) {
+            console.log(`Legger til ny spiller: ${newPlayerName}`);
             players.push({ name: newPlayerName });
             updatePlayerLobby();
+        } else {
+            console.warn(`Spiller "${newPlayerName}" prøvde å bli med, men finnes allerede.`);
         }
     });
 
-    // 4. Abonner på kanalen for å begynne å motta meldinger
+    console.log('Kaller gameChannel.subscribe() for host...');
     gameChannel.subscribe((status) => {
+        console.log(`Host subscribe-status endret til: ${status}`);
         if (status === 'SUBSCRIBED') {
-            console.log(`Vellykket tilkobling til kanal: game-${gameCode}`);
-        } else {
-            console.error('Kunne ikke koble til kanalen.');
+            console.log(`Host er nå klar og lytter på kanalen: ${channelName}`);
+        } else if (status !== 'SUBSCRIBED') {
+            console.error('Host kunne ikke koble seg til kanalen.');
             gameCodeDisplay.textContent = "FEIL";
         }
     });
 }
 
-// === EVENT LISTENERS ===
-// TODO: Legg til funksjonalitet for start-knappen i neste steg
-// startGameBtn.addEventListener('click', () => { ... });
-
 // === INITIALIZE ===
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Host DOMContentLoaded.');
     setupGame();
 });
-/* Version: #318 */
+/* Version: #320 */
