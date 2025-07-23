@@ -1,29 +1,34 @@
-/* Version: #320 */
+/* Version: #324 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-console.log('host.js lastet. Supabase-klient klar.');
 
 // === DOM ELEMENTS ===
 const gameCodeDisplay = document.getElementById('game-code-display');
 const playerLobbyList = document.getElementById('player-lobby-list');
 const startGameBtn = document.getElementById('start-game-btn');
+const hostLobbyView = document.getElementById('host-lobby-view');
+const hostGameView = document.getElementById('host-game-view');
+const hostTurnIndicator = document.getElementById('host-turn-indicator');
+const hostAnswerDisplay = document.getElementById('host-answer-display');
+const receivedArtist = document.getElementById('received-artist');
+const receivedTitle = document.getElementById('received-title');
+const receivedYear = document.getElementById('received-year');
 
 // === STATE ===
 let players = [];
 let gameCode = '';
 let gameChannel = null;
+let currentPlayerIndex = 0;
 
-// === FUNCTIONS ===
+// === LOBBY FUNCTIONS ===
 function updatePlayerLobby() {
-    console.log('updatePlayerLobby() kalt. Spillere nå:', players);
     playerLobbyList.innerHTML = '';
     players.forEach(player => {
         const li = document.createElement('li');
         li.textContent = player.name;
         playerLobbyList.appendChild(li);
     });
-
     if (players.length > 0) {
         startGameBtn.disabled = false;
         startGameBtn.textContent = `Start Spill (${players.length} spillere)`;
@@ -33,45 +38,77 @@ function updatePlayerLobby() {
     }
 }
 
+// === GAME FLOW FUNCTIONS ===
+function startGame() {
+    console.log("Starter spillet...");
+    hostLobbyView.classList.add('hidden');
+    hostGameView.classList.remove('hidden');
+
+    // Send melding til alle klienter om at spillet starter
+    gameChannel.send({ type: 'broadcast', event: 'game_start' });
+    
+    // Start første runde
+    currentPlayerIndex = 0;
+    startTurn();
+}
+
+function startTurn() {
+    const currentPlayer = players[currentPlayerIndex];
+    console.log(`Starter tur for ${currentPlayer.name}`);
+    hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`;
+    hostAnswerDisplay.classList.add('hidden'); // Skjul forrige svar
+
+    // Send melding til alle om hvem sin tur det er
+    gameChannel.send({
+        type: 'broadcast',
+        event: 'new_turn',
+        payload: { name: currentPlayer.name }
+    });
+}
+
+function handleAnswer(payload) {
+    console.log("Svar mottatt:", payload);
+    const { artist, title, year } = payload.payload;
+    receivedArtist.textContent = artist || 'Ikke besvart';
+    receivedTitle.textContent = title || 'Ikke besvart';
+    receivedYear.textContent = year || 'Ikke besvart';
+
+    hostTurnIndicator.textContent = `${players[currentPlayerIndex].name} har svart!`;
+    hostAnswerDisplay.classList.remove('hidden');
+
+    // TODO: I neste steg vil vi vise fasit og gå til neste spiller
+}
+
+// === SETUP ===
 async function setupGame() {
-    console.log('setupGame() starter.');
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     gameCodeDisplay.textContent = gameCode;
-    console.log(`Generert spillkode: ${gameCode}`);
-
     const channelName = `game-${gameCode}`;
     gameChannel = supabaseClient.channel(channelName);
-    console.log(`Opprettet referanse til kanal: ${channelName}`);
 
+    // Lytter etter spillere som blir med
     gameChannel.on('broadcast', { event: 'player_join' }, (payload) => {
-        console.log('--- MOTTOK "player_join" MELDING! ---');
-        console.log('Payload mottatt:', payload);
-        
         const newPlayerName = payload.payload.name;
         if (!players.some(p => p.name === newPlayerName)) {
-            console.log(`Legger til ny spiller: ${newPlayerName}`);
             players.push({ name: newPlayerName });
             updatePlayerLobby();
-        } else {
-            console.warn(`Spiller "${newPlayerName}" prøvde å bli med, men finnes allerede.`);
         }
     });
 
-    console.log('Kaller gameChannel.subscribe() for host...');
+    // NYTT: Lytter etter svar fra spillere
+    gameChannel.on('broadcast', { event: 'submit_answer' }, handleAnswer);
+
     gameChannel.subscribe((status) => {
-        console.log(`Host subscribe-status endret til: ${status}`);
         if (status === 'SUBSCRIBED') {
-            console.log(`Host er nå klar og lytter på kanalen: ${channelName}`);
-        } else if (status !== 'SUBSCRIBED') {
+            console.log(`Host er klar og lytter på kanalen: ${channelName}`);
+        } else {
             console.error('Host kunne ikke koble seg til kanalen.');
             gameCodeDisplay.textContent = "FEIL";
         }
     });
 }
 
-// === INITIALIZE ===
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Host DOMContentLoaded.');
-    setupGame();
-});
-/* Version: #320 */
+// === EVENT LISTENERS & INITIALIZE ===
+startGameBtn.addEventListener('click', startGame);
+document.addEventListener('DOMContentLoaded', setupGame);
+/* Version: #324 */
