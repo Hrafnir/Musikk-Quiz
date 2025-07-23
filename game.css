@@ -1,4 +1,4 @@
-/* Version: #382 */
+/* Version: #387 */
 
 /* === Game Container === */
 #game-container {
@@ -60,43 +60,38 @@
 .player-info .player-name { font-weight: bold; font-size: 1.1em; }
 .player-info .player-stats { font-size: 0.9em; color: #b3b3b3; }
 #turn-indicator, #host-turn-indicator { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
-#answer-display, #host-answer-display, #host-fasit-display { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px; width: 100%; }
-
-/* ENDRET: Inkluderer nå #client-fasit-album-art */
+#answer-display, #host-answer-display, #host-fasit-display, #round-summary-view { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px; width: 100%; }
 #album-art, #fasit-album-art, #client-fasit-album-art { width: 100%; max-width: 300px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); min-height: 300px; background-color: #333; }
-
-/* ENDRET: Inkluderer nå #client-fasit-info */
-#song-info, #received-answer-info, #fasit-info, #client-fasit-info {
-    text-align: left; 
-    width: 100%; 
-    max-width: 300px; 
-    background-color: #282828; 
-    padding: 15px; 
-    border-radius: 5px; 
-}
-#song-info p, #received-answer-info p, #fasit-info p, #client-fasit-info p {
-    margin: 5px 0; 
-    font-size: 1.1em; 
-    color: #b3b3b3; 
-}
-#song-info p strong, #received-answer-info p strong, #fasit-info p strong, #client-fasit-info p strong {
-    color: #fff; 
-}
+#song-info, #received-answer-info, #fasit-info, #client-fasit-info { text-align: left; width: 100%; max-width: 300px; background-color: #282828; padding: 15px; border-radius: 5px; }
+#song-info p, #received-answer-info p, #fasit-info p, #client-fasit-info p { margin: 5px 0; font-size: 1.1em; color: #b3b3b3; }
+#song-info p strong, #received-answer-info p strong, #fasit-info p strong, #client-fasit-info p strong { color: #fff; }
 .answer-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-#guess-area { width: 100%; display: flex; flex-direction: column; gap: 15px; }
-#artist-guess-input, #title-guess-input, #year-guess-input { padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
+.guess-area { width: 100%; display: flex; flex-direction: column; gap: 15px; }
+#artist-guess-input, #title-guess-input, #year-guess-input, #besserwisser-artist-input, #besserwisser-title-input, #hijack-bid-input, #hijack-year-input { padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
 .input-with-helper { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .input-with-helper input { flex-grow: 1; }
 #year-range-display { font-size: 0.9em; color: #b3b3b3; min-width: 100px; text-align: left; }
-#year-guess-input::-webkit-outer-spin-button, #year-guess-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-#year-guess-input[type=number] { -moz-appearance: textfield; }
-#credit-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+.credit-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 #round-status { font-size: 1.2em; font-weight: bold; min-height: 25px; }
 #game-controls { width: 100%; }
 .small-btn { padding: 8px 15px; font-size: 12px; font-weight: normal; background-color: #555; width: auto; }
 .small-btn:hover { background-color: #777; }
 #broken-song-btn { background-color: #FF851B; }
 #broken-song-btn:hover { background-color: #ff9a40; }
+
+/* === NYTT: Angrepsfase-styling === */
+#attack-phase-display { text-align: center; }
+#attack-timer-display { font-size: 4em; font-weight: bold; color: #FFDC00; margin: 10px 0; }
+.attack-actions { display: flex; gap: 15px; justify-content: center; }
+.attack-btn { width: auto; padding: 20px 40px; font-size: 1.2em; }
+#besserwisser-btn { background-color: #0074D9; }
+#besserwisser-btn:hover { background-color: #0088ff; }
+#hijack-btn { background-color: #FF4136; }
+#hijack-btn:hover { background-color: #ff5e54; }
+#attack-results-container { width: 100%; max-width: 400px; margin-top: 20px; text-align: left; }
+.attack-result { background-color: #282828; padding: 10px; border-radius: 4px; margin-bottom: 5px; font-size: 0.9em; }
+.attack-result.success { border-left: 4px solid #1DB954; }
+.attack-result.fail { border-left: 4px solid #FF4136; }
 
 /* === Victory Screen === */
 #victory-view h2, #victory-view h3 { margin-bottom: 15px; }
@@ -109,111 +104,4 @@
 .stats-table td:nth-child(n+2) { text-align: center; }
 .victory-actions { display: flex; flex-direction: column; gap: 15px; }
 .hidden { display: none !important; }
-/* Version: #382 *//* Version: #354 */
-
-/* === Game Container === */
-#game-container {
-    width: 100%;
-    max-width: 600px;
-    padding: 40px;
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    text-align: center;
-}
-
-/* NYTT: Styling for permanent spillkode-header */
-#game-header {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background-color: #282828;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    color: #b3b3b3;
-}
-#game-header strong {
-    color: #fff;
-    letter-spacing: 1px;
-}
-
-
-/* === Pre-Game / Lobby View === */
-#pre-game-view h2, #host-lobby-view h1 {
-    margin-bottom: 20px;
-}
-#lobby-info p { margin-bottom: 5px; }
-#lobby-info h2 { color: #1DB954; font-size: 2.5em; letter-spacing: 3px; }
-#player-lobby-container, .game-setting {
-    margin-bottom: 20px;
-}
-.game-setting { display: flex; justify-content: center; align-items: center; gap: 10px; background-color: #282828; padding: 15px; border-radius: 5px; }
-.game-setting label { font-weight: bold; }
-.game-setting input[type="number"] { width: 80px; padding: 10px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
-.game-setting input::-webkit-outer-spin-button, .game-setting input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.game-setting input[type=number] { -moz-appearance: textfield; }
-#player-setup-area { display: flex; gap: 10px; margin-bottom: 20px; }
-#player-name-input { flex-grow: 1; padding: 15px; font-size: 16px; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
-#player-handicap-input { width: 80px; flex-shrink: 0; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
-#player-handicap-input::-webkit-outer-spin-button, #player-handicap-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-#player-handicap-input[type=number] { -moz-appearance: textfield; }
-#add-player-btn { flex-shrink: 0; width: auto; font-size: 16px; }
-#player-list-container, #player-lobby-container { text-align: left; margin-bottom: 30px; }
-#player-list, #player-lobby-list { list-style: none; padding: 0; }
-#player-list li, #player-lobby-list li { background-color: #282828; padding: 10px 15px; border-radius: 4px; margin-top: 5px; font-size: 1.1em; }
-
-/* === In-Game View (Solo & Host) === */
-#in-game-view, #host-game-view { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-#player-hud { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; width: 100%; margin-bottom: 10px; }
-.player-info { background-color: #282828; padding: 10px; border-radius: 5px; text-align: center; border: 2px solid transparent; transition: all 0.2s; }
-.player-info.active-player { border-color: #1DB954; box-shadow: 0 0 10px #1DB954; }
-.player-info .player-name { font-weight: bold; font-size: 1.1em; }
-.player-info .player-stats { font-size: 0.9em; color: #b3b3b3; }
-#turn-indicator, #host-turn-indicator { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
-#answer-display, #host-answer-display { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px; width: 100%; }
-#album-art { width: 100%; max-width: 300px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); min-height: 300px; background-color: #333; }
-#song-info, #received-answer-info, #fasit-info {
-    text-align: left; 
-    width: 100%; 
-    max-width: 300px; 
-    background-color: #282828; 
-    padding: 15px; 
-    border-radius: 5px; 
-}
-#song-info p, #received-answer-info p, #fasit-info p {
-    margin: 5px 0; 
-    font-size: 1.1em; 
-    color: #b3b3b3; 
-}
-#song-info p strong, #received-answer-info p strong, #fasit-info p strong {
-    color: #fff; 
-}
-.answer-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-#guess-area { width: 100%; display: flex; flex-direction: column; gap: 15px; }
-#artist-guess-input, #title-guess-input, #year-guess-input { padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff; }
-.input-with-helper { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.input-with-helper input { flex-grow: 1; }
-#year-range-display { font-size: 0.9em; color: #b3b3b3; min-width: 100px; text-align: left; }
-#year-guess-input::-webkit-outer-spin-button, #year-guess-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-#year-guess-input[type=number] { -moz-appearance: textfield; }
-#credit-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-#round-status { font-size: 1.2em; font-weight: bold; min-height: 25px; }
-#game-controls { width: 100%; }
-.small-btn { padding: 8px 15px; font-size: 12px; font-weight: normal; background-color: #555; width: auto; }
-.small-btn:hover { background-color: #777; }
-#broken-song-btn { background-color: #FF851B; }
-#broken-song-btn:hover { background-color: #ff9a40; }
-
-/* === Victory Screen === */
-#victory-view h2, #victory-view h3 { margin-bottom: 15px; }
-#winner-announcement { color: #1DB954; font-size: 2em; }
-#victory-stats-container { margin-bottom: 30px; overflow-x: auto; }
-.stats-table { width: 100%; border-collapse: collapse; text-align: left; }
-.stats-table th, .stats-table td { padding: 12px 15px; border-bottom: 1px solid #444; }
-.stats-table th { background-color: #282828; }
-.stats-table tr:last-child td { border-bottom: none; }
-.stats-table td:nth-child(n+2) { text-align: center; }
-.victory-actions { display: flex; flex-direction: column; gap: 15px; }
-.hidden { display: none !important; }
-/* Version: #354 */
+/* Version: #387 */
