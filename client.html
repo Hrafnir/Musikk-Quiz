@@ -1,4 +1,4 @@
-<!-- Version: #381 -->
+<!-- Version: #385 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -21,40 +21,71 @@
         </div>
 
         <div id="game-view" class="hidden">
-            
             <div id="player-hud" style="margin-bottom: 20px;"></div>
 
+            <!-- DIN TUR-VISNING -->
             <div id="my-turn-view" class="hidden">
                 <h2>Din tur!</h2>
-                <div id="guess-area">
+                <div class="guess-area">
                     <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
                     <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                     <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
                     <button id="submit-answer-btn">Send Svar</button>
-                    <div id="credit-actions">
+                    <div class="credit-actions">
                         <button id="buy-handicap-btn" class="small-btn">Kjøp Handicap (+-2) - 1 Credit</button>
                         <button id="skip-song-btn" class="small-btn">Ny Sang - 1 Credit</button>
                     </div>
                 </div>
             </div>
 
+            <!-- VENTER-VISNING -->
             <div id="waiting-for-others-view">
                 <h2 id="waiting-status">Venter på at spillet skal starte...</h2>
                 <p>Du er med som: <strong id="display-player-name"></strong></p>
             </div>
 
-            <!-- NYTT: Visning for rundens resultat/fasit -->
+            <!-- NYTT: ANGREPS-VISNING -->
+            <div id="attack-view" class="hidden">
+                <h2 id="attack-timer">10</h2>
+                <p id="attack-prompt-text"></p>
+                <div class="attack-actions">
+                    <button id="besserwisser-btn" class="attack-btn hidden">Besserwisser (-1 Cr)</button>
+                    <button id="hijack-btn" class="attack-btn hidden">Hijack</button>
+                </div>
+            </div>
+            
+            <!-- NYTT: BESSERWISSER INPUT-VISNING -->
+            <div id="besserwisser-input-view" class="hidden">
+                <h2>Besserwisser</h2>
+                <div class="guess-area">
+                    <input type="text" id="besserwisser-artist-input" placeholder="Korrekt artist..." autocomplete="off" list="artist-list">
+                    <input type="text" id="besserwisser-title-input" placeholder="Korrekt tittel..." autocomplete="off" list="title-list">
+                    <button id="submit-besserwisser-btn">Send Besserwisser</button>
+                </div>
+            </div>
+
+            <!-- NYTT: HIJACK INPUT-VISNING -->
+            <div id="hijack-input-view" class="hidden">
+                <h2>Hijack Årstall</h2>
+                <div class="guess-area">
+                    <input type="number" id="hijack-bid-input" placeholder="Ditt bud (credits)...">
+                    <input type="number" id="hijack-year-input" placeholder="Korrekt årstall...">
+                    <button id="submit-hijack-btn">Send Hijack</button>
+                </div>
+            </div>
+
+
+            <!-- FASIT-VISNING -->
             <div id="round-summary-view" class="hidden">
                 <img id="client-fasit-album-art" src="" alt="Album Cover">
-                <h3>Riktig svar:</h3>
+                <h3 id="summary-title">Riktig svar:</h3>
                 <div id="client-fasit-info">
                     <p><strong>Artist:</strong> <span id="client-fasit-artist"></span></p>
                     <p><strong>Tittel:</strong> <span id="client-fasit-title"></span></p>
                     <p><strong>År:</strong> <span id="client-fasit-year"></span></p>
                 </div>
-                <p id="client-round-feedback" style="font-weight: bold; margin-top: 15px;"></p>
+                <div id="client-round-feedback"></div>
             </div>
-
 
             <div id="client-actions" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
                 <a href="#" id="new-game-link" style="color: #b3b3b3; font-size: 0.9em;">Ikke riktig spill? Start på nytt</a>
@@ -70,4 +101,4 @@
     <script src="client.js"></script>
 </body>
 </html>
-<!-- Version: #381 -->
+<!-- Version: #385 -->
