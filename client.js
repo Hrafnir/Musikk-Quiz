@@ -1,4 +1,4 @@
-/* Version: #375 */
+/* Version: #384 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -8,6 +8,7 @@ const joinView = document.getElementById('join-view');
 const gameView = document.getElementById('game-view');
 const myTurnView = document.getElementById('my-turn-view');
 const waitingForOthersView = document.getElementById('waiting-for-others-view');
+const roundSummaryView = document.getElementById('round-summary-view'); // Nytt
 const gameCodeInput = document.getElementById('game-code-input');
 const playerNameInput = document.getElementById('player-name-input');
 const joinBtn = document.getElementById('join-btn');
@@ -24,6 +25,11 @@ const artistDataList = document.getElementById('artist-list');
 const titleDataList = document.getElementById('title-list');
 const buyHandicapBtn = document.getElementById('buy-handicap-btn');
 const skipSongBtn = document.getElementById('skip-song-btn');
+const clientFasitAlbumArt = document.getElementById('client-fasit-album-art'); // Nytt
+const clientFasitArtist = document.getElementById('client-fasit-artist'); // Nytt
+const clientFasitTitle = document.getElementById('client-fasit-title'); // Nytt
+const clientFasitYear = document.getElementById('client-fasit-year'); // Nytt
+const clientRoundFeedback = document.getElementById('client-round-feedback'); // Nytt
 
 // === STATE ===
 let gameChannel = null;
@@ -32,8 +38,8 @@ let players = [];
 let currentPlayerName = '';
 
 // === FUNKSJONER ===
-function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
-function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
+function populateAutocompleteLists(artistList, titleList) { /* ... (uendret) ... */ }
+function updateHud() { /* ... (uendret) ... */ }
 function submitAnswer() {
     const answer = {
         name: myName,
@@ -47,11 +53,9 @@ function submitAnswer() {
     waitingForOthersView.classList.remove('hidden');
 }
 function buyHandicap() {
-    console.log("Sender buy_handicap melding");
     gameChannel.send({ type: 'broadcast', event: 'buy_handicap', payload: { name: myName } });
 }
 function skipSong() {
-    console.log("Sender skip_song melding");
     gameChannel.send({ type: 'broadcast', event: 'skip_song', payload: { name: myName } });
 }
 
@@ -71,9 +75,13 @@ async function joinGame(code, name) {
         populateAutocompleteLists(artistList, titleList);
         updateHud();
     });
+
     gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => {
         currentPlayerName = payload.payload.name;
         if (players.length > 0) updateHud();
+        
+        roundSummaryView.classList.add('hidden'); // Skjul forrige fasit
+
         if (currentPlayerName === myName) {
             waitingForOthersView.classList.add('hidden');
             myTurnView.classList.remove('hidden');
@@ -86,12 +94,23 @@ async function joinGame(code, name) {
             waitingForOthersView.classList.remove('hidden');
         }
     });
+
     gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
-        players = payload.payload.players;
-        const feedback = payload.payload.feedback;
+        const { players: newPlayers, feedback, song } = payload.payload;
+        players = newPlayers;
         updateHud();
-        waitingStatus.textContent = feedback;
+        
+        // Vis fasit
+        clientFasitAlbumArt.src = song.albumarturl || '';
+        clientFasitArtist.textContent = song.artist;
+        clientFasitTitle.textContent = song.title;
+        clientFasitYear.textContent = song.year;
+        clientRoundFeedback.textContent = feedback;
+
+        waitingForOthersView.classList.add('hidden');
+        roundSummaryView.classList.remove('hidden');
     });
+
     gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
         players = payload.payload.players;
         const { artistList, titleList } = payload.payload;
@@ -157,4 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
     buyHandicapBtn.addEventListener('click', buyHandicap);
     skipSongBtn.addEventListener('click', skipSong);
 });
-/* Version: #375 */
+
+// --- Kopiert inn uendrede funksjoner ---
+function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
+function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
+/* Version: #384 */
