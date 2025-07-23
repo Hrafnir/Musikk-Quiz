@@ -1,4 +1,4 @@
-/* Version: #333 */
+/* Version: #354 */
 
 /* === Game Container === */
 #game-container {
@@ -10,6 +10,23 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     text-align: center;
 }
+
+/* NYTT: Styling for permanent spillkode-header */
+#game-header {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background-color: #282828;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #b3b3b3;
+}
+#game-header strong {
+    color: #fff;
+    letter-spacing: 1px;
+}
+
 
 /* === Pre-Game / Lobby View === */
 #pre-game-view h2, #host-lobby-view h1 {
@@ -88,4 +105,4 @@
 .stats-table td:nth-child(n+2) { text-align: center; }
 .victory-actions { display: flex; flex-direction: column; gap: 15px; }
 .hidden { display: none !important; }
-/* Version: #333 */
+/* Version: #354 */
