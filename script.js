@@ -1,4 +1,4 @@
-/* Version: #319 */
+/* Version: #325 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -8,7 +8,6 @@ let spotifyPlayer = null;
 let deviceId = null;
 
 // === DOM ELEMENTS ===
-// Fjernet startQuizBtn herfra
 let loginView, loggedInView, googleLoginBtn, logoutBtn, userEmailSpan,
     spotifyConnectView, spotifyConnectedView, spotifyLoginBtn, testPlayBtn;
 
@@ -148,15 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
     spotifyConnectedView = document.getElementById('spotify-connected-view'); 
     spotifyLoginBtn = document.getElementById('spotify-login-btn'); 
     testPlayBtn = document.getElementById('test-play-btn');
-    
-    // Fjernet getElementById for start-quiz-btn
 
     googleLoginBtn.addEventListener('click', signInWithGoogle); 
     logoutBtn.addEventListener('click', signOut); 
     spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin); 
     testPlayBtn.addEventListener('click', () => playTrack('spotify:track:2WfaOiMkCvy7F5fcp2zZ8L'));
-
-    // Fjernet addEventListener for start-quiz-btn
     
     supabaseClient.auth.onAuthStateChange((_event, session) => {
         updateUI(session?.user ?? null);
@@ -186,5 +181,14 @@ function updateUI(user) { if (user) { loginView.classList.add('hidden'); loggedI
 function updateSpotifyUI(isConnected) { if (isConnected) { spotifyConnectView.classList.add('hidden'); spotifyConnectedView.classList.remove('hidden'); } else { spotifyConnectView.classList.remove('hidden'); spotifyConnectedView.classList.add('hidden'); } }
 function generateRandomString(length) { let text = ''; const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; for (let i = 0; i < length; i++) { text += possible.charAt(Math.floor(Math.random() * possible.length)); } return text; }
 async function generateCodeChallenge(codeVerifier) { const data = new TextEncoder().encode(codeVerifier); const digest = await window.crypto.subtle.digest('SHA-256', data); return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-async function redirectToSpotifyLogin() { const codeVerifier = generateRandomString(128); const codeChallenge = await generateCodeCodeChallenge(codeVerifier); localStorage.setItem('spotify_code_verifier', codeVerifier); const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}&scope=${encodeURIComponent(SPOTIFY_SCOPES.join(' '))}&code_challenge_method=S256&code_challenge=${codeChallenge}`; window.location = authUrl; }
-/* Version: #319 */
+
+// KORRIGERT FUNKSJON
+async function redirectToSpotifyLogin() {
+    const codeVerifier = generateRandomString(128);
+    // Rettet skrivefeil her: generateCodeCodeChallenge -> generateCodeChallenge
+    const codeChallenge = await generateCodeChallenge(codeVerifier); 
+    localStorage.setItem('spotify_code_verifier', codeVerifier);
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}&scope=${encodeURIComponent(SPOTIFY_SCOPES.join(' '))}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
+    window.location = authUrl;
+}
+/* Version: #325 */
