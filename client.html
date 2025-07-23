@@ -1,4 +1,4 @@
-<!-- Version: #372 -->
+<!-- Version: #381 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -21,6 +21,7 @@
         </div>
 
         <div id="game-view" class="hidden">
+            
             <div id="player-hud" style="margin-bottom: 20px;"></div>
 
             <div id="my-turn-view" class="hidden">
@@ -30,8 +31,6 @@
                     <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                     <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
                     <button id="submit-answer-btn">Send Svar</button>
-                    
-                    <!-- NYTT: Knapper for å bruke credits -->
                     <div id="credit-actions">
                         <button id="buy-handicap-btn" class="small-btn">Kjøp Handicap (+-2) - 1 Credit</button>
                         <button id="skip-song-btn" class="small-btn">Ny Sang - 1 Credit</button>
@@ -43,6 +42,19 @@
                 <h2 id="waiting-status">Venter på at spillet skal starte...</h2>
                 <p>Du er med som: <strong id="display-player-name"></strong></p>
             </div>
+
+            <!-- NYTT: Visning for rundens resultat/fasit -->
+            <div id="round-summary-view" class="hidden">
+                <img id="client-fasit-album-art" src="" alt="Album Cover">
+                <h3>Riktig svar:</h3>
+                <div id="client-fasit-info">
+                    <p><strong>Artist:</strong> <span id="client-fasit-artist"></span></p>
+                    <p><strong>Tittel:</strong> <span id="client-fasit-title"></span></p>
+                    <p><strong>År:</strong> <span id="client-fasit-year"></span></p>
+                </div>
+                <p id="client-round-feedback" style="font-weight: bold; margin-top: 15px;"></p>
+            </div>
+
 
             <div id="client-actions" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
                 <a href="#" id="new-game-link" style="color: #b3b3b3; font-size: 0.9em;">Ikke riktig spill? Start på nytt</a>
@@ -58,4 +70,4 @@
     <script src="client.js"></script>
 </body>
 </html>
-<!-- Version: #372 -->
+<!-- Version: #381 -->
