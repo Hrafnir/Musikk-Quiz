@@ -1,4 +1,4 @@
-/* Version: #360 */
+/* Version: #365 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -19,7 +19,9 @@ const titleGuessInput = document.getElementById('title-guess-input');
 const yearGuessInput = document.getElementById('year-guess-input');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
 const playerHud = document.getElementById('player-hud');
-const newGameLink = document.getElementById('new-game-link'); // Nytt
+const newGameLink = document.getElementById('new-game-link');
+const artistDataList = document.getElementById('artist-list'); // Nytt
+const titleDataList = document.getElementById('title-list'); // Nytt
 
 // === STATE ===
 let gameChannel = null;
@@ -28,6 +30,17 @@ let players = [];
 let currentPlayerName = '';
 
 // === FUNKSJONER ===
+
+// NY: Fyller ut autocomplete-listene
+function populateAutocompleteLists(artistList, titleList) {
+    if (artistList) {
+        artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join('');
+    }
+    if (titleList) {
+        titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join('');
+    }
+}
+
 function updateHud() {
     if (!playerHud) return;
     playerHud.innerHTML = '';
@@ -70,7 +83,10 @@ async function joinGame(code, name) {
     gameChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         joinView.classList.add('hidden');
         gameView.classList.remove('hidden');
-        players = payload.payload.players;
+        
+        const { players: newPlayers, artistList, titleList } = payload.payload;
+        players = newPlayers;
+        populateAutocompleteLists(artistList, titleList);
         updateHud();
     });
 
@@ -124,9 +140,8 @@ async function joinGame(code, name) {
     });
 }
 
-// NY FUNKSJON: Håndterer "Start på nytt"
 function handleNewGameLink(event) {
-    event.preventDefault(); // Forhindrer at lenken navigerer
+    event.preventDefault();
     const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?");
     if (confirmed) {
         localStorage.removeItem('mquiz_gamecode');
@@ -134,7 +149,6 @@ function handleNewGameLink(event) {
         window.location.reload();
     }
 }
-
 
 // === HOVED-INNGANGSPUNKT ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -158,6 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     submitAnswerBtn.addEventListener('click', submitAnswer);
-    newGameLink.addEventListener('click', handleNewGameLink); // Nytt
+    newGameLink.addEventListener('click', handleNewGameLink);
 });
-/* Version: #360 */
+/* Version: #365 */
