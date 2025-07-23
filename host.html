@@ -1,4 +1,4 @@
-<!-- Version: #324 -->
+<!-- Version: #329 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -8,12 +8,20 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="game.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
     <div id="game-container">
 
-        <!-- LOBBY-VISNING -->
-        <div id="host-lobby-view">
+        <!-- NYTT: Spotify Connect-visning -->
+        <div id="spotify-connect-view">
+            <h1>Start et Gruppe-spill</h1>
+            <p>Du må koble til Spotify Premium for å være vert (host).</p>
+            <button id="spotify-login-btn">Koble til Spotify</button>
+        </div>
+
+        <!-- LOBBY-VISNING (nå skjult som standard) -->
+        <div id="host-lobby-view" class="hidden">
             <h1>MQuiz Lobby</h1>
             <div id="lobby-info">
                 <p>Gå til <strong>[DIN NETTADRESSE]/client.html</strong> og skriv inn koden:</p>
@@ -26,16 +34,12 @@
             <button id="start-game-btn" disabled>Venter på spillere...</button>
         </div>
 
-        <!-- NYTT: SPILL-VISNING -->
+        <!-- SPILL-VISNING -->
         <div id="host-game-view" class="hidden">
             <div id="host-turn-indicator"></div>
-            
-            <!-- Midlertidig, vil senere inneholde album art etc. -->
             <div id="host-song-display">
                 <h2>Sangen spilles...</h2>
             </div>
-
-            <!-- Vises når en spiller har svart -->
             <div id="host-answer-display" class="hidden">
                 <h3>Svar mottatt:</h3>
                 <div id="received-answer-info">
@@ -52,4 +56,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #324 -->
+<!-- Version: #329 -->
