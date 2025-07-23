@@ -1,4 +1,4 @@
-<!-- Version: #363 -->
+<!-- Version: #372 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -12,7 +12,6 @@
 <body>
     <div id="app-container">
         
-        <!-- Visning for å bli med i spillet -->
         <div id="join-view">
             <h1>Bli med i MQuiz</h1>
             <input type="number" id="game-code-input" placeholder="Spillkode..." style="margin-bottom: 10px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
@@ -21,24 +20,25 @@
             <p id="join-status" style="margin-top: 15px;"></p>
         </div>
 
-        <!-- SPILL-VISNING -->
         <div id="game-view" class="hidden">
-            
             <div id="player-hud" style="margin-bottom: 20px;"></div>
 
-            <!-- Vises når det er din tur -->
             <div id="my-turn-view" class="hidden">
                 <h2>Din tur!</h2>
                 <div id="guess-area">
-                    <!-- ENDRET: Lagt til list-attributter -->
                     <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off" list="artist-list">
                     <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off" list="title-list">
                     <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
                     <button id="submit-answer-btn">Send Svar</button>
+                    
+                    <!-- NYTT: Knapper for å bruke credits -->
+                    <div id="credit-actions">
+                        <button id="buy-handicap-btn" class="small-btn">Kjøp Handicap (+-2) - 1 Credit</button>
+                        <button id="skip-song-btn" class="small-btn">Ny Sang - 1 Credit</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Vises når du venter på andre -->
             <div id="waiting-for-others-view">
                 <h2 id="waiting-status">Venter på at spillet skal starte...</h2>
                 <p>Du er med som: <strong id="display-player-name"></strong></p>
@@ -47,12 +47,10 @@
             <div id="client-actions" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
                 <a href="#" id="new-game-link" style="color: #b3b3b3; font-size: 0.9em;">Ikke riktig spill? Start på nytt</a>
             </div>
-
         </div>
         
     </div>
 
-    <!-- NYTT: Datalister for autocomplete -->
     <datalist id="artist-list"></datalist>
     <datalist id="title-list"></datalist>
 
@@ -60,4 +58,4 @@
     <script src="client.js"></script>
 </body>
 </html>
-<!-- Version: #363 -->
+<!-- Version: #372 -->
