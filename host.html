@@ -1,4 +1,4 @@
-<!-- Version: #318 -->
+<!-- Version: #324 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -6,29 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQuiz Host</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="game.css"> <!-- Gjenbruker litt styling -->
+    <link rel="stylesheet" href="game.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div id="game-container">
-        <h1>MQuiz Lobby</h1>
-        <div id="lobby-info">
-            <p>Gå til <strong>[DIN NETTADRESSE]</strong> og skriv inn koden:</p>
-            <h2 id="game-code-display">Laster...</h2>
+
+        <!-- LOBBY-VISNING -->
+        <div id="host-lobby-view">
+            <h1>MQuiz Lobby</h1>
+            <div id="lobby-info">
+                <p>Gå til <strong>[DIN NETTADRESSE]/client.html</strong> og skriv inn koden:</p>
+                <h2 id="game-code-display">Laster...</h2>
+            </div>
+            <div id="player-lobby-container">
+                <h3>Spillere som har blitt med:</h3>
+                <ul id="player-lobby-list"></ul>
+            </div>
+            <button id="start-game-btn" disabled>Venter på spillere...</button>
         </div>
 
-        <div id="player-lobby-container">
-            <h3>Spillere som har blitt med:</h3>
-            <ul id="player-lobby-list">
-                <!-- Spillere vil dukke opp her -->
-            </ul>
+        <!-- NYTT: SPILL-VISNING -->
+        <div id="host-game-view" class="hidden">
+            <div id="host-turn-indicator"></div>
+            
+            <!-- Midlertidig, vil senere inneholde album art etc. -->
+            <div id="host-song-display">
+                <h2>Sangen spilles...</h2>
+            </div>
+
+            <!-- Vises når en spiller har svart -->
+            <div id="host-answer-display" class="hidden">
+                <h3>Svar mottatt:</h3>
+                <div id="received-answer-info">
+                    <p><strong>Artist:</strong> <span id="received-artist"></span></p>
+                    <p><strong>Tittel:</strong> <span id="received-title"></span></p>
+                    <p><strong>År:</strong> <span id="received-year"></span></p>
+                </div>
+            </div>
         </div>
 
-        <button id="start-game-btn" disabled>Venter på spillere...</button>
     </div>
 
     <script src="config.js"></script>
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #318 -->
+<!-- Version: #324 -->
