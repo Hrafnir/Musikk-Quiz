@@ -1,4 +1,4 @@
-<!-- Version: #379 -->
+<!-- Version: #386 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -18,7 +18,7 @@
             <strong id="game-code-display-permanent">...</strong>
         </div>
 
-        <!-- FASE 1: LOBBY-VISNING -->
+        <!-- FASE 1: LOBBY -->
         <div id="host-lobby-view">
             <h1>MQuiz Lobby</h1>
             <div id="lobby-info">
@@ -32,14 +32,14 @@
             <button id="start-game-btn" disabled>Start Spill</button>
         </div>
 
-        <!-- FASE 2: SPOTIFY CONNECT-VISNING -->
+        <!-- FASE 2: SPOTIFY CONNECT -->
         <div id="spotify-connect-view" class="hidden">
             <h1>Nesten klar!</h1>
             <p>Koble til Spotify for å kunne spille av musikk.</p>
             <button id="spotify-login-btn">Koble til Spotify</button>
         </div>
         
-        <!-- NY FASE 3: KLAR TIL START-VISNING -->
+        <!-- FASE 3: KLAR TIL START -->
         <div id="ready-to-play-view" class="hidden">
             <h1 style="color: #1DB954;">✓ Spotify er tilkoblet!</h1>
             <p>Spillerne er klare. Trykk start for å begynne første runde.</p>
@@ -53,6 +53,8 @@
             <div id="host-song-display">
                 <h2>Sangen spilles...</h2>
             </div>
+
+            <!-- Vises når en spiller har svart -->
             <div id="host-answer-display" class="hidden">
                 <h3>Svar mottatt:</h3>
                 <div id="received-answer-info">
@@ -62,6 +64,15 @@
                     <p><strong>Gjett (±HC):</strong> <span id="received-year-range"></span></p>
                 </div>
             </div>
+
+            <!-- NYTT: Vises under angrepsfasen -->
+            <div id="attack-phase-display" class="hidden">
+                <h2>Angrepsfase!</h2>
+                <p>Andre spillere kan nå angripe...</p>
+                <div id="attack-timer-display">10</div>
+            </div>
+            
+            <!-- Vises når fasit avsløres -->
             <div id="host-fasit-display" class="hidden">
                 <img id="fasit-album-art" src="" alt="Album Cover">
                 <h3>Riktig svar:</h3>
@@ -70,7 +81,12 @@
                     <p><strong>Tittel:</strong> <span id="fasit-title"></span></p>
                     <p><strong>År:</strong> <span id="fasit-year"></span></p>
                 </div>
+                <!-- NYTT: Viser resultat av angrep -->
+                <div id="attack-results-container">
+                    <!-- Resultater fylles inn her av JS -->
+                </div>
             </div>
+
             <button id="next-turn-btn" class="hidden">Neste Runde</button>
         </div>
 
@@ -80,4 +96,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #379 -->
+<!-- Version: #386 -->
