@@ -1,40 +1,35 @@
-/* Version: #338 */
+/* Version: #339 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// === DOM ELEMENTS (deklareres globalt, tildeles i DOMContentLoaded) ===
+// === STATE FLAGS FOR ROBUST INITIALIZATION ===
+let isDomReady = false;
+let isSpotifySdkReady = false;
+let hasAppStarted = false; // Forhindrer at appen starter flere ganger
+
+// === GLOBAL STATE & DOM ELEMENT VARIABLES ===
 let spotifyConnectView, spotifyLoginBtn, hostLobbyView, gameCodeDisplay,
     playerLobbyList, startGameBtn, hostGameView, hostTurnIndicator,
     hostAnswerDisplay, receivedArtist, receivedTitle, receivedYear,
     hostSongDisplay, hostFasitDisplay, fasitArtist, fasitTitle,
     fasitYear, nextTurnBtn;
 
-// === STATE (global) ===
-let players = [];
-let gameCode = '';
-let gameChannel = null;
-let currentPlayerIndex = 0;
-let spotifyPlayer = null;
-let deviceId = null;
-let currentSong = null;
-let songHistory = [];
-let totalSongsInDb = 0;
+let players = [], gameCode = '', gameChannel = null, currentPlayerIndex = 0,
+    spotifyPlayer = null, deviceId = null, currentSong = null,
+    songHistory = [], totalSongsInDb = 0;
 
-// === FUNKSJONER (kan defineres globalt da de ikke kjører før de blir kalt) ===
+// === ALL FUNCTIONS ARE DEFINED HERE ===
+// De vil ikke bli kalt før tryStartApp() gir grønt lys.
 
-// --- SPOTIFY AUTH ---
 async function redirectToSpotifyLogin() { /* ... (uendret) ... */ }
 async function fetchSpotifyAccessToken(code) { /* ... (uendret) ... */ }
 function generateRandomString(length) { /* ... (uendret) ... */ }
 async function generateCodeChallenge(codeVerifier) { /* ... (uendret) ... */ }
 async function refreshSpotifyToken() { /* ... (uendret) ... */ }
 async function getValidSpotifyToken() { /* ... (uendret) ... */ }
-
-// --- SPOTIFY PLAYER ---
 function initializeSpotifyPlayer() {
     if (spotifyPlayer) return;
-    console.log("Kaller new Spotify.Player()...");
     spotifyPlayer = new Spotify.Player({
         name: 'MQuiz Host Spiller',
         getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); },
@@ -52,8 +47,6 @@ async function transferPlayback() { /* ... (uendret) ... */ }
 async function pauseTrack() { /* ... (uendret) ... */ }
 async function playTrack(spotifyTrackId) { /* ... (uendret) ... */ }
 async function fetchRandomSong() { /* ... (uendret) ... */ }
-
-// --- LOBBY & GAME FLOW ---
 function updatePlayerLobby() { if (!playerLobbyList) return; playerLobbyList.innerHTML = ''; players.forEach(player => { const li = document.createElement('li'); li.textContent = player.name; playerLobbyList.appendChild(li); }); if (players.length > 0 && deviceId) { startGameBtn.disabled = false; startGameBtn.textContent = `Start Spill (${players.length} spillere)`; } else if (players.length > 0 && !deviceId) { startGameBtn.disabled = true; startGameBtn.textContent = 'Venter på Spotify...'; } else { startGameBtn.disabled = true; startGameBtn.textContent = 'Venter på spillere...'; } }
 async function startGame() { /* ... (uendret) ... */ }
 async function startTurn() { /* ... (uendret) ... */ }
@@ -61,11 +54,66 @@ async function handleAnswer(payload) { /* ... (uendret) ... */ }
 async function advanceToNextTurn() { /* ... (uendret) ... */ }
 async function setupGame() { /* ... (uendret) ... */ }
 
-// === HOVED-INNGANGSPUNKT: DOMContentLoaded ===
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log("DOM er fullstendig lastet. Starter applikasjonslogikk.");
 
-    // STEG 1: Tildel alle DOM-elementer NÅ
+// === DEN SENTRALE "TENNINGSMEKANISMEN" ===
+async function tryStartApp() {
+    // Denne funksjonen vil bli kalt av BÅDE DOMContentLoaded og onSpotifyWebPlaybackSDKReady.
+    // Den kjører kun logikken når BEGGE har fullført, og kun ÉN gang.
+    if (isDomReady && isSpotifySdkReady && !hasAppStarted) {
+        hasAppStarted = true; // Lås for fremtidige kall
+        console.log("Både DOM og Spotify SDK er klare. Starter appen...");
+
+        // Nå er det 100% trygt å kjøre all logikk som trenger DOM og Spotify
+        
+        // 1. Legg til event listeners
+        spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
+        startGameBtn.addEventListener('click', startGame);
+        nextTurnBtn.addEventListener('click', advanceToNextTurn);
+
+        // 2. Kjør autentiseringsflyten
+        const spotifyCode = new URLSearchParams(window.location.search).get('code');
+        const handleSuccessfulAuth = () => {
+            spotifyConnectView.classList.add('hidden');
+            hostLobbyView.classList.remove('hidden');
+            setupGame();
+            initializeSpotifyPlayer();
+        };
+
+        if (spotifyCode) {
+            const success = await fetchSpotifyAccessToken(spotifyCode);
+            if (success) {
+                window.history.replaceState(null, '', window.location.pathname);
+                handleSuccessfulAuth();
+            } else {
+                alert("Klarte ikke hente Spotify-token. Prøv igjen.");
+            }
+        } else if (localStorage.getItem('spotify_access_token')) {
+            const token = await getValidSpotifyToken();
+            if (token) {
+                handleSuccessfulAuth();
+            } else {
+                spotifyConnectView.classList.remove('hidden');
+            }
+        } else {
+            spotifyConnectView.classList.remove('hidden');
+        }
+    }
+}
+
+// === DE TO UAVHENGIGE STARTPUNKTENE ===
+
+// 1. Spotify SDK sier ifra at den er klar
+window.onSpotifyWebPlaybackSDKReady = () => {
+    console.log("Event: onSpotifyWebPlaybackSDKReady");
+    isSpotifySdkReady = true;
+    tryStartApp();
+};
+
+// 2. Nettleseren sier ifra at HTML-siden er klar
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Event: DOMContentLoaded");
+    
+    // Tildel alle DOM-elementer
     spotifyConnectView = document.getElementById('spotify-connect-view');
     spotifyLoginBtn = document.getElementById('spotify-login-btn');
     hostLobbyView = document.getElementById('host-lobby-view');
@@ -85,43 +133,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     fasitYear = document.getElementById('fasit-year');
     nextTurnBtn = document.getElementById('next-turn-btn');
 
-    // STEG 2: Legg til alle event listeners NÅ
-    spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
-    startGameBtn.addEventListener('click', startGame);
-    nextTurnBtn.addEventListener('click', advanceToNextTurn);
-
-    // STEG 3: Kjør autentiseringsflyten
-    const spotifyCode = new URLSearchParams(window.location.search).get('code');
-    const handleSuccessfulAuth = () => {
-        spotifyConnectView.classList.add('hidden');
-        hostLobbyView.classList.remove('hidden');
-        setupGame();
-        // Nå er det trygt å initialisere spilleren, enten med en gang eller når SDK er klar.
-        if (window.Spotify) {
-            initializeSpotifyPlayer();
-        } else {
-            window.onSpotifyWebPlaybackSDKReady = initializeSpotifyPlayer;
-        }
-    };
-
-    if (spotifyCode) {
-        const success = await fetchSpotifyAccessToken(spotifyCode);
-        if (success) {
-            window.history.replaceState(null, '', window.location.pathname);
-            handleSuccessfulAuth();
-        } else {
-            alert("Klarte ikke hente Spotify-token. Prøv igjen.");
-        }
-    } else if (localStorage.getItem('spotify_access_token')) {
-        const token = await getValidSpotifyToken();
-        if (token) {
-            handleSuccessfulAuth();
-        } else {
-            spotifyConnectView.classList.remove('hidden');
-        }
-    } else {
-        spotifyConnectView.classList.remove('hidden');
-    }
+    isDomReady = true;
+    tryStartApp();
 });
 
 
