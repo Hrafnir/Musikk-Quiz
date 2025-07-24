@@ -1,4 +1,4 @@
-<!-- Version: #400 -->
+<!-- Version: #416 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="game.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- VIKTIG: Spotify-skriptet er FJERNET herfra og lastes dynamisk av host.js -->
 </head>
 <body>
     <div id="game-container">
@@ -72,6 +71,11 @@
                 </div>
             </div>
             <button id="next-turn-btn" class="hidden">Neste Runde</button>
+
+            <!-- NYTT: Host-kontroller som er synlige under spillet -->
+            <div id="host-controls" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
+                 <button id="skip-player-btn" class="small-btn" style="background-color: #FF4136;">Skip Spiller</button>
+            </div>
         </div>
 
     </div>
@@ -80,4 +84,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #400 -->
+<!-- Version: #416 -->
