@@ -1,10 +1,10 @@
-/* Version: #427 */
+/* Version: #429 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// === DOM ELEMENTS (globale variabler) ===
+// === DOM ELEMENTS ===
 let hostLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn,
     spotifyConnectView, spotifyLoginBtn,
     readyToPlayView, startFirstRoundBtn,
@@ -13,7 +13,7 @@ let hostLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn,
     hostFasitDisplay, fasitAlbumArt, fasitArtist, fasitTitle, fasitYear, nextTurnBtn,
     skipPlayerBtn;
 
-// === STATE (globale variabler) ===
+// === STATE ===
 let user = null;
 let players = [];
 let gameCode = '';
@@ -26,6 +26,15 @@ let isGameRunning = false;
 let currentPlayerIndex = 0;
 let isSkipTurn = false;
 
+// === Angrepsfase State ===
+let attackPhaseTimer = null;
+let executionPhaseTimer = null;
+let potentialAttackers = [];
+let declaredAttackers = { besserwisser: [], hijack: [] };
+let besserwisserAnswers = [];
+let hijackBids = [];
+let roundFeedback = { main: "", attack: "" };
+
 // === Promise for Spotify SDK ===
 let resolveSpotifySdkReady;
 const spotifySdkReadyPromise = new Promise(resolve => {
@@ -36,7 +45,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 };
 
 
-// === HJELPEFUNKSJONER (DEFINERT GLOBALT) ===
+// === HJELPEFUNKSJONER ===
 
 function updatePlayerLobby() {
     if (!playerLobbyList) return;
@@ -105,14 +114,11 @@ async function checkForActiveGame() {
         return;
     }
 
-    console.log(`Found active game ${localGameCode}. Attempting to resume...`);
     try {
         const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
         if (error || !data) throw new Error(error?.message || "Game not found");
-        console.log("Successfully fetched game state. Resuming session.");
         await resumeGame(data);
     } catch (e) {
-        console.error("Could not fetch active game, starting a new one.", e.message);
         localStorage.removeItem('mquiz_host_gamecode');
         localStorage.removeItem('mquiz_host_id');
         await initializeLobby();
@@ -139,7 +145,7 @@ async function resumeGame(gameData) {
         spotifyConnectView.classList.add('hidden');
         readyToPlayView.classList.remove('hidden');
         loadSpotifySdk();
-    } else {
+    } else { // 'lobby'
         hostLobbyView.classList.remove('hidden');
         spotifyConnectView.classList.add('hidden');
         readyToPlayView.classList.add('hidden');
@@ -151,7 +157,6 @@ async function resumeGame(gameData) {
 // === LOBBY & GAME SETUP ===
 
 async function initializeLobby() {
-    console.log("Initializing new lobby...");
     localStorage.removeItem('mquiz_host_gamecode');
     localStorage.removeItem('mquiz_host_id');
 
@@ -162,21 +167,7 @@ async function initializeLobby() {
         gameCode = Math.floor(100000 + Math.random() * 900000).toString();
         const initialGameState = { players: [], currentPlayerIndex: 0, isGameRunning: false, songHistory: [], currentSong: null, isSkipTurn: false };
         const { error } = await supabaseClient.from('games').insert({ game_code: gameCode, host_id: user.id, game_state: initialGameState, status: 'lobby' });
-        if (error) {
-            if (error.code === '23505') { 
-                console.log(`Generated game code ${gameCode} already exists. Retrying...`);
-                continue;
-            }
-            console.error("FATAL: Could not create new game in database.", error);
-            alert("Kunne ikke starte et nytt spill. Prøv å laste siden på nytt.");
-            return;
-        }
-        success = true;
-    }
-
-    if (!success) {
-        alert("Klarte ikke å opprette et unikt spill. Prøv igjen.");
-        return;
+        if (!error) success = true;
     }
     
     localStorage.setItem('mquiz_host_gamecode', gameCode);
@@ -190,40 +181,49 @@ async function initializeLobby() {
     hostLobbyView.classList.remove('hidden');
     spotifyConnectView.classList.add('hidden');
     readyToPlayView.classList.add('hidden');
-    updatePlayerLobby(); // Denne skal nå fungere
+    updatePlayerLobby();
 }
 
 async function setupChannel() {
     const channelName = `game-${gameCode}`;
-    if (gameChannel) {
-        supabaseClient.removeChannel(gameChannel);
-    }
+    if (gameChannel) supabaseClient.removeChannel(gameChannel);
     gameChannel = supabaseClient.channel(channelName);
 
     gameChannel
         .on('broadcast', { event: 'player_join' }, (payload) => {
             const newPlayerName = payload.payload.name;
             if (!players.find(p => p.name === newPlayerName)) {
-                console.log(`Player '${newPlayerName}' joined.`);
                 players.push({ name: newPlayerName, sp: 0, credits: 3, handicap: 5, roundHandicap: 0, stats: {} });
-                updatePlayerLobby(); // Denne skal nå fungere
-                updateDatabaseGameState({ players: players });
+                updatePlayerLobby();
+                updateDatabaseGameState({ players });
             }
         })
-        .on('broadcast', { event: 'submit_answer' }, () => console.log("Answer received, logic to be re-implemented"))
-        .on('broadcast', { event: 'buy_handicap' }, () => console.log("Buy handicap received, logic to be re-implemented"))
-        .on('broadcast', { event: 'skip_song' }, () => console.log("Skip song received, logic to be re-implemented"));
+        .on('broadcast', { event: 'submit_answer' }, handleAnswer)
+        .on('broadcast', { event: 'buy_handicap' }, handleBuyHandicap)
+        .on('broadcast', { event: 'skip_song' }, handleSkipSong)
+        .on('broadcast', { event: 'declare_besserwisser' }, (payload) => {
+            if (potentialAttackers.includes(payload.payload.name)) declaredAttackers.besserwisser.push(payload.payload.name);
+            checkAttackDeclarations();
+        })
+        .on('broadcast', { event: 'declare_hijack' }, (payload) => {
+            if (potentialAttackers.includes(payload.payload.name)) declaredAttackers.hijack.push(payload.payload.name);
+            checkAttackDeclarations();
+        })
+        .on('broadcast', { event: 'submit_besserwisser' }, (payload) => {
+            besserwisserAnswers.push(payload.payload);
+            checkAttackSubmissions();
+        })
+        .on('broadcast', { event: 'submit_hijack' }, (payload) => {
+            hijackBids.push(payload.payload);
+            checkAttackSubmissions();
+        });
     
     return new Promise(resolve => {
         gameChannel.subscribe(status => {
-            if (status === 'SUBSCRIBED') {
-                console.log(`Successfully subscribed to channel: ${channelName}`);
-                resolve();
-            }
+            if (status === 'SUBSCRIBED') resolve();
         });
     });
 }
-
 
 function handleStartGameClick() {
     hostLobbyView.classList.add('hidden');
@@ -235,7 +235,6 @@ function handleStartGameClick() {
 
 async function handleStartFirstRoundClick() {
     await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
-
     readyToPlayView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
     gameHeader.classList.remove('hidden');
@@ -262,8 +261,20 @@ async function startGameLoop() {
     await startTurn();
 }
 
+
+// === RUNDE-LOGIKK ===
+
 async function startTurn() {
     isSkipTurn = false;
+    players.forEach(p => p.roundHandicap = 0);
+    potentialAttackers = [];
+    declaredAttackers = { besserwisser: [], hijack: [] };
+    besserwisserAnswers = [];
+    hijackBids = [];
+    roundFeedback = { main: "", attack: "" };
+    clearTimeout(attackPhaseTimer);
+    clearTimeout(executionPhaseTimer);
+    
     const currentPlayer = players[currentPlayerIndex];
     hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`;
     hostAnswerDisplay.classList.add('hidden');
@@ -277,13 +288,185 @@ async function startTurn() {
     if (currentSong) {
         songHistory.push(currentSong.id);
         await updateDatabaseGameState({ currentSong, songHistory });
-
         const playbackSuccess = await playTrack(currentSong.spotifyid);
         if (playbackSuccess) {
             hostSongDisplay.innerHTML = '<h2>Sangen spilles...</h2>';
             gameChannel.send({ type: 'broadcast', event: 'new_turn', payload: { name: currentPlayer.name } });
         }
     }
+}
+
+async function handleAnswer(payload) {
+    const { name, artist, title, year } = payload.payload;
+    const respondingPlayer = players.find(p => p.name === name);
+    if (!respondingPlayer) return;
+
+    receivedArtist.textContent = artist || 'Ikke besvart';
+    receivedTitle.textContent = title || 'Ikke besvart';
+    receivedYear.textContent = year || 'Ikke besvart';
+    hostAnswerDisplay.classList.remove('hidden');
+    hostSongDisplay.classList.add('hidden');
+
+    const evaluation = evaluatePlayerAnswer(respondingPlayer, payload.payload);
+    respondingPlayer.sp += evaluation.roundSp;
+    respondingPlayer.credits += evaluation.roundCredits;
+    roundFeedback.main = evaluation.feedbackMessages.length > 0 ? `${name}: ${evaluation.feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
+
+    const canBesserwiss = !evaluation.artistIsCorrect && !evaluation.titleIsCorrect;
+    const canHijack = !evaluation.yearIsCorrect;
+
+    if (canBesserwiss || canHijack) {
+        startAttackPhase(canBesserwiss, canHijack);
+    } else {
+        showFasit();
+    }
+}
+
+function evaluatePlayerAnswer(player, answer) {
+    const { artist, title, year } = answer;
+    const yearGuess = parseInt(year, 10);
+    let roundSp = 0, roundCredits = 0, feedbackMessages = [];
+    const artistIsCorrect = normalizeString(artist) === normalizeString(currentSong.artist);
+    const titleIsCorrect = normalizeString(title) === normalizeString(currentSong.title);
+    let yearIsCorrect = false;
+
+    if (artistIsCorrect && titleIsCorrect) {
+        roundCredits += 3;
+        feedbackMessages.push("Artist & Tittel: +3 credits!");
+    } else {
+        if (artistIsCorrect) { roundCredits += 1; feedbackMessages.push("Artist: +1 credit!"); }
+        if (titleIsCorrect) { roundCredits += 1; feedbackMessages.push("Tittel: +1 credit!"); }
+    }
+    if (!isNaN(yearGuess)) {
+        const totalHandicap = player.handicap + player.roundHandicap;
+        if (Math.abs(yearGuess - currentSong.year) <= totalHandicap) {
+            roundSp += 1;
+            yearIsCorrect = true;
+            feedbackMessages.push("Årstall: +1 SP!");
+        }
+        if (yearGuess === currentSong.year) { roundCredits += 3; feedbackMessages.push("Perfekt år: +3 credits!"); }
+        receivedYearRange.textContent = `${yearGuess} (${yearGuess - totalHandicap} - ${yearGuess + totalHandicap})`;
+    } else {
+        receivedYearRange.textContent = 'Ikke besvart';
+    }
+    return { roundSp, roundCredits, feedbackMessages, artistIsCorrect, titleIsCorrect, yearIsCorrect };
+}
+
+function startAttackPhase(canBesserwiss, canHijack) {
+    hostTurnIndicator.textContent = "Angrepsfase!";
+    const currentPlayerName = players[currentPlayerIndex].name;
+    potentialAttackers = players.filter(p => p.name !== currentPlayerName).map(p => p.name);
+    if (potentialAttackers.length === 0) { resolveAttackPhase(); return; }
+    gameChannel.send({ type: 'broadcast', event: 'attack_phase_start', payload: { canBesserwiss, canHijack, attacker: currentPlayerName } });
+    attackPhaseTimer = setTimeout(startAttackExecutionPhase, 10000);
+}
+
+function checkAttackDeclarations() {
+    const totalDeclarations = [...new Set([...declaredAttackers.besserwisser, ...declaredAttackers.hijack])].length;
+    if (totalDeclarations === potentialAttackers.length) {
+        clearTimeout(attackPhaseTimer);
+        startAttackExecutionPhase();
+    }
+}
+
+function startAttackExecutionPhase() {
+    hostTurnIndicator.textContent = "Venter på angrep...";
+    const hasBesserwisser = declaredAttackers.besserwisser.length > 0;
+    const hasHijack = declaredAttackers.hijack.length > 0;
+    if (!hasBesserwisser && !hasHijack) { resolveAttackPhase(); return; }
+    if (hasBesserwisser) { gameChannel.send({ type: 'broadcast', event: 'execute_besserwisser', payload: { players: declaredAttackers.besserwisser } }); }
+    if (hasHijack) { gameChannel.send({ type: 'broadcast', event: 'execute_hijack', payload: { players: declaredAttackers.hijack } }); }
+    executionPhaseTimer = setTimeout(resolveAttackPhase, 60000);
+}
+
+function checkAttackSubmissions() {
+    const totalSubmissions = besserwisserAnswers.length + hijackBids.length;
+    const totalDeclarations = declaredAttackers.besserwisser.length + declaredAttackers.hijack.length;
+    if (totalSubmissions === totalDeclarations) {
+        clearTimeout(executionPhaseTimer);
+        resolveAttackPhase();
+    }
+}
+
+function resolveAttackPhase() {
+    let attackResults = [];
+    besserwisserAnswers.forEach(answer => {
+        const attacker = players.find(p => p.name === answer.name);
+        if (!attacker) return;
+        const artistCorrect = normalizeString(answer.artist) === normalizeString(currentSong.artist);
+        const titleCorrect = normalizeString(answer.title) === normalizeString(currentSong.title);
+        if (artistCorrect && titleCorrect) {
+            attacker.sp += 2;
+            attackResults.push(`<div class="attack-result success">${attacker.name} klarte Besserwisser! +2 SP</div>`);
+        } else {
+            attacker.credits = Math.max(0, attacker.credits - 1);
+            attackResults.push(`<div class="attack-result fail">${attacker.name} feilet Besserwisser. -1 Credit</div>`);
+        }
+    });
+    if (hijackBids.length > 0) {
+        hijackBids.sort((a, b) => b.bid - a.bid);
+        const winningBid = hijackBids[0];
+        const winner = players.find(p => p.name === winningBid.name);
+        if (winner) {
+            winner.credits = Math.max(0, winner.credits - winningBid.bid);
+            if (parseInt(winningBid.year, 10) === currentSong.year) {
+                winner.sp += 1;
+                attackResults.push(`<div class="attack-result success">${winner.name} vant Hijack med bud på ${winningBid.bid}! +1 SP</div>`);
+            } else {
+                attackResults.push(`<div class="attack-result fail">${winner.name} vant Hijack, men svarte feil år. Mistet ${winningBid.bid} credits.</div>`);
+            }
+        }
+    }
+    roundFeedback.attack = attackResults.length > 0 ? `<h3>Angrep</h3>${attackResults.join('')}` : "<h3>Angrep</h3><p>Ingen vellykkede angrep.</p>";
+    showFasit();
+}
+
+function showFasit() {
+    fasitAlbumArt.src = currentSong.albumarturl || '';
+    fasitArtist.textContent = currentSong.artist;
+    fasitTitle.textContent = currentSong.title;
+    fasitYear.textContent = currentSong.year;
+    hostFasitDisplay.classList.remove('hidden');
+    nextTurnBtn.classList.remove('hidden');
+    gameChannel.send({ type: 'broadcast', event: 'round_result', payload: { players, feedback: roundFeedback.main, song: currentSong, attackResultsHTML: roundFeedback.attack } });
+    updateHud();
+    updateDatabaseGameState({ players });
+}
+
+function handleBuyHandicap(payload) {
+    const player = players.find(p => p.name === payload.payload.name);
+    if (player && player.credits > 0) {
+        player.credits--;
+        player.roundHandicap += 2;
+        gameChannel.send({ type: 'broadcast', event: 'player_update', payload: { players } });
+        updateHud();
+    }
+}
+
+function handleSkipPlayer() {
+    if (!isGameRunning) return;
+    const skippedPlayer = players[currentPlayerIndex].name;
+    roundFeedback.main = `${skippedPlayer} ble hoppet over av hosten.`;
+    isSkipTurn = false;
+    triggerAttackPhaseFromSkip();
+}
+
+function handleSkipSong(payload) {
+    const player = players.find(p => p.name === payload.payload.name);
+    if (player && player.credits > 0) {
+        player.credits--;
+        roundFeedback.main = `${player.name} brukte 1 credit for å bytte sang.`;
+        isSkipTurn = true;
+        triggerAttackPhaseFromSkip();
+        updateHud();
+        updateDatabaseGameState({ players });
+    }
+}
+
+function triggerAttackPhaseFromSkip() {
+    hostAnswerDisplay.classList.add('hidden');
+    hostSongDisplay.classList.add('hidden');
+    startAttackPhase(true, true);
 }
 
 async function advanceToNextTurn() {
@@ -305,11 +488,7 @@ function loadSpotifySdk() {
 }
 async function initializeSpotifyPlayer() {
     return new Promise(resolve => {
-        spotifyPlayer = new Spotify.Player({
-            name: 'MQuiz Host',
-            getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); },
-            volume: 0.5
-        });
+        spotifyPlayer = new Spotify.Player({ name: 'MQuiz Host', getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); }, volume: 0.5 });
         spotifyPlayer.addListener('ready', ({ device_id }) => { deviceId = device_id; resolve(); });
         spotifyPlayer.connect();
     });
@@ -333,8 +512,7 @@ async function playTrack(spotifyTrackId) {
 async function getValidSpotifyToken() {
     const expiresAt = localStorage.getItem('spotify_token_expires_at');
     const accessToken = localStorage.getItem('spotify_access_token');
-    if (!accessToken || !expiresAt) return null;
-    if (Date.now() > parseInt(expiresAt) - (5 * 60 * 1000)) { return await refreshSpotifyToken(); }
+    if (!accessToken || !expiresAt || Date.now() > parseInt(expiresAt) - 300000) { return await refreshSpotifyToken(); }
     return accessToken;
 }
 async function refreshSpotifyToken() {
@@ -348,9 +526,8 @@ async function refreshSpotifyToken() {
     if (!response.ok) { return null; }
     const data = await response.json();
     localStorage.setItem('spotify_access_token', data.access_token);
-    if (data.refresh_token) { localStorage.setItem('spotify_refresh_token', data.refresh_token); }
-    const expiresAt = Date.now() + data.expires_in * 1000;
-    localStorage.setItem('spotify_token_expires_at', expiresAt);
+    if (data.refresh_token) localStorage.setItem('spotify_refresh_token', data.refresh_token);
+    localStorage.setItem('spotify_token_expires_at', Date.now() + data.expires_in * 1000);
     return data.access_token;
 }
 async function redirectToSpotifyLogin() {
@@ -373,14 +550,13 @@ async function fetchSpotifyAccessToken(code) {
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ client_id: SPOTIFY_CLIENT_ID, grant_type: 'authorization_code', code: code, redirect_uri: redirectUri, code_verifier: codeVerifier, }),
+        body: new URLSearchParams({ client_id: SPOTIFY_CLIENT_ID, grant_type: 'authorization_code', code, redirect_uri: redirectUri, code_verifier: codeVerifier, }),
     });
     if (response.ok) {
         const data = await response.json();
-        const expiresAt = Date.now() + data.expires_in * 1000;
         localStorage.setItem('spotify_access_token', data.access_token);
         localStorage.setItem('spotify_refresh_token', data.refresh_token);
-        localStorage.setItem('spotify_token_expires_at', expiresAt);
+        localStorage.setItem('spotify_token_expires_at', Date.now() + data.expires_in * 1000);
         return true;
     }
     return false;
@@ -389,13 +565,11 @@ async function fetchSpotifyAccessToken(code) {
 async function main() {
     const urlParams = new URLSearchParams(window.location.search);
     const spotifyCode = urlParams.get('code');
-
     if (spotifyCode) {
         await fetchSpotifyAccessToken(spotifyCode);
         window.location.replace(window.location.pathname);
         return;
     }
-    
     await checkForActiveGame();
 }
 
@@ -423,6 +597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
+    skipPlayerBtn.addEventListener('click', handleSkipPlayer);
     
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user) {
@@ -440,4 +615,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-/* Version: #427 */
+/* Version: #429 */
