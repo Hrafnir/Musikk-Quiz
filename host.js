@@ -1,4 +1,4 @@
-/* Version: #436 */
+/* Version: #437 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -12,7 +12,7 @@ let hostLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn,
     hostSongDisplay, hostAnswerDisplay, receivedArtist, receivedTitle, receivedYear, receivedYearRange,
     hostFasitDisplay, fasitAlbumArt, fasitArtist, fasitTitle, fasitYear, nextTurnBtn,
     skipPlayerBtn,
-    resumeGameView, resumeGameCode, resumeBtn, forceNewFromResumeBtn; // NYE
+    resumeGameView, resumeGameCode, resumeBtn, forceNewFromResumeBtn;
 
 // === STATE ===
 let user = null;
@@ -26,7 +26,7 @@ let songHistory = [];
 let isGameRunning = false;
 let currentPlayerIndex = 0;
 let isSkipTurn = false;
-let activeGameData = null; // NY: For å holde på data for gjenopptak
+let autocompleteData = { artistList: [], titleList: [] }; // NY
 
 // === Angrepsfase State ===
 let attackPhaseTimer = null;
@@ -115,7 +115,6 @@ async function updateDatabaseGameState(newState) {
     if (error) console.error("Error updating game state in DB:", error);
 }
 
-// ENDRET: Viser nå dialog i stedet for å automatisk gjenoppta
 async function checkForActiveGame() {
     const localGameCode = localStorage.getItem('mquiz_host_gamecode');
     const localHostId = localStorage.getItem('mquiz_host_id');
@@ -129,8 +128,7 @@ async function checkForActiveGame() {
         const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
         if (error || !data) throw new Error(error?.message || "Game not found");
         
-        // Fant et aktivt spill, vis dialog
-        activeGameData = data; // Lagre data for senere bruk
+        activeGameData = data;
         hideAllViews();
         resumeGameCode.textContent = data.game_code;
         resumeGameView.classList.remove('hidden');
@@ -140,7 +138,6 @@ async function checkForActiveGame() {
     }
 }
 
-// NY: Håndterer klikk på "Fortsett Spill"
 async function handleResumeClick() {
     if (!activeGameData) return;
     hideAllViews();
@@ -209,7 +206,8 @@ async function setupChannel() {
         .on('broadcast', { event: 'player_join' }, (payload) => {
             const newPlayerName = payload.payload.name;
             if (!players.find(p => p.name === newPlayerName)) {
-                players.push({ name: newPlayerName, sp: 0, credits: 3, handicap: 5, roundHandicap: 0, stats: {} });
+                // ENDRET: Handicap satt til 2
+                players.push({ name: newPlayerName, sp: 0, credits: 3, handicap: 2, roundHandicap: 0, stats: {} });
                 updatePlayerLobby();
                 updateDatabaseGameState({ players });
             }
@@ -284,9 +282,18 @@ async function handleStartFirstRoundClick() {
     }
 }
 
+async function getAutocompleteLists() {
+    const { data: artists } = await supabaseClient.rpc('get_distinct_artists');
+    const { data: titles } = await supabaseClient.rpc('get_distinct_titles');
+    autocompleteData.artistList = artists ? artists.map(item => item.artist_name) : [];
+    autocompleteData.titleList = titles ? titles.map(item => item.title_name) : [];
+}
+
 async function startGameLoop() {
     isGameRunning = true;
     updateHud();
+    await getAutocompleteLists(); // Hent lister
+    gameChannel.send({ type: 'broadcast', event: 'game_start', payload: { players, ...autocompleteData } }); // Send med lister
     await updateDatabaseGameState({ isGameRunning: true });
     await startTurn();
 }
@@ -445,7 +452,8 @@ function resolveAttackPhase() {
         const winner = players.find(p => p.name === winningBid.name);
         if (winner) {
             winner.credits = Math.max(0, winner.credits - winningBid.bid);
-            if (parseInt(winningBid.year, 10) === currentSong.year) {
+            // ENDRET: Bruker Hijackerens eget handicap
+            if (Math.abs(parseInt(winningBid.year, 10) - currentSong.year) <= winner.handicap) {
                 winner.sp += 1;
                 attackResults.push(`<div class="attack-result success">${winner.name} vant Hijack med bud på ${winningBid.bid}! +1 SP</div>`);
             } else {
@@ -677,4 +685,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-/* Version: #436 */
+/* Version: #437 */
