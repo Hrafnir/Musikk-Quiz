@@ -1,4 +1,4 @@
-/* Version: #406 */
+/* Version: #408 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -24,6 +24,15 @@ let totalSongsInDb = 0;
 let isGameRunning = false;
 let currentPlayerIndex = 0;
 let autocompleteData = { artistList: [], titleList: [] };
+
+// === NYTT: State for angrepsfasen ===
+let attackPhaseTimer = null;
+let executionPhaseTimer = null;
+let potentialAttackers = [];
+let declaredAttackers = { besserwisser: [], hijack: [] };
+let besserwisserAnswers = [];
+let hijackBids = [];
+
 
 let resolveSpotifySdkReady;
 const spotifySdkReadyPromise = new Promise(resolve => {
@@ -108,9 +117,42 @@ function setupChannelListeners() {
         })
         .on('broadcast', { event: 'submit_answer' }, handleAnswer)
         .on('broadcast', { event: 'buy_handicap' }, handleBuyHandicap)
-        .on('broadcast', { event: 'skip_song' }, handleSkipSong);
+        .on('broadcast', { event: 'skip_song' }, handleSkipSong)
+        // NYE LYTTERE FOR ANGREPSFASEN
+        .on('broadcast', { event: 'declare_besserwisser' }, (payload) => {
+            const playerName = payload.payload.name;
+            if (potentialAttackers.includes(playerName) && !declaredAttackers.besserwisser.includes(playerName)) {
+                declaredAttackers.besserwisser.push(playerName);
+                console.log(`${playerName} declared Besserwisser.`);
+            }
+        })
+        .on('broadcast', { event: 'declare_hijack' }, (payload) => {
+            const playerName = payload.payload.name;
+            if (potentialAttackers.includes(playerName) && !declaredAttackers.hijack.includes(playerName)) {
+                declaredAttackers.hijack.push(playerName);
+                console.log(`${playerName} declared Hijack.`);
+            }
+        })
+        .on('broadcast', { event: 'submit_besserwisser' }, (payload) => {
+            besserwisserAnswers.push(payload.payload);
+            console.log('Besserwisser answer received:', payload.payload);
+            // Sjekk om alle har svart
+            if (besserwisserAnswers.length === declaredAttackers.besserwisser.length) {
+                clearTimeout(executionPhaseTimer); // Avbryt timeren
+                resolveAttackPhase();
+            }
+        })
+        .on('broadcast', { event: 'submit_hijack' }, (payload) => {
+            hijackBids.push(payload.payload);
+            console.log('Hijack bid received:', payload.payload);
+            // Sjekk om alle har svart
+            if (hijackBids.length === declaredAttackers.hijack.length) {
+                clearTimeout(executionPhaseTimer); // Avbryt timeren
+                resolveAttackPhase();
+            }
+        });
     
-    console.log("Channel listeners for player_join, submit_answer, etc. are now active.");
+    console.log("Channel listeners are now active.");
 }
 
 async function initializeLobby() {
@@ -133,7 +175,6 @@ async function initializeLobby() {
 }
 
 function handleStartGameClick() {
-    console.log("Phase 2: Start Game button clicked. Moving to Spotify Connect.");
     sessionStorage.setItem('mquiz_gamecode', gameCode);
     sessionStorage.setItem('mquiz_players', JSON.stringify(players));
     hostLobbyView.classList.add('hidden');
@@ -214,20 +255,17 @@ async function refreshSpotifyToken() {
 // === GAME START & CORE LOOP ===
 
 async function handleStartFirstRoundClick() {
-    console.log("Phase 4: Start First Round button clicked. Initializing game.");
     readyToPlayView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
     gameHeader.classList.remove('hidden');
     hostTurnIndicator.textContent = "Laster Spotify-spiller...";
     await spotifySdkReadyPromise;
-    console.log("Spotify SDK is confirmed ready via Promise.");
     await initializeSpotifyPlayer();
     await startGameLoop();
 }
 
 function loadSpotifySdk() {
     if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
-    console.log("Dynamically loading Spotify SDK script...");
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
     script.async = true;
@@ -242,11 +280,9 @@ async function initializeSpotifyPlayer() {
             volume: 0.5
         });
         spotifyPlayer.addListener('ready', ({ device_id }) => {
-            console.log('Spotify Player is ready with Device ID:', device_id);
             deviceId = device_id;
             resolve();
         });
-        spotifyPlayer.addListener('not_ready', ({ device_id }) => { console.log('Device ID has gone offline:', device_id); });
         spotifyPlayer.connect();
     });
 }
@@ -265,7 +301,15 @@ async function startGameLoop() {
 }
 
 async function startTurn() {
+    // Nullstill tilstand for runden
     players.forEach(p => p.roundHandicap = 0);
+    potentialAttackers = [];
+    declaredAttackers = { besserwisser: [], hijack: [] };
+    besserwisserAnswers = [];
+    hijackBids = [];
+    clearTimeout(attackPhaseTimer);
+    clearTimeout(executionPhaseTimer);
+    
     const currentPlayer = players[currentPlayerIndex];
     hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`;
     hostAnswerDisplay.classList.add('hidden');
@@ -292,13 +336,47 @@ async function startTurn() {
     }
 }
 
+// ENDRET: Styrer nå flyten til enten angrepsfase eller fasit
 async function handleAnswer(payload) {
     console.log("Answer received:", payload);
     await pauseTrack();
+    
     const { name, artist, title, year } = payload.payload;
     const respondingPlayer = players.find(p => p.name === name);
     if (!respondingPlayer) return;
 
+    // Vis mottatt svar
+    receivedArtist.textContent = artist || 'Ikke besvart';
+    receivedTitle.textContent = title || 'Ikke besvart';
+    receivedYear.textContent = year || 'Ikke besvart';
+    hostAnswerDisplay.classList.remove('hidden');
+    hostSongDisplay.classList.add('hidden');
+
+    // Evaluer poeng for den aktive spilleren
+    const { roundSp, roundCredits, feedbackMessages } = evaluatePlayerAnswer(respondingPlayer, payload.payload);
+    respondingPlayer.sp += roundSp;
+    respondingPlayer.credits += roundCredits;
+    const feedbackText = feedbackMessages.length > 0 ? `${name}: ${feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
+
+    // Sjekk om angrep er mulig
+    const artistIsWrong = normalizeString(artist) !== normalizeString(currentSong.artist);
+    const titleIsWrong = normalizeString(title) !== normalizeString(currentSong.title);
+    const yearIsWrong = parseInt(year, 10) !== currentSong.year;
+
+    const canBesserwiss = artistIsWrong || titleIsWrong;
+    const canHijack = yearIsWrong;
+
+    if (canBesserwiss || canHijack) {
+        startAttackPhase(canBesserwiss, canHijack);
+    } else {
+        // Ingen angrep mulig, gå rett til fasit
+        showFasit(feedbackText, ""); // Tom streng for attackResults
+    }
+}
+
+// NY: Evaluerer den aktive spillerens svar
+function evaluatePlayerAnswer(player, answer) {
+    const { artist, title, year } = answer;
     const artistGuess = normalizeString(artist);
     const titleGuess = normalizeString(title);
     const yearGuess = parseInt(year, 10);
@@ -320,7 +398,7 @@ async function handleAnswer(payload) {
     }
 
     if (!isNaN(yearGuess)) {
-        const totalHandicap = respondingPlayer.handicap + respondingPlayer.roundHandicap;
+        const totalHandicap = player.handicap + player.roundHandicap;
         if (yearGuess === correctYear) {
             roundCredits += 3;
             feedbackMessages.push("Perfekt år: +3 credits!");
@@ -334,26 +412,95 @@ async function handleAnswer(payload) {
         receivedYearRange.textContent = 'Ikke besvart';
     }
 
-    respondingPlayer.sp += roundSp;
-    respondingPlayer.credits += roundCredits;
-    const feedbackText = feedbackMessages.length > 0 ? `${name}: ${feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
+    return { roundSp, roundCredits, feedbackMessages };
+}
 
-    receivedArtist.textContent = artist || 'Ikke besvart';
-    receivedTitle.textContent = title || 'Ikke besvart';
-    receivedYear.textContent = year || 'Ikke besvart';
-    hostAnswerDisplay.classList.remove('hidden');
+// NY: Starter første del av angrepsfasen (10s beslutning)
+function startAttackPhase(canBesserwiss, canHijack) {
+    hostTurnIndicator.textContent = "Angrepsfase! Andre spillere kan nå angripe...";
+    const currentPlayerName = players[currentPlayerIndex].name;
+    potentialAttackers = players.filter(p => p.name !== currentPlayerName).map(p => p.name);
+    
+    gameChannel.send({
+        type: 'broadcast',
+        event: 'attack_phase_start',
+        payload: { canBesserwiss, canHijack, attacker: currentPlayerName }
+    });
 
+    attackPhaseTimer = setTimeout(startAttackExecutionPhase, 10000); // 10 sekunder
+}
+
+// NY: Starter andre del av angrepsfasen (60s utførelse)
+function startAttackExecutionPhase() {
+    console.log("Attack declaration phase over. Declared attackers:", declaredAttackers);
+    hostTurnIndicator.textContent = "Venter på at angrepene skal fullføres...";
+
+    const hasBesserwisser = declaredAttackers.besserwisser.length > 0;
+    const hasHijack = declaredAttackers.hijack.length > 0;
+
+    if (!hasBesserwisser && !hasHijack) {
+        console.log("No attackers declared. Resolving phase.");
+        resolveAttackPhase();
+        return;
+    }
+
+    // Send melding kun til de som har erklært angrep
+    if (hasBesserwisser) {
+        gameChannel.send({ type: 'broadcast', event: 'execute_besserwisser', payload: { players: declaredAttackers.besserwisser } });
+    }
+    if (hasHijack) {
+        gameChannel.send({ type: 'broadcast', event: 'execute_hijack', payload: { players: declaredAttackers.hijack } });
+    }
+
+    executionPhaseTimer = setTimeout(resolveAttackPhase, 60000); // 60 sekunder
+}
+
+
+// NY: Evaluerer angrepene og avslutter runden
+function resolveAttackPhase() {
+    console.log("Resolving attack phase...");
+    hostTurnIndicator.textContent = "Angrepene evalueres...";
+    
+    // TODO: Implementer logikk for å evaluere Besserwisser og Hijack her.
+    // For nå, går vi bare videre.
+    let attackResultsHTML = "<h3>Angrepsresultater:</h3>";
+    if (besserwisserAnswers.length > 0) {
+        attackResultsHTML += "<p>Besserwissere har svart.</p>";
+    }
+     if (hijackBids.length > 0) {
+        attackResultsHTML += "<p>Hijackere har bydd.</p>";
+    }
+    if (besserwisserAnswers.length === 0 && hijackBids.length === 0) {
+        attackResultsHTML += "<p>Ingen vellykkede angrep.</p>"
+    }
+
+    showFasit("Runden er ferdig.", attackResultsHTML);
+}
+
+
+// NY: Viser fasit og sender resultat til klienter
+function showFasit(mainFeedback, attackResultsHTML) {
     fasitAlbumArt.src = currentSong.albumarturl || '';
     fasitArtist.textContent = currentSong.artist;
     fasitTitle.textContent = currentSong.title;
     fasitYear.textContent = currentSong.year;
-    hostSongDisplay.classList.add('hidden');
+    
     hostFasitDisplay.classList.remove('hidden');
     nextTurnBtn.classList.remove('hidden');
     
-    gameChannel.send({ type: 'broadcast', event: 'round_result', payload: { players: players, feedback: feedbackText, song: currentSong } });
+    gameChannel.send({ 
+        type: 'broadcast', 
+        event: 'round_result', 
+        payload: { 
+            players: players, 
+            feedback: mainFeedback, 
+            song: currentSong,
+            attackResultsHTML: attackResultsHTML
+        } 
+    });
     updateHud();
 }
+
 
 function handleBuyHandicap(payload) {
     const playerName = payload.payload.name;
@@ -451,7 +598,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const spotifyCode = new URLSearchParams(window.location.search).get('code');
 
     if (spotifyCode) {
-        console.log("Phase 3: Returned from Spotify. Processing code...");
         const success = await fetchSpotifyAccessToken(spotifyCode);
         window.history.replaceState(null, '', window.location.pathname);
 
@@ -482,7 +628,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
     }
     
-    // ENDRET: Denne er flyttet ut av if/else-blokken for å sikre at den alltid kjører.
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
 });
-/* Version: #406 */
+/* Version: #408 */
