@@ -1,4 +1,4 @@
-/* Version: #421 */
+/* Version: #422 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -93,14 +93,18 @@ async function resumeGame(gameData) {
     gameCodeDisplay.textContent = gameCode;
     gameCodeDisplayPermanent.textContent = gameCode;
 
-    await setupChannel(); // Koble til og sett opp lyttere
+    await setupChannel(); 
 
+    // ENDRET: Viser kun "Klar"-skjerm hvis spillet faktisk er i gang
     if (gameData.status === 'in_progress') {
         hostLobbyView.classList.add('hidden');
         spotifyConnectView.classList.add('hidden');
-        readyToPlayView.classList.remove('hidden'); // Gå alltid til "klar"-skjermen
-    } else {
+        readyToPlayView.classList.remove('hidden');
+        loadSpotifySdk(); // Last SDK i bakgrunnen
+    } else { // 'lobby'
         hostLobbyView.classList.remove('hidden');
+        spotifyConnectView.classList.add('hidden');
+        readyToPlayView.classList.add('hidden');
         updatePlayerLobby();
     }
 }
@@ -118,9 +122,9 @@ async function initializeLobby() {
         .insert({ game_code: gameCode, host_id: user.id, game_state: initialGameState, status: 'lobby' });
 
     if (error) {
-        if (error.code === '23505') { // Unik nøkkel-feil (koden finnes allerede)
+        if (error.code === '23505') { 
             console.log("Generated game code already exists. Retrying...");
-            await initializeLobby(); // Prøv på nytt med en ny kode
+            await initializeLobby();
             return;
         }
         console.error("FATAL: Could not create new game in database.", error);
@@ -134,15 +138,20 @@ async function initializeLobby() {
     gameCodeDisplay.textContent = gameCode;
     gameCodeDisplayPermanent.textContent = gameCode;
     
-    await setupChannel(); // Koble til og sett opp lyttere
+    await setupChannel(); 
     
     hostLobbyView.classList.remove('hidden');
+    spotifyConnectView.classList.add('hidden');
+    readyToPlayView.classList.add('hidden');
     updatePlayerLobby();
 }
 
-// NY: Sentralisert funksjon for å koble til kanal og sette lyttere
 async function setupChannel() {
     const channelName = `game-${gameCode}`;
+    // Hvis kanalen allerede eksisterer, fjern den for å unngå dupliserte lyttere
+    if (gameChannel) {
+        supabaseClient.removeChannel(gameChannel);
+    }
     gameChannel = supabaseClient.channel(channelName);
 
     gameChannel
@@ -179,7 +188,6 @@ function handleStartGameClick() {
 // === GAME START & CORE LOOP ===
 
 async function handleStartFirstRoundClick() {
-    // Oppdater status i DB
     await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
 
     readyToPlayView.classList.add('hidden');
@@ -357,35 +365,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
-    // skipPlayerBtn lytter mangler fortsatt, legges til når logikken er tilbake
-
-    const spotifyCode = new URLSearchParams(window.location.search).get('code');
-    if (spotifyCode) {
-        await fetchSpotifyAccessToken(spotifyCode);
-        window.history.replaceState(null, '', window.location.pathname);
-    }
     
     // Hovedflyt styres nå av auth state
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        const spotifyTokenExists = localStorage.getItem('spotify_access_token');
         if (session?.user) {
             user = session.user;
             console.log("User is logged in:", user.email);
-            if (spotifyTokenExists) {
-                // Bruker er logget inn OG har koblet til spotify
-                hostLobbyView.classList.add('hidden');
-                spotifyConnectView.classList.add('hidden');
-                readyToPlayView.classList.remove('hidden');
-                loadSpotifySdk();
+            
+            // Sjekk for spotify-kode i URL for å fullføre auth-flyt
+            const urlParams = new URLSearchParams(window.location.search);
+            const spotifyCode = urlParams.get('code');
+            if (spotifyCode) {
+                await fetchSpotifyAccessToken(spotifyCode);
+                // Fjern kode fra URL og last siden på nytt for en ren tilstand
+                window.history.replaceState(null, '', window.location.pathname);
             }
+
             await checkForActiveGame();
+
         } else {
             user = null;
-            // Omdiriger til index.html hvis bruker ikke er logget inn
-            // (eller vis en innloggings-prompt)
-            console.log("User is not logged in. Redirecting or showing login...");
-            window.location.href = 'index.html';
+            console.log("User is not logged in. Redirecting to index.html...");
+            // Omdiriger til hovedsiden for innlogging hvis brukeren ikke er autentisert
+            // og det ikke er en aktiv spotify-auth-flyt.
+            if (!window.location.search.includes('code=')) {
+                window.location.href = 'index.html';
+            }
         }
     });
 });
-/* Version: #421 */
+/* Version: #422 */
