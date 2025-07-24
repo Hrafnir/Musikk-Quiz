@@ -1,4 +1,4 @@
-/* Version: #404 */
+/* Version: #405 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -25,14 +25,11 @@ let isGameRunning = false;
 let currentPlayerIndex = 0;
 let autocompleteData = { artistList: [], titleList: [] };
 
-// NYTT: Promise-basert håndtering for å unngå race condition med Spotify SDK
 let resolveSpotifySdkReady;
 const spotifySdkReadyPromise = new Promise(resolve => {
     resolveSpotifySdkReady = resolve;
 });
 
-// NYTT: Definerer den globale funksjonen Spotify SDK ser etter.
-// Denne må være i det globale skopet (utenfor alle andre funksjoner).
 window.onSpotifyWebPlaybackSDKReady = () => {
     console.log("Global: onSpotifyWebPlaybackSDKReady has been called by the SDK.");
     if (resolveSpotifySdkReady) {
@@ -96,6 +93,32 @@ function normalizeString(str) {
 
 // === LOBBY & GAME SETUP ===
 
+// NY: Sentral funksjon for å feste alle lyttere til kanalen
+function setupChannelListeners() {
+    gameChannel
+        .on('broadcast', { event: 'player_join' }, (payload) => {
+            console.log('Player join received:', payload);
+            const newPlayerName = payload.payload.name;
+            if (!players.find(p => p.name === newPlayerName)) {
+                // Gjeninnfører full spiller-objekt-opprettelse
+                players.push({
+                    name: newPlayerName,
+                    sp: 0,
+                    credits: 3,
+                    handicap: 5, // Standard handicap
+                    roundHandicap: 0,
+                    stats: { /* Initialiserer stats-objekt */ }
+                });
+                updatePlayerLobby();
+            }
+        })
+        .on('broadcast', { event: 'submit_answer' }, handleAnswer)
+        .on('broadcast', { event: 'buy_handicap' }, handleBuyHandicap)
+        .on('broadcast', { event: 'skip_song' }, handleSkipSong);
+    
+    console.log("Channel listeners for player_join, submit_answer, etc. are now active.");
+}
+
 async function initializeLobby() {
     console.log("Phase 1: Initializing Lobby");
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -105,23 +128,16 @@ async function initializeLobby() {
     const channelName = `game-${gameCode}`;
     gameChannel = supabaseClient.channel(channelName);
 
-    gameChannel
-        .on('broadcast', { event: 'player_join' }, (payload) => {
-            console.log('Player join received:', payload);
-            const newPlayerName = payload.payload.name;
-            if (!players.find(p => p.name === newPlayerName)) {
-                players.push({ name: newPlayerName, sp: 0, credits: 3 });
-                updatePlayerLobby();
-            }
-        })
-        .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-                console.log(`Successfully subscribed to channel: ${channelName}`);
-                hostLobbyView.classList.remove('hidden');
-            } else if (status === 'CHANNEL_ERROR') {
-                alert('Kunne ikke koble til spill-kanalen. Prøv å laste siden på nytt.');
-            }
-        });
+    setupChannelListeners(); // Kaller den nye funksjonen
+
+    gameChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log(`Successfully subscribed to channel: ${channelName}`);
+            hostLobbyView.classList.remove('hidden');
+        } else if (status === 'CHANNEL_ERROR') {
+            alert('Kunne ikke koble til spill-kanalen. Prøv å laste siden på nytt.');
+        }
+    });
 
     startGameBtn.addEventListener('click', handleStartGameClick);
 }
@@ -130,7 +146,6 @@ function handleStartGameClick() {
     console.log("Phase 2: Start Game button clicked. Moving to Spotify Connect.");
     sessionStorage.setItem('mquiz_gamecode', gameCode);
     sessionStorage.setItem('mquiz_players', JSON.stringify(players));
-
     hostLobbyView.classList.add('hidden');
     spotifyConnectView.classList.remove('hidden');
 }
@@ -139,13 +154,10 @@ function handleStartGameClick() {
 // === SPOTIFY AUTHENTICATION FLOW ===
 
 async function redirectToSpotifyLogin() {
-    console.log("Redirecting to Spotify for authentication...");
     const codeVerifier = generateRandomString(128);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     localStorage.setItem('spotify_code_verifier', codeVerifier);
-    
     const redirectUri = window.location.href.split('?')[0];
-
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SPOTIFY_SCOPES.join(' '))}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
     window.location = authUrl;
 }
@@ -159,18 +171,13 @@ async function generateCodeChallenge(codeVerifier) {
 async function fetchSpotifyAccessToken(code) {
     const codeVerifier = localStorage.getItem('spotify_code_verifier');
     if (!codeVerifier) return false;
-
     const redirectUri = window.location.href.split('?')[0];
-
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            client_id: SPOTIFY_CLIENT_ID,
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: redirectUri,
-            code_verifier: codeVerifier,
+            client_id: SPOTIFY_CLIENT_ID, grant_type: 'authorization_code', code: code,
+            redirect_uri: redirectUri, code_verifier: codeVerifier,
         }),
     });
     if (response.ok) {
@@ -179,10 +186,8 @@ async function fetchSpotifyAccessToken(code) {
         localStorage.setItem('spotify_access_token', data.access_token);
         localStorage.setItem('spotify_refresh_token', data.refresh_token);
         localStorage.setItem('spotify_token_expires_at', expiresAt);
-        console.log("Successfully fetched Spotify tokens.");
         return true;
     }
-    console.error("Failed to fetch Spotify tokens.");
     return false;
 }
 
@@ -203,9 +208,7 @@ async function refreshSpotifyToken() {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: refreshToken,
-            client_id: SPOTIFY_CLIENT_ID,
+            grant_type: 'refresh_token', refresh_token: refreshToken, client_id: SPOTIFY_CLIENT_ID,
         }),
     });
     if (!response.ok) { console.error('Could not refresh Spotify token'); return null; }
@@ -226,21 +229,14 @@ async function handleStartFirstRoundClick() {
     hostGameView.classList.remove('hidden');
     gameHeader.classList.remove('hidden');
     hostTurnIndicator.textContent = "Laster Spotify-spiller...";
-
-    // ENDRET: Venter på at SDK-en skal bli klar via vårt globale løfte.
     await spotifySdkReadyPromise;
     console.log("Spotify SDK is confirmed ready via Promise.");
-    
     await initializeSpotifyPlayer();
     await startGameLoop();
 }
 
 function loadSpotifySdk() {
-    if (window.Spotify) {
-        // Hvis SDK allerede er lastet av en eller annen grunn, kall handleren manuelt.
-        window.onSpotifyWebPlaybackSDKReady();
-        return;
-    }
+    if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
     console.log("Dynamically loading Spotify SDK script...");
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
@@ -252,23 +248,15 @@ async function initializeSpotifyPlayer() {
     return new Promise(resolve => {
         spotifyPlayer = new Spotify.Player({
             name: 'MQuiz Host',
-            getOAuthToken: async cb => {
-                const token = await getValidSpotifyToken();
-                if (token) cb(token);
-            },
+            getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); },
             volume: 0.5
         });
-
         spotifyPlayer.addListener('ready', ({ device_id }) => {
             console.log('Spotify Player is ready with Device ID:', device_id);
             deviceId = device_id;
             resolve();
         });
-
-        spotifyPlayer.addListener('not_ready', ({ device_id }) => {
-            console.log('Device ID has gone offline:', device_id);
-        });
-        
+        spotifyPlayer.addListener('not_ready', ({ device_id }) => { console.log('Device ID has gone offline:', device_id); });
         spotifyPlayer.connect();
     });
 }
@@ -276,21 +264,18 @@ async function initializeSpotifyPlayer() {
 async function startGameLoop() {
     isGameRunning = true;
     updateHud();
-
     const { data: artists, error: artistError } = await supabaseClient.rpc('get_distinct_artists');
     if (!artistError) autocompleteData.artistList = artists.map(item => item.artist_name);
     const { data: titles, error: titleError } = await supabaseClient.rpc('get_distinct_titles');
     if (!titleError) autocompleteData.titleList = titles.map(item => item.title_name);
-
     const { count } = await supabaseClient.from('songs').select('*', { count: 'exact', head: true });
     totalSongsInDb = count;
-    
     gameChannel.send({ type: 'broadcast', event: 'game_start', payload: { players, ...autocompleteData } });
-    
     await startTurn();
 }
 
 async function startTurn() {
+    players.forEach(p => p.roundHandicap = 0); // Nullstill runde-handicap
     const currentPlayer = players[currentPlayerIndex];
     hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`;
     hostAnswerDisplay.classList.add('hidden');
@@ -317,35 +302,101 @@ async function startTurn() {
     }
 }
 
+// OPPDATERT: Gjeninnfører full poenglogikk
 async function handleAnswer(payload) {
+    console.log("Answer received:", payload);
     await pauseTrack();
+    
     const { name, artist, title, year } = payload.payload;
     const respondingPlayer = players.find(p => p.name === name);
     if (!respondingPlayer) return;
 
+    const artistGuess = normalizeString(artist);
+    const titleGuess = normalizeString(title);
+    const yearGuess = parseInt(year, 10);
+    const correctArtistNorm = normalizeString(currentSong.artist);
+    const correctTitleNorm = normalizeString(currentSong.title);
+    const correctYear = currentSong.year;
+
+    let roundSp = 0, roundCredits = 0, feedbackMessages = [];
+
+    const artistIsCorrect = artistGuess !== '' && artistGuess === correctArtistNorm;
+    const titleIsCorrect = titleGuess !== '' && titleGuess === correctTitleNorm;
+
+    if (artistIsCorrect && titleIsCorrect) {
+        roundCredits += 3;
+        feedbackMessages.push("Artist & Tittel: +3 credits!");
+    } else {
+        if (artistIsCorrect) { roundCredits += 1; feedbackMessages.push("Artist: +1 credit!"); }
+        if (titleIsCorrect) { roundCredits += 1; feedbackMessages.push("Tittel: +1 credit!"); }
+    }
+
+    if (!isNaN(yearGuess)) {
+        const totalHandicap = respondingPlayer.handicap + respondingPlayer.roundHandicap;
+        if (yearGuess === correctYear) {
+            roundCredits += 3;
+            feedbackMessages.push("Perfekt år: +3 credits!");
+        }
+        if (Math.abs(yearGuess - correctYear) <= totalHandicap) {
+            roundSp += 1;
+            feedbackMessages.push("Årstall: +1 SP!");
+        }
+        receivedYearRange.textContent = `${yearGuess} (${yearGuess - totalHandicap} - ${yearGuess + totalHandicap})`;
+    } else {
+        receivedYearRange.textContent = 'Ikke besvart';
+    }
+
+    respondingPlayer.sp += roundSp;
+    respondingPlayer.credits += roundCredits;
+    const feedbackText = feedbackMessages.length > 0 ? `${name}: ${feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
+
+    // Vis mottatt svar og fasit
     receivedArtist.textContent = artist || 'Ikke besvart';
     receivedTitle.textContent = title || 'Ikke besvart';
     receivedYear.textContent = year || 'Ikke besvart';
-    receivedYearRange.textContent = '';
     hostAnswerDisplay.classList.remove('hidden');
-
-    const artistIsCorrect = normalizeString(artist) === normalizeString(currentSong.artist);
-    const titleIsCorrect = normalizeString(title) === normalizeString(currentSong.title);
-    
-    let feedbackText = `${name} gjettet.`;
 
     fasitAlbumArt.src = currentSong.albumarturl || '';
     fasitArtist.textContent = currentSong.artist;
     fasitTitle.textContent = currentSong.title;
     fasitYear.textContent = currentSong.year;
-    
     hostSongDisplay.classList.add('hidden');
     hostFasitDisplay.classList.remove('hidden');
     nextTurnBtn.classList.remove('hidden');
     
-    gameChannel.send({ type: 'broadcast', event: 'round_result', payload: { players, feedback: feedbackText, song: currentSong } });
+    // Send resultat til klientene og oppdater HUD
+    gameChannel.send({ type: 'broadcast', event: 'round_result', payload: { players: players, feedback: feedbackText, song: currentSong } });
     updateHud();
 }
+
+// NY: Håndterer kjøp av handicap
+function handleBuyHandicap(payload) {
+    const playerName = payload.payload.name;
+    const player = players.find(p => p.name === playerName);
+    if (player && player.credits > 0) {
+        player.credits--;
+        player.roundHandicap += 2; // Legger til handicap for denne runden
+        hostTurnIndicator.textContent = `${playerName} kjøpte handicap!`;
+        gameChannel.send({ type: 'broadcast', event: 'player_update', payload: { players: players } });
+        updateHud();
+    }
+}
+
+// NY: Håndterer skip av sang
+async function handleSkipSong(payload) {
+    const playerName = payload.payload.name;
+    const player = players.find(p => p.name === playerName);
+    if (player && player.credits > 0) {
+        player.credits--;
+        hostTurnIndicator.textContent = `${playerName} brukte 1 credit for å skippe sangen.`;
+        gameChannel.send({ type: 'broadcast', event: 'player_update', payload: { players: players } });
+        updateHud();
+        await pauseTrack();
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        await startTurn();
+    }
+}
+
 
 async function advanceToNextTurn() {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
@@ -378,14 +429,9 @@ async function pauseTrack() {
 }
 
 async function fetchRandomSong() {
-    if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) {
-        songHistory = [];
-    }
+    if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; }
     const { data, error } = await supabaseClient.rpc('get_random_song', { excluded_ids: songHistory });
-    if (error || !data || !data[0]) {
-        console.error('Could not fetch random song:', error);
-        return null;
-    }
+    if (error || !data || !data[0]) { console.error('Could not fetch random song:', error); return null; }
     return data[0];
 }
 
@@ -429,17 +475,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (success) {
             gameCode = sessionStorage.getItem('mquiz_gamecode');
             const storedPlayers = sessionStorage.getItem('mquiz_players');
-            if (storedPlayers) players = JSON.parse(storedPlayers);
+if (storedPlayers) players = JSON.parse(storedPlayers);
             
             if (gameCode) {
                 const channelName = `game-${gameCode}`;
                 gameChannel = supabaseClient.channel(channelName);
+                setupChannelListeners(); // Kaller den nye funksjonen for å feste lyttere
                 gameChannel.subscribe();
             }
 
-            // ENDRET: Laster SDK-en i bakgrunnen mens brukeren ser "Klar til start"-siden.
             loadSpotifySdk();
-
             hostLobbyView.classList.add('hidden');
             spotifyConnectView.classList.add('hidden');
             readyToPlayView.classList.remove('hidden');
@@ -455,4 +500,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         nextTurnBtn.addEventListener('click', advanceToNextTurn);
     }
 });
-/* Version: #404 */
+/* Version: #405 */
