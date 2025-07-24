@@ -1,4 +1,4 @@
-/* Version: #405 */
+/* Version: #406 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -93,21 +93,15 @@ function normalizeString(str) {
 
 // === LOBBY & GAME SETUP ===
 
-// NY: Sentral funksjon for å feste alle lyttere til kanalen
 function setupChannelListeners() {
     gameChannel
         .on('broadcast', { event: 'player_join' }, (payload) => {
             console.log('Player join received:', payload);
             const newPlayerName = payload.payload.name;
             if (!players.find(p => p.name === newPlayerName)) {
-                // Gjeninnfører full spiller-objekt-opprettelse
                 players.push({
-                    name: newPlayerName,
-                    sp: 0,
-                    credits: 3,
-                    handicap: 5, // Standard handicap
-                    roundHandicap: 0,
-                    stats: { /* Initialiserer stats-objekt */ }
+                    name: newPlayerName, sp: 0, credits: 3, handicap: 5,
+                    roundHandicap: 0, stats: { /* Initialiserer stats-objekt */ }
                 });
                 updatePlayerLobby();
             }
@@ -124,12 +118,9 @@ async function initializeLobby() {
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     gameCodeDisplay.textContent = gameCode;
     gameCodeDisplayPermanent.textContent = gameCode;
-
     const channelName = `game-${gameCode}`;
     gameChannel = supabaseClient.channel(channelName);
-
-    setupChannelListeners(); // Kaller den nye funksjonen
-
+    setupChannelListeners();
     gameChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
             console.log(`Successfully subscribed to channel: ${channelName}`);
@@ -138,7 +129,6 @@ async function initializeLobby() {
             alert('Kunne ikke koble til spill-kanalen. Prøv å laste siden på nytt.');
         }
     });
-
     startGameBtn.addEventListener('click', handleStartGameClick);
 }
 
@@ -275,7 +265,7 @@ async function startGameLoop() {
 }
 
 async function startTurn() {
-    players.forEach(p => p.roundHandicap = 0); // Nullstill runde-handicap
+    players.forEach(p => p.roundHandicap = 0);
     const currentPlayer = players[currentPlayerIndex];
     hostTurnIndicator.textContent = `Venter på svar fra ${currentPlayer.name}...`;
     hostAnswerDisplay.classList.add('hidden');
@@ -302,11 +292,9 @@ async function startTurn() {
     }
 }
 
-// OPPDATERT: Gjeninnfører full poenglogikk
 async function handleAnswer(payload) {
     console.log("Answer received:", payload);
     await pauseTrack();
-    
     const { name, artist, title, year } = payload.payload;
     const respondingPlayer = players.find(p => p.name === name);
     if (!respondingPlayer) return;
@@ -350,7 +338,6 @@ async function handleAnswer(payload) {
     respondingPlayer.credits += roundCredits;
     const feedbackText = feedbackMessages.length > 0 ? `${name}: ${feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
 
-    // Vis mottatt svar og fasit
     receivedArtist.textContent = artist || 'Ikke besvart';
     receivedTitle.textContent = title || 'Ikke besvart';
     receivedYear.textContent = year || 'Ikke besvart';
@@ -364,25 +351,22 @@ async function handleAnswer(payload) {
     hostFasitDisplay.classList.remove('hidden');
     nextTurnBtn.classList.remove('hidden');
     
-    // Send resultat til klientene og oppdater HUD
     gameChannel.send({ type: 'broadcast', event: 'round_result', payload: { players: players, feedback: feedbackText, song: currentSong } });
     updateHud();
 }
 
-// NY: Håndterer kjøp av handicap
 function handleBuyHandicap(payload) {
     const playerName = payload.payload.name;
     const player = players.find(p => p.name === playerName);
     if (player && player.credits > 0) {
         player.credits--;
-        player.roundHandicap += 2; // Legger til handicap for denne runden
+        player.roundHandicap += 2;
         hostTurnIndicator.textContent = `${playerName} kjøpte handicap!`;
         gameChannel.send({ type: 'broadcast', event: 'player_update', payload: { players: players } });
         updateHud();
     }
 }
 
-// NY: Håndterer skip av sang
 async function handleSkipSong(payload) {
     const playerName = payload.payload.name;
     const player = players.find(p => p.name === playerName);
@@ -396,7 +380,6 @@ async function handleSkipSong(payload) {
         await startTurn();
     }
 }
-
 
 async function advanceToNextTurn() {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
@@ -475,12 +458,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (success) {
             gameCode = sessionStorage.getItem('mquiz_gamecode');
             const storedPlayers = sessionStorage.getItem('mquiz_players');
-if (storedPlayers) players = JSON.parse(storedPlayers);
+            if (storedPlayers) players = JSON.parse(storedPlayers);
             
             if (gameCode) {
                 const channelName = `game-${gameCode}`;
                 gameChannel = supabaseClient.channel(channelName);
-                setupChannelListeners(); // Kaller den nye funksjonen for å feste lyttere
+                setupChannelListeners();
                 gameChannel.subscribe();
             }
 
@@ -497,7 +480,9 @@ if (storedPlayers) players = JSON.parse(storedPlayers);
     } else {
         await initializeLobby();
         spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
-        nextTurnBtn.addEventListener('click', advanceToNextTurn);
     }
+    
+    // ENDRET: Denne er flyttet ut av if/else-blokken for å sikre at den alltid kjører.
+    nextTurnBtn.addEventListener('click', advanceToNextTurn);
 });
-/* Version: #405 */
+/* Version: #406 */
