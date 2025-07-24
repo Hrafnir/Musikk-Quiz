@@ -1,4 +1,4 @@
-/* Version: #431 */
+/* Version: #432 (Diagnostic) */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -124,6 +124,7 @@ async function checkForActiveGame() {
 }
 
 async function resumeGame(gameData) {
+    console.log("[DIAGNOSTIC] Resuming game. Status:", gameData.status);
     gameCode = gameData.game_code;
     const gameState = gameData.game_state;
     players = gameState.players || [];
@@ -139,7 +140,6 @@ async function resumeGame(gameData) {
     await setupChannel(); 
 
     if (gameData.status === 'in_progress') {
-        // Gå rett inn i spillet
         hostLobbyView.classList.add('hidden');
         spotifyConnectView.classList.add('hidden');
         readyToPlayView.classList.add('hidden');
@@ -154,6 +154,7 @@ async function resumeGame(gameData) {
 // === LOBBY & GAME SETUP ===
 
 async function initializeLobby() {
+    console.log("[DIAGNOSTIC] Initializing new lobby.");
     localStorage.removeItem('mquiz_host_gamecode');
     localStorage.removeItem('mquiz_host_id');
 
@@ -222,22 +223,21 @@ async function setupChannel() {
     });
 }
 
-// ENDRET: Sjekker nå for Spotify-token
 async function handleStartGameClick() {
+    console.log("[DIAGNOSTIC] handleStartGameClick called.");
     const token = await getValidSpotifyToken();
     if (token) {
-        // Har allerede token, kan starte spillet direkte
+        console.log("[DIAGNOSTIC] Valid Spotify token found. Starting game directly.");
         await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
         hostLobbyView.classList.add('hidden');
         await handleStartFirstRoundClick();
     } else {
-        // Trenger token, send til Spotify
+        console.log("[DIAGNOSTIC] No valid Spotify token. Showing connect view.");
         hostLobbyView.classList.add('hidden');
         spotifyConnectView.classList.remove('hidden');
     }
 }
 
-// NY FUNKSJON
 async function forceNewGame() {
     if (confirm("Er du sikker på at du vil avslutte dette spillet og starte et nytt?")) {
         await supabaseClient.from('games').delete().eq('game_code', gameCode);
@@ -251,6 +251,7 @@ async function forceNewGame() {
 // === GAME START & CORE LOOP ===
 
 async function handleStartFirstRoundClick() {
+    console.log("[DIAGNOSTIC] handleStartFirstRoundClick called.");
     await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
     readyToPlayView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
@@ -272,6 +273,7 @@ async function handleStartFirstRoundClick() {
 }
 
 async function startGameLoop() {
+    console.log("[DIAGNOSTIC] startGameLoop called.");
     isGameRunning = true;
     updateHud();
     await updateDatabaseGameState({ isGameRunning: true });
@@ -279,9 +281,10 @@ async function startGameLoop() {
 }
 
 
-// === RUNDE-LOGIKK (full logikk gjeninnført) ===
+// === RUNDE-LOGIKK ===
 
 async function startTurn() {
+    console.log("[DIAGNOSTIC] startTurn called.");
     isSkipTurn = false;
     players.forEach(p => p.roundHandicap = 0);
     potentialAttackers = [];
@@ -504,9 +507,14 @@ function loadSpotifySdk() {
     document.body.appendChild(script);
 }
 async function initializeSpotifyPlayer() {
+    console.log("[DIAGNOSTIC] Initializing Spotify Player...");
     return new Promise(resolve => {
         spotifyPlayer = new Spotify.Player({ name: 'MQuiz Host', getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); }, volume: 0.5 });
-        spotifyPlayer.addListener('ready', ({ device_id }) => { deviceId = device_id; resolve(); });
+        spotifyPlayer.addListener('ready', ({ device_id }) => { 
+            console.log("[DIAGNOSTIC] Spotify Player ready. Device ID:", device_id);
+            deviceId = device_id; 
+            resolve(); 
+        });
         spotifyPlayer.connect();
     });
 }
@@ -516,32 +524,55 @@ async function fetchRandomSong() {
     return data[0];
 }
 async function playTrack(spotifyTrackId) {
-    if (!deviceId) return false;
+    console.log(`[DIAGNOSTIC] playTrack called. Device ID: ${deviceId}, Track ID: ${spotifyTrackId}`);
+    if (!deviceId) {
+        console.error("[DIAGNOSTIC] FATAL: No deviceId, cannot play track.");
+        hostTurnIndicator.textContent = "FEIL: Ingen Spotify-enhet funnet!";
+        return false;
+    }
     const token = await getValidSpotifyToken();
-    if (!token) return false;
+    if (!token) {
+        console.error("[DIAGNOSTIC] FATAL: No valid token, cannot play track.");
+        hostTurnIndicator.textContent = "FEIL: Spotify-token mangler!";
+        return false;
+    }
+    
     await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
     await new Promise(resolve => setTimeout(resolve, 100));
     const trackUri = `spotify:track:${spotifyTrackId}`;
     const url = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
     const response = await fetch(url, { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }), headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+    console.log("[DIAGNOSTIC] Spotify play request sent. Response status:", response.status);
     return response && response.ok;
 }
 async function getValidSpotifyToken() {
     const expiresAt = localStorage.getItem('spotify_token_expires_at');
     const accessToken = localStorage.getItem('spotify_access_token');
-    if (!accessToken || !expiresAt || Date.now() > parseInt(expiresAt) - 300000) { return await refreshSpotifyToken(); }
+    console.log(`[DIAGNOSTIC] getValidSpotifyToken: Found token ending in ...${accessToken?.slice(-5)} which expires at ${new Date(parseInt(expiresAt))}`);
+    if (!accessToken || !expiresAt || Date.now() > parseInt(expiresAt) - 30000) { 
+        console.log("[DIAGNOSTIC] Token is missing or expired, attempting refresh.");
+        return await refreshSpotifyToken(); 
+    }
+    console.log("[DIAGNOSTIC] Token is considered valid.");
     return accessToken;
 }
 async function refreshSpotifyToken() {
     const refreshToken = localStorage.getItem('spotify_refresh_token');
-    if (!refreshToken) return null;
+    if (!refreshToken) {
+        console.error("[DIAGNOSTIC] No refresh token found.");
+        return null;
+    }
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken, client_id: SPOTIFY_CLIENT_ID, }),
     });
-    if (!response.ok) { return null; }
+    if (!response.ok) { 
+        console.error("[DIAGNOSTIC] Failed to refresh token. Status:", response.status);
+        return null; 
+    }
     const data = await response.json();
+    console.log("[DIAGNOSTIC] Token refreshed successfully.");
     localStorage.setItem('spotify_access_token', data.access_token);
     if (data.refresh_token) localStorage.setItem('spotify_refresh_token', data.refresh_token);
     localStorage.setItem('spotify_token_expires_at', Date.now() + data.expires_in * 1000);
@@ -634,4 +665,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-/* Version: #431 */
+/* Version: #432 (Diagnostic) */
