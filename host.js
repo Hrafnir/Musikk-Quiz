@@ -1,4 +1,4 @@
-/* Version: #414 */
+/* Version: #417 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -10,7 +10,8 @@ let hostLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn,
     readyToPlayView, startFirstRoundBtn,
     hostGameView, playerHud, hostTurnIndicator, gameHeader, gameCodeDisplayPermanent,
     hostSongDisplay, hostAnswerDisplay, receivedArtist, receivedTitle, receivedYear, receivedYearRange,
-    hostFasitDisplay, fasitAlbumArt, fasitArtist, fasitTitle, fasitYear, nextTurnBtn;
+    hostFasitDisplay, fasitAlbumArt, fasitArtist, fasitTitle, fasitYear, nextTurnBtn,
+    skipPlayerBtn; // NY
 
 // === STATE ===
 let players = [];
@@ -33,6 +34,7 @@ let declaredAttackers = { besserwisser: [], hijack: [] };
 let besserwisserAnswers = [];
 let hijackBids = [];
 let roundFeedback = { main: "", attack: "" };
+let isSkipTurn = false; // NY
 
 
 let resolveSpotifySdkReady;
@@ -41,14 +43,12 @@ const spotifySdkReadyPromise = new Promise(resolve => {
 });
 
 window.onSpotifyWebPlaybackSDKReady = () => {
-    console.log("Global: onSpotifyWebPlaybackSDKReady has been called by the SDK.");
     if (resolveSpotifySdkReady) {
         resolveSpotifySdkReady();
     }
 };
 
-// === UTILITY & HELPERS ===
-
+// === UTILITY & HELPERS (uendret) ===
 function generateRandomString(length) {
     let text = '';
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -57,7 +57,6 @@ function generateRandomString(length) {
     }
     return text;
 }
-
 function updatePlayerLobby() {
     if (!playerLobbyList) return;
     playerLobbyList.innerHTML = '';
@@ -74,7 +73,6 @@ function updatePlayerLobby() {
         startGameBtn.textContent = 'Venter på spillere...';
     }
 }
-
 function updateHud() {
     if (!playerHud) return;
     playerHud.innerHTML = '';
@@ -88,7 +86,6 @@ function updateHud() {
         playerHud.appendChild(playerInfoDiv);
     });
 }
-
 function normalizeString(str) {
     if (!str) return '';
     return str
@@ -102,7 +99,6 @@ function normalizeString(str) {
 
 
 // === LOBBY & GAME SETUP ===
-
 function setupChannelListeners() {
     gameChannel
         .on('broadcast', { event: 'player_join' }, (payload) => {
@@ -117,12 +113,11 @@ function setupChannelListeners() {
         })
         .on('broadcast', { event: 'submit_answer' }, handleAnswer)
         .on('broadcast', { event: 'buy_handicap' }, handleBuyHandicap)
-        .on('broadcast', { event: 'skip_song' }, handleSkipSong)
+        .on('broadcast', { event: 'skip_song' }, handleSkipSong) // Endret logikk
         .on('broadcast', { event: 'declare_besserwisser' }, (payload) => {
             const playerName = payload.payload.name;
             if (potentialAttackers.includes(playerName) && !declaredAttackers.besserwisser.includes(playerName)) {
                 declaredAttackers.besserwisser.push(playerName);
-                console.log(`${playerName} declared Besserwisser.`);
                 checkAttackDeclarations();
             }
         })
@@ -130,23 +125,18 @@ function setupChannelListeners() {
             const playerName = payload.payload.name;
             if (potentialAttackers.includes(playerName) && !declaredAttackers.hijack.includes(playerName)) {
                 declaredAttackers.hijack.push(playerName);
-                console.log(`${playerName} declared Hijack.`);
                 checkAttackDeclarations();
             }
         })
         .on('broadcast', { event: 'submit_besserwisser' }, (payload) => {
             besserwisserAnswers.push(payload.payload);
-            console.log('Besserwisser answer received:', payload.payload);
             checkAttackSubmissions();
         })
         .on('broadcast', { event: 'submit_hijack' }, (payload) => {
             hijackBids.push(payload.payload);
-            console.log('Hijack bid received:', payload.payload);
             checkAttackSubmissions();
         });
-    console.log("Channel listeners are now active.");
 }
-
 async function initializeLobby() {
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     gameCodeDisplay.textContent = gameCode;
@@ -163,7 +153,6 @@ async function initializeLobby() {
     });
     startGameBtn.addEventListener('click', handleStartGameClick);
 }
-
 function handleStartGameClick() {
     sessionStorage.setItem('mquiz_gamecode', gameCode);
     sessionStorage.setItem('mquiz_players', JSON.stringify(players));
@@ -172,7 +161,7 @@ function handleStartGameClick() {
 }
 
 
-// === SPOTIFY AUTHENTICATION FLOW ===
+// === SPOTIFY AUTHENTICATION FLOW (uendret) ===
 async function redirectToSpotifyLogin() {
     const codeVerifier = generateRandomString(128);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -233,7 +222,7 @@ async function refreshSpotifyToken() {
 }
 
 
-// === GAME START & CORE LOOP ===
+// === GAME START & CORE LOOP (uendret) ===
 async function handleStartFirstRoundClick() {
     readyToPlayView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
@@ -278,6 +267,7 @@ async function startGameLoop() {
 // === RUNDE-LOGIKK ===
 
 async function startTurn() {
+    isSkipTurn = false;
     players.forEach(p => p.roundHandicap = 0);
     potentialAttackers = [];
     declaredAttackers = { besserwisser: [], hijack: [] };
@@ -498,21 +488,42 @@ function handleBuyHandicap(payload) {
     }
 }
 
-async function handleSkipSong(payload) {
+// NY: Håndterer "Skip Spiller"-knappen fra host
+function handleSkipPlayer() {
+    if (!isGameRunning) return;
+    const skippedPlayer = players[currentPlayerIndex].name;
+    roundFeedback.main = `${skippedPlayer} ble hoppet over av hosten.`;
+    isSkipTurn = false; // Sikrer at vi går til neste spiller
+    triggerAttackPhaseFromSkip();
+}
+
+// NY: Håndterer "Skip Sang"-melding fra klient
+function handleSkipSong(payload) {
     const playerName = payload.payload.name;
     const player = players.find(p => p.name === playerName);
     if (player && player.credits > 0) {
         player.credits--;
-        hostTurnIndicator.textContent = `${playerName} brukte 1 credit for å skippe sangen.`;
-        gameChannel.send({ type: 'broadcast', event: 'player_update', payload: { players: players } });
+        roundFeedback.main = `${playerName} brukte 1 credit for å bytte sang.`;
+        isSkipTurn = true; // Samme spiller får ny tur
+        triggerAttackPhaseFromSkip();
         updateHud();
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        await startTurn();
     }
 }
 
+// NY: Felles funksjon for å starte angrep etter en skip-handling
+function triggerAttackPhaseFromSkip() {
+    hostAnswerDisplay.classList.add('hidden');
+    hostSongDisplay.classList.add('hidden');
+    startAttackPhase(true, true); // Begge angrep er mulige
+}
+
+
+// OPPDATERT: Håndterer nå isSkipTurn
 async function advanceToNextTurn() {
-    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    if (!isSkipTurn) {
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    }
+    // Hvis isSkipTurn er true, forblir currentPlayerIndex den samme
     await startTurn();
 }
 
@@ -543,6 +554,7 @@ async function fetchRandomSong() {
 
 // === MAIN ENTRY POINT ===
 document.addEventListener('DOMContentLoaded', async () => {
+    // DOM-tildeling
     hostLobbyView = document.getElementById('host-lobby-view');
     gameCodeDisplay = document.getElementById('game-code-display');
     playerLobbyList = document.getElementById('player-lobby-list');
@@ -568,6 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     fasitTitle = document.getElementById('fasit-title');
     fasitYear = document.getElementById('fasit-year');
     nextTurnBtn = document.getElementById('next-turn-btn');
+    skipPlayerBtn = document.getElementById('skip-player-btn'); // NY
 
     const spotifyCode = new URLSearchParams(window.location.search).get('code');
 
@@ -600,6 +613,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initializeLobby();
         spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
     }
+    
+    // Fester lyttere til knapper som er tilstede uansett
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
+    skipPlayerBtn.addEventListener('click', handleSkipPlayer);
 });
-/* Version: #414 */
+/* Version: #417 */
