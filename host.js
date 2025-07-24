@@ -1,4 +1,4 @@
-/* Version: #433 */
+/* Version: #434 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -41,7 +41,6 @@ const spotifySdkReadyPromise = new Promise(resolve => {
     resolveSpotifySdkReady = resolve;
 });
 window.onSpotifyWebPlaybackSDKReady = () => {
-    console.log("[DIAGNOSTIC] window.onSpotifyWebPlaybackSDKReady has been called.");
     if (resolveSpotifySdkReady) resolveSpotifySdkReady();
 };
 
@@ -247,17 +246,13 @@ async function forceNewGame() {
 // === GAME START & CORE LOOP ===
 
 async function handleStartFirstRoundClick() {
-    console.log("[DIAGNOSTIC] handleStartFirstRoundClick called.");
     await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
     readyToPlayView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
     gameHeader.classList.remove('hidden');
     hostTurnIndicator.textContent = "Laster Spotify-spiller...";
     
-    console.log("[DIAGNOSTIC] Waiting for Spotify SDK Promise...");
     await spotifySdkReadyPromise;
-    console.log("[DIAGNOSTIC] Spotify SDK Promise resolved.");
-    
     await initializeSpotifyPlayer();
     
     if (isGameRunning && currentSong) {
@@ -309,7 +304,13 @@ async function startTurn() {
         if (playbackSuccess) {
             hostSongDisplay.innerHTML = '<h2>Sangen spilles...</h2>';
             gameChannel.send({ type: 'broadcast', event: 'new_turn', payload: { name: currentPlayer.name } });
+        } else {
+            hostTurnIndicator.textContent = "Avspilling feilet. Prøver neste runde...";
+            setTimeout(advanceToNextTurn, 2000);
         }
+    } else {
+        hostTurnIndicator.textContent = "Klarte ikke hente sang. Prøver neste runde...";
+        setTimeout(advanceToNextTurn, 2000);
     }
 }
 
@@ -498,7 +499,6 @@ async function advanceToNextTurn() {
 // === SPOTIFY & OTHER HELPERS ===
 function loadSpotifySdk() {
     if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
-    console.log("[DIAGNOSTIC] Loading Spotify SDK script...");
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
     script.async = true;
@@ -593,9 +593,8 @@ async function main() {
     await checkForActiveGame();
 }
 
-// === MAIN ENTRY POINT ===
-document.addEventListener('DOMContentLoaded', async () => {
-    // DOM-tildeling
+// NY: Sentral funksjon for å tildele DOM-elementer
+function assignDomElements() {
     hostLobbyView = document.getElementById('host-lobby-view');
     gameCodeDisplay = document.getElementById('game-code-display');
     playerLobbyList = document.getElementById('player-lobby-list');
@@ -610,8 +609,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     hostTurnIndicator = document.getElementById('host-turn-indicator');
     gameHeader = document.getElementById('game-header');
     gameCodeDisplayPermanent = document.getElementById('game-code-display-permanent');
+    hostSongDisplay = document.getElementById('host-song-display');
+    hostAnswerDisplay = document.getElementById('host-answer-display');
+    receivedArtist = document.getElementById('received-artist');
+    receivedTitle = document.getElementById('received-title');
+    receivedYear = document.getElementById('received-year');
+    receivedYearRange = document.getElementById('received-year-range');
+    hostFasitDisplay = document.getElementById('host-fasit-display');
+    fasitAlbumArt = document.getElementById('fasit-album-art');
+    fasitArtist = document.getElementById('fasit-artist');
+    fasitTitle = document.getElementById('fasit-title');
+    fasitYear = document.getElementById('fasit-year');
     nextTurnBtn = document.getElementById('next-turn-btn');
     skipPlayerBtn = document.getElementById('skip-player-btn');
+}
+
+// === MAIN ENTRY POINT ===
+document.addEventListener('DOMContentLoaded', async () => {
+    assignDomElements(); // Kjør denne FØRST
 
     // Felles lyttere
     startGameBtn.addEventListener('click', handleStartGameClick);
@@ -621,7 +636,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
     skipPlayerBtn.addEventListener('click', handleSkipPlayer);
     
-    // ENDRET: Laster SDK-en proaktivt
     loadSpotifySdk();
 
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -640,4 +654,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-/* Version: #433 */
+/* Version: #434 */
