@@ -1,4 +1,4 @@
-<!-- Version: #430 -->
+<!-- Version: #435 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -17,8 +17,16 @@
             <strong id="game-code-display-permanent">...</strong>
         </div>
 
+        <!-- NY VISNING: Spør om å gjenoppta spill -->
+        <div id="resume-game-view" class="hidden">
+            <h1>Aktivt spill funnet!</h1>
+            <p>Vil du fortsette spillet med kode <strong id="resume-game-code">...</strong>?</p>
+            <button id="resume-btn" style="margin-bottom: 15px;">Fortsett Spill</button>
+            <button id="force-new-from-resume-btn" class="small-btn" style="background-color: #555;">Start et helt nytt spill</button>
+        </div>
+
         <!-- FASE 1: LOBBY-VISNING -->
-        <div id="host-lobby-view">
+        <div id="host-lobby-view" class="hidden">
             <h1>MQuiz Lobby</h1>
             <div id="lobby-info">
                 <p>Be spillerne gå til riktig side og taste inn koden:</p>
@@ -43,7 +51,6 @@
             <h1 style="color: #1DB954;">✓ Spotify er tilkoblet!</h1>
             <p>Spillerne er klare. Trykk start for å begynne første runde.</p>
             <button id="start-first-round-btn" style="margin-bottom: 15px;">Start Første Runde</button>
-            <!-- NY KNAPP -->
             <button id="force-new-game-btn" class="small-btn" style="background-color: #555;">Start et helt nytt spill</button>
         </div>
 
@@ -85,4 +92,4 @@
     <script src="host.js"></script>
 </body>
 </html>
-<!-- Version: #430 -->
+<!-- Version: #435 -->
