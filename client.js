@@ -1,4 +1,4 @@
-/* Version: #395 */
+/* Version: #409 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -20,35 +20,52 @@ let gameChannel = null, myName = '', players = [], currentPlayerName = '', attac
 // === FUNKSJONER ===
 function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
 function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
+
+// Skjul alle hovedvisninger for å unngå overlapp
+function hideAllViews() {
+    myTurnView.classList.add('hidden');
+    waitingForOthersView.classList.add('hidden');
+    roundSummaryView.classList.add('hidden');
+    attackView.classList.add('hidden');
+    besserwisserInputView.classList.add('hidden');
+    hijackInputView.classList.add('hidden');
+}
+
 function submitAnswer() {
     const answer = { name: myName, artist: artistGuessInput.value.trim(), title: titleGuessInput.value.trim(), year: yearGuessInput.value.trim() };
     gameChannel.send({ type: 'broadcast', event: 'submit_answer', payload: answer });
-    myTurnView.classList.add('hidden');
+    hideAllViews();
     waitingStatus.textContent = "Svaret ditt er sendt! Venter på resultat...";
     waitingForOthersView.classList.remove('hidden');
 }
 function buyHandicap() { gameChannel.send({ type: 'broadcast', event: 'buy_handicap', payload: { name: myName } }); }
 function skipSong() { gameChannel.send({ type: 'broadcast', event: 'skip_song', payload: { name: myName } }); }
-function chooseAttack(choice) {
-    attackView.classList.add('hidden');
-    gameChannel.send({ type: 'broadcast', event: 'choose_attack', payload: { name: myName, choice } });
+
+// ENDRET: Sender nå 'declare' melding, ikke 'choose'
+function declareAttack(choice) {
+    hideAllViews();
     if (choice === 'besserwisser') {
-        besserwisserInputView.classList.remove('hidden');
+        gameChannel.send({ type: 'broadcast', event: 'declare_besserwisser', payload: { name: myName } });
+        waitingStatus.textContent = "Besserwisser-intensjon registrert! Venter på at alle skal bestemme seg...";
     } else if (choice === 'hijack') {
-        hijackInputView.classList.remove('hidden');
+        gameChannel.send({ type: 'broadcast', event: 'declare_hijack', payload: { name: myName } });
+        waitingStatus.textContent = "Hijack-intensjon registrert! Venter på at alle skal bestemme seg...";
     }
+    waitingForOthersView.classList.remove('hidden');
 }
+
 function submitBesserwisser() {
     const answer = { name: myName, artist: besserwisserArtistInput.value.trim(), title: besserwisserTitleInput.value.trim() };
     gameChannel.send({ type: 'broadcast', event: 'submit_besserwisser', payload: answer });
-    besserwisserInputView.classList.add('hidden');
+    hideAllViews();
     waitingStatus.textContent = "Besserwisser-svar sendt! Venter på resultat...";
     waitingForOthersView.classList.remove('hidden');
 }
+
 function submitHijack() {
     const bid = parseInt(hijackBidInput.value, 10);
     const year = parseInt(hijackYearInput.value, 10);
-    const myCredits = players.find(p => p.name === myName).credits;
+    const myCredits = players.find(p => p.name === myName)?.credits || 0;
     if (isNaN(bid) || bid <= 0 || bid > myCredits) {
         alert(`Ugyldig bud. Du må by mellom 1 og ${myCredits} credits.`);
         return;
@@ -59,14 +76,13 @@ function submitHijack() {
     }
     const bidData = { name: myName, bid, year };
     gameChannel.send({ type: 'broadcast', event: 'submit_hijack', payload: bidData });
-    hijackInputView.classList.add('hidden');
+    hideAllViews();
     waitingStatus.textContent = "Hijack-bud sendt! Venter på resultat...";
     waitingForOthersView.classList.remove('hidden');
 }
 function handleNewGameLink(event) {
     event.preventDefault();
-    const confirmed = confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?");
-    if (confirmed) {
+    if (confirm("Er du sikker på at du vil forlate dette spillet og starte på nytt?")) {
         localStorage.removeItem('mquiz_gamecode');
         localStorage.removeItem('mquiz_playername');
         window.location.reload();
@@ -88,28 +104,33 @@ async function joinGame(code, name) {
         populateAutocompleteLists(artistList, titleList);
         updateHud();
     });
+
     gameChannel.on('broadcast', { event: 'new_turn' }, (payload) => {
         clearInterval(attackInterval);
+        hideAllViews();
         currentPlayerName = payload.payload.name;
         if (players.length > 0) updateHud();
-        roundSummaryView.classList.add('hidden');
-        attackView.classList.add('hidden');
+
         if (currentPlayerName === myName) {
-            waitingForOthersView.classList.add('hidden');
             myTurnView.classList.remove('hidden');
             artistGuessInput.value = ''; titleGuessInput.value = ''; yearGuessInput.value = '';
         } else {
-            myTurnView.classList.add('hidden');
             waitingStatus.textContent = `Venter på ${currentPlayerName}...`;
             waitingForOthersView.classList.remove('hidden');
         }
     });
+
+    // NY: Lytter for starten på angrepsfasen (10s beslutning)
     gameChannel.on('broadcast', { event: 'attack_phase_start' }, (payload) => {
+        // Gjelder ikke for spilleren som nettopp svarte
         if (myName === payload.payload.attacker) return;
-        waitingForOthersView.classList.add('hidden');
+        
+        hideAllViews();
         attackView.classList.remove('hidden');
+        attackPromptText.textContent = `${payload.payload.attacker} svarte feil! Velg angrep:`;
         besserwisserBtn.classList.toggle('hidden', !payload.payload.canBesserwiss);
         hijackBtn.classList.toggle('hidden', !payload.payload.canHijack);
+        
         let timeLeft = 10;
         attackTimer.textContent = timeLeft;
         attackInterval = setInterval(() => {
@@ -117,29 +138,48 @@ async function joinGame(code, name) {
             attackTimer.textContent = timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(attackInterval);
-                attackView.classList.add('hidden');
+                hideAllViews();
                 waitingStatus.textContent = "Angrepstiden er ute! Venter på resultat...";
                 waitingForOthersView.classList.remove('hidden');
             }
         }, 1000);
     });
+
+    // NYE: Lyttere for utførelsesfasen
+    gameChannel.on('broadcast', { event: 'execute_besserwisser' }, (payload) => {
+        if (payload.payload.players.includes(myName)) {
+            clearInterval(attackInterval);
+            hideAllViews();
+            besserwisserInputView.classList.remove('hidden');
+        }
+    });
+    gameChannel.on('broadcast', { event: 'execute_hijack' }, (payload) => {
+        if (payload.payload.players.includes(myName)) {
+            clearInterval(attackInterval);
+            hideAllViews();
+            hijackInputView.classList.remove('hidden');
+        }
+    });
+
+
+    // OPPDATERT: Lytter for det endelige resultatet
     gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
         clearInterval(attackInterval);
+        hideAllViews();
+        
         const { players: newPlayers, feedback, song, attackResultsHTML } = payload.payload;
         players = newPlayers;
         updateHud();
+        
         clientFasitAlbumArt.src = song.albumarturl || '';
         clientFasitArtist.textContent = song.artist;
         clientFasitTitle.textContent = song.title;
         clientFasitYear.textContent = song.year;
-        clientRoundFeedback.innerHTML = `<p>${feedback}</p>${attackResultsHTML}`;
-        myTurnView.classList.add('hidden');
-        waitingForOthersView.classList.add('hidden');
-        attackView.classList.add('hidden');
-        besserwisserInputView.classList.add('hidden');
-        hijackInputView.classList.add('hidden');
+        clientRoundFeedback.innerHTML = `<p>${feedback}</p>${attackResultsHTML || ''}`;
+        
         roundSummaryView.classList.remove('hidden');
     });
+
     gameChannel.on('broadcast', { event: 'player_update' }, (payload) => {
         players = payload.payload.players;
         const { artistList, titleList } = payload.payload;
@@ -231,9 +271,9 @@ document.addEventListener('DOMContentLoaded', () => {
     newGameLink.addEventListener('click', handleNewGameLink);
     buyHandicapBtn.addEventListener('click', buyHandicap);
     skipSongBtn.addEventListener('click', skipSong);
-    besserwisserBtn.addEventListener('click', () => chooseAttack('besserwisser'));
-    hijackBtn.addEventListener('click', () => chooseAttack('hijack'));
+    besserwisserBtn.addEventListener('click', () => declareAttack('besserwisser'));
+    hijackBtn.addEventListener('click', () => declareAttack('hijack'));
     submitBesserwisserBtn.addEventListener('click', submitBesserwisser);
     submitHijackBtn.addEventListener('click', submitHijack);
 });
-/* Version: #395 */
+/* Version: #409 */
