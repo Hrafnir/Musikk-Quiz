@@ -1,4 +1,4 @@
-/* Version: #422 */
+/* Version: #423 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -95,13 +95,12 @@ async function resumeGame(gameData) {
 
     await setupChannel(); 
 
-    // ENDRET: Viser kun "Klar"-skjerm hvis spillet faktisk er i gang
     if (gameData.status === 'in_progress') {
         hostLobbyView.classList.add('hidden');
         spotifyConnectView.classList.add('hidden');
         readyToPlayView.classList.remove('hidden');
-        loadSpotifySdk(); // Last SDK i bakgrunnen
-    } else { // 'lobby'
+        loadSpotifySdk();
+    } else {
         hostLobbyView.classList.remove('hidden');
         spotifyConnectView.classList.add('hidden');
         readyToPlayView.classList.add('hidden');
@@ -113,6 +112,10 @@ async function resumeGame(gameData) {
 
 async function initializeLobby() {
     console.log("Initializing new lobby...");
+    // Tømmer gammel info for å sikre en ren start
+    localStorage.removeItem('mquiz_host_gamecode');
+    localStorage.removeItem('mquiz_host_id');
+
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     
     const initialGameState = { players: [], currentPlayerIndex: 0, isGameRunning: false, songHistory: [], currentSong: null, isSkipTurn: false };
@@ -148,7 +151,6 @@ async function initializeLobby() {
 
 async function setupChannel() {
     const channelName = `game-${gameCode}`;
-    // Hvis kanalen allerede eksisterer, fjern den for å unngå dupliserte lyttere
     if (gameChannel) {
         supabaseClient.removeChannel(gameChannel);
     }
@@ -356,7 +358,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     hostTurnIndicator = document.getElementById('host-turn-indicator');
     gameHeader = document.getElementById('game-header');
     gameCodeDisplayPermanent = document.getElementById('game-code-display-permanent');
-    // ...
     nextTurnBtn = document.getElementById('next-turn-btn');
     skipPlayerBtn = document.getElementById('skip-player-btn');
 
@@ -366,32 +367,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
     
-    // Hovedflyt styres nå av auth state
+    // ENDRET: Forenklet og mer robust oppstartslogikk
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
             user = session.user;
-            console.log("User is logged in:", user.email);
-            
-            // Sjekk for spotify-kode i URL for å fullføre auth-flyt
+            console.log("User session detected:", user.email);
+
             const urlParams = new URLSearchParams(window.location.search);
             const spotifyCode = urlParams.get('code');
+
             if (spotifyCode) {
+                console.log("Spotify code found in URL, processing...");
                 await fetchSpotifyAccessToken(spotifyCode);
-                // Fjern kode fra URL og last siden på nytt for en ren tilstand
-                window.history.replaceState(null, '', window.location.pathname);
+                // Last siden på nytt uten URL-parametere for en ren tilstand
+                window.location.replace(window.location.pathname);
+            } else {
+                // Ingen spotify-kode, fortsett med normal sjekk
+                await checkForActiveGame();
             }
-
-            await checkForActiveGame();
-
         } else {
             user = null;
-            console.log("User is not logged in. Redirecting to index.html...");
-            // Omdiriger til hovedsiden for innlogging hvis brukeren ikke er autentisert
-            // og det ikke er en aktiv spotify-auth-flyt.
-            if (!window.location.search.includes('code=')) {
-                window.location.href = 'index.html';
-            }
+            console.log("No user session. Redirecting to index.html...");
+            window.location.href = 'index.html';
         }
     });
 });
-/* Version: #422 */
+/* Version: #423 */
