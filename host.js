@@ -1,4 +1,4 @@
-/* Version: #434 */
+/* Version: #436 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -11,7 +11,8 @@ let hostLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn,
     hostGameView, playerHud, hostTurnIndicator, gameHeader, gameCodeDisplayPermanent,
     hostSongDisplay, hostAnswerDisplay, receivedArtist, receivedTitle, receivedYear, receivedYearRange,
     hostFasitDisplay, fasitAlbumArt, fasitArtist, fasitTitle, fasitYear, nextTurnBtn,
-    skipPlayerBtn;
+    skipPlayerBtn,
+    resumeGameView, resumeGameCode, resumeBtn, forceNewFromResumeBtn; // NYE
 
 // === STATE ===
 let user = null;
@@ -25,6 +26,7 @@ let songHistory = [];
 let isGameRunning = false;
 let currentPlayerIndex = 0;
 let isSkipTurn = false;
+let activeGameData = null; // NY: For å holde på data for gjenopptak
 
 // === Angrepsfase State ===
 let attackPhaseTimer = null;
@@ -92,6 +94,14 @@ function normalizeString(str) {
     return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.,/#!$%^&*;:{}=\-_`~()']/g, "").replace(/\s+/g, ' ').trim();
 }
 
+function hideAllViews() {
+    hostLobbyView.classList.add('hidden');
+    spotifyConnectView.classList.add('hidden');
+    readyToPlayView.classList.add('hidden');
+    hostGameView.classList.add('hidden');
+    resumeGameView.classList.add('hidden');
+}
+
 
 // === DATABASE INTERACTIONS ===
 
@@ -105,6 +115,7 @@ async function updateDatabaseGameState(newState) {
     if (error) console.error("Error updating game state in DB:", error);
 }
 
+// ENDRET: Viser nå dialog i stedet for å automatisk gjenoppta
 async function checkForActiveGame() {
     const localGameCode = localStorage.getItem('mquiz_host_gamecode');
     const localHostId = localStorage.getItem('mquiz_host_id');
@@ -117,10 +128,23 @@ async function checkForActiveGame() {
     try {
         const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
         if (error || !data) throw new Error(error?.message || "Game not found");
-        await resumeGame(data);
+        
+        // Fant et aktivt spill, vis dialog
+        activeGameData = data; // Lagre data for senere bruk
+        hideAllViews();
+        resumeGameCode.textContent = data.game_code;
+        resumeGameView.classList.remove('hidden');
+
     } catch (e) {
         await initializeLobby();
     }
+}
+
+// NY: Håndterer klikk på "Fortsett Spill"
+async function handleResumeClick() {
+    if (!activeGameData) return;
+    hideAllViews();
+    await resumeGame(activeGameData);
 }
 
 async function resumeGame(gameData) {
@@ -139,9 +163,6 @@ async function resumeGame(gameData) {
     await setupChannel(); 
 
     if (gameData.status === 'in_progress') {
-        hostLobbyView.classList.add('hidden');
-        spotifyConnectView.classList.add('hidden');
-        readyToPlayView.classList.add('hidden');
         await handleStartFirstRoundClick();
     } else { // 'lobby'
         hostLobbyView.classList.remove('hidden');
@@ -153,6 +174,7 @@ async function resumeGame(gameData) {
 // === LOBBY & GAME SETUP ===
 
 async function initializeLobby() {
+    hideAllViews();
     localStorage.removeItem('mquiz_host_gamecode');
     localStorage.removeItem('mquiz_host_id');
 
@@ -175,8 +197,6 @@ async function initializeLobby() {
     await setupChannel(); 
     
     hostLobbyView.classList.remove('hidden');
-    spotifyConnectView.classList.add('hidden');
-    readyToPlayView.classList.add('hidden');
     updatePlayerLobby();
 }
 
@@ -225,20 +245,18 @@ async function handleStartGameClick() {
     const token = await getValidSpotifyToken();
     if (token) {
         await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
-        hostLobbyView.classList.add('hidden');
+        hideAllViews();
         await handleStartFirstRoundClick();
     } else {
-        hostLobbyView.classList.add('hidden');
+        hideAllViews();
         spotifyConnectView.classList.remove('hidden');
     }
 }
 
 async function forceNewGame() {
     if (confirm("Er du sikker på at du vil avslutte dette spillet og starte et nytt?")) {
-        await supabaseClient.from('games').delete().eq('game_code', gameCode);
-        localStorage.removeItem('mquiz_host_gamecode');
-        localStorage.removeItem('mquiz_host_id');
-        window.location.reload();
+        await supabaseClient.from('games').delete().eq('game_code', gameCode).not('game_code', 'is', null);
+        await initializeLobby();
     }
 }
 
@@ -247,7 +265,7 @@ async function forceNewGame() {
 
 async function handleStartFirstRoundClick() {
     await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
-    readyToPlayView.classList.add('hidden');
+    hideAllViews();
     hostGameView.classList.remove('hidden');
     gameHeader.classList.remove('hidden');
     hostTurnIndicator.textContent = "Laster Spotify-spiller...";
@@ -593,7 +611,6 @@ async function main() {
     await checkForActiveGame();
 }
 
-// NY: Sentral funksjon for å tildele DOM-elementer
 function assignDomElements() {
     hostLobbyView = document.getElementById('host-lobby-view');
     gameCodeDisplay = document.getElementById('game-code-display');
@@ -622,17 +639,23 @@ function assignDomElements() {
     fasitYear = document.getElementById('fasit-year');
     nextTurnBtn = document.getElementById('next-turn-btn');
     skipPlayerBtn = document.getElementById('skip-player-btn');
+    resumeGameView = document.getElementById('resume-game-view');
+    resumeGameCode = document.getElementById('resume-game-code');
+    resumeBtn = document.getElementById('resume-btn');
+    forceNewFromResumeBtn = document.getElementById('force-new-from-resume-btn');
 }
 
 // === MAIN ENTRY POINT ===
 document.addEventListener('DOMContentLoaded', async () => {
-    assignDomElements(); // Kjør denne FØRST
+    assignDomElements();
 
     // Felles lyttere
     startGameBtn.addEventListener('click', handleStartGameClick);
     spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
     forceNewGameBtn.addEventListener('click', forceNewGame);
+    resumeBtn.addEventListener('click', handleResumeClick);
+    forceNewFromResumeBtn.addEventListener('click', forceNewGame);
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
     skipPlayerBtn.addEventListener('click', handleSkipPlayer);
     
@@ -643,7 +666,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         user = session.user;
         await main();
     } else {
-        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event) => {
             if (event === 'SIGNED_IN') {
                 subscription.unsubscribe();
                 window.location.reload();
@@ -654,4 +677,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-/* Version: #434 */
+/* Version: #436 */
