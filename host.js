@@ -1,4 +1,4 @@
-/* Version: #408 */
+/* Version: #411 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -25,13 +25,14 @@ let isGameRunning = false;
 let currentPlayerIndex = 0;
 let autocompleteData = { artistList: [], titleList: [] };
 
-// === NYTT: State for angrepsfasen ===
+// === Angrepsfase State ===
 let attackPhaseTimer = null;
 let executionPhaseTimer = null;
 let potentialAttackers = [];
 let declaredAttackers = { besserwisser: [], hijack: [] };
 let besserwisserAnswers = [];
 let hijackBids = [];
+let roundFeedback = { main: "", attack: "" };
 
 
 let resolveSpotifySdkReady;
@@ -105,12 +106,11 @@ function normalizeString(str) {
 function setupChannelListeners() {
     gameChannel
         .on('broadcast', { event: 'player_join' }, (payload) => {
-            console.log('Player join received:', payload);
             const newPlayerName = payload.payload.name;
             if (!players.find(p => p.name === newPlayerName)) {
                 players.push({
                     name: newPlayerName, sp: 0, credits: 3, handicap: 5,
-                    roundHandicap: 0, stats: { /* Initialiserer stats-objekt */ }
+                    roundHandicap: 0, stats: {}
                 });
                 updatePlayerLobby();
             }
@@ -118,12 +118,12 @@ function setupChannelListeners() {
         .on('broadcast', { event: 'submit_answer' }, handleAnswer)
         .on('broadcast', { event: 'buy_handicap' }, handleBuyHandicap)
         .on('broadcast', { event: 'skip_song' }, handleSkipSong)
-        // NYE LYTTERE FOR ANGREPSFASEN
         .on('broadcast', { event: 'declare_besserwisser' }, (payload) => {
             const playerName = payload.payload.name;
             if (potentialAttackers.includes(playerName) && !declaredAttackers.besserwisser.includes(playerName)) {
                 declaredAttackers.besserwisser.push(playerName);
                 console.log(`${playerName} declared Besserwisser.`);
+                checkAttackDeclarations();
             }
         })
         .on('broadcast', { event: 'declare_hijack' }, (payload) => {
@@ -131,32 +131,23 @@ function setupChannelListeners() {
             if (potentialAttackers.includes(playerName) && !declaredAttackers.hijack.includes(playerName)) {
                 declaredAttackers.hijack.push(playerName);
                 console.log(`${playerName} declared Hijack.`);
+                checkAttackDeclarations();
             }
         })
         .on('broadcast', { event: 'submit_besserwisser' }, (payload) => {
             besserwisserAnswers.push(payload.payload);
             console.log('Besserwisser answer received:', payload.payload);
-            // Sjekk om alle har svart
-            if (besserwisserAnswers.length === declaredAttackers.besserwisser.length) {
-                clearTimeout(executionPhaseTimer); // Avbryt timeren
-                resolveAttackPhase();
-            }
+            checkAttackSubmissions();
         })
         .on('broadcast', { event: 'submit_hijack' }, (payload) => {
             hijackBids.push(payload.payload);
             console.log('Hijack bid received:', payload.payload);
-            // Sjekk om alle har svart
-            if (hijackBids.length === declaredAttackers.hijack.length) {
-                clearTimeout(executionPhaseTimer); // Avbryt timeren
-                resolveAttackPhase();
-            }
+            checkAttackSubmissions();
         });
-    
     console.log("Channel listeners are now active.");
 }
 
 async function initializeLobby() {
-    console.log("Phase 1: Initializing Lobby");
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     gameCodeDisplay.textContent = gameCode;
     gameCodeDisplayPermanent.textContent = gameCode;
@@ -165,7 +156,6 @@ async function initializeLobby() {
     setupChannelListeners();
     gameChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-            console.log(`Successfully subscribed to channel: ${channelName}`);
             hostLobbyView.classList.remove('hidden');
         } else if (status === 'CHANNEL_ERROR') {
             alert('Kunne ikke koble til spill-kanalen. Prøv å laste siden på nytt.');
@@ -182,8 +172,7 @@ function handleStartGameClick() {
 }
 
 
-// === SPOTIFY AUTHENTICATION FLOW ===
-
+// === SPOTIFY AUTHENTICATION FLOW (uendret) ===
 async function redirectToSpotifyLogin() {
     const codeVerifier = generateRandomString(128);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -192,13 +181,11 @@ async function redirectToSpotifyLogin() {
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SPOTIFY_SCOPES.join(' '))}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
     window.location = authUrl;
 }
-
 async function generateCodeChallenge(codeVerifier) {
     const data = new TextEncoder().encode(codeVerifier);
     const digest = await window.crypto.subtle.digest('SHA-256', data);
     return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
-
 async function fetchSpotifyAccessToken(code) {
     const codeVerifier = localStorage.getItem('spotify_code_verifier');
     if (!codeVerifier) return false;
@@ -221,26 +208,20 @@ async function fetchSpotifyAccessToken(code) {
     }
     return false;
 }
-
 async function getValidSpotifyToken() {
     const expiresAt = localStorage.getItem('spotify_token_expires_at');
     const accessToken = localStorage.getItem('spotify_access_token');
     if (!accessToken || !expiresAt) return null;
-    if (Date.now() > parseInt(expiresAt) - (5 * 60 * 1000)) {
-        return await refreshSpotifyToken();
-    }
+    if (Date.now() > parseInt(expiresAt) - (5 * 60 * 1000)) { return await refreshSpotifyToken(); }
     return accessToken;
 }
-
 async function refreshSpotifyToken() {
     const refreshToken = localStorage.getItem('spotify_refresh_token');
     if (!refreshToken) return null;
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            grant_type: 'refresh_token', refresh_token: refreshToken, client_id: SPOTIFY_CLIENT_ID,
-        }),
+        body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken, client_id: SPOTIFY_CLIENT_ID, }),
     });
     if (!response.ok) { console.error('Could not refresh Spotify token'); return null; }
     const data = await response.json();
@@ -252,8 +233,7 @@ async function refreshSpotifyToken() {
 }
 
 
-// === GAME START & CORE LOOP ===
-
+// === GAME START & CORE LOOP (uendret) ===
 async function handleStartFirstRoundClick() {
     readyToPlayView.classList.add('hidden');
     hostGameView.classList.remove('hidden');
@@ -263,7 +243,6 @@ async function handleStartFirstRoundClick() {
     await initializeSpotifyPlayer();
     await startGameLoop();
 }
-
 function loadSpotifySdk() {
     if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
     const script = document.createElement('script');
@@ -271,7 +250,6 @@ function loadSpotifySdk() {
     script.async = true;
     document.body.appendChild(script);
 }
-
 async function initializeSpotifyPlayer() {
     return new Promise(resolve => {
         spotifyPlayer = new Spotify.Player({
@@ -279,14 +257,10 @@ async function initializeSpotifyPlayer() {
             getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); },
             volume: 0.5
         });
-        spotifyPlayer.addListener('ready', ({ device_id }) => {
-            deviceId = device_id;
-            resolve();
-        });
+        spotifyPlayer.addListener('ready', ({ device_id }) => { deviceId = device_id; resolve(); });
         spotifyPlayer.connect();
     });
 }
-
 async function startGameLoop() {
     isGameRunning = true;
     updateHud();
@@ -300,13 +274,16 @@ async function startGameLoop() {
     await startTurn();
 }
 
+
+// === RUNDE-LOGIKK (store endringer) ===
+
 async function startTurn() {
-    // Nullstill tilstand for runden
     players.forEach(p => p.roundHandicap = 0);
     potentialAttackers = [];
     declaredAttackers = { besserwisser: [], hijack: [] };
     besserwisserAnswers = [];
     hijackBids = [];
+    roundFeedback = { main: "", attack: "" };
     clearTimeout(attackPhaseTimer);
     clearTimeout(executionPhaseTimer);
     
@@ -336,45 +313,40 @@ async function startTurn() {
     }
 }
 
-// ENDRET: Styrer nå flyten til enten angrepsfase eller fasit
 async function handleAnswer(payload) {
-    console.log("Answer received:", payload);
-    await pauseTrack();
+    // ENDRET: IKKE pause musikken
+    // await pauseTrack();
     
     const { name, artist, title, year } = payload.payload;
     const respondingPlayer = players.find(p => p.name === name);
     if (!respondingPlayer) return;
 
-    // Vis mottatt svar
     receivedArtist.textContent = artist || 'Ikke besvart';
     receivedTitle.textContent = title || 'Ikke besvart';
     receivedYear.textContent = year || 'Ikke besvart';
     hostAnswerDisplay.classList.remove('hidden');
     hostSongDisplay.classList.add('hidden');
 
-    // Evaluer poeng for den aktive spilleren
     const { roundSp, roundCredits, feedbackMessages } = evaluatePlayerAnswer(respondingPlayer, payload.payload);
     respondingPlayer.sp += roundSp;
     respondingPlayer.credits += roundCredits;
-    const feedbackText = feedbackMessages.length > 0 ? `${name}: ${feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
+    roundFeedback.main = feedbackMessages.length > 0 ? `${name}: ${feedbackMessages.join(' ')}` : `${name} fikk ingen poeng.`;
 
-    // Sjekk om angrep er mulig
     const artistIsWrong = normalizeString(artist) !== normalizeString(currentSong.artist);
     const titleIsWrong = normalizeString(title) !== normalizeString(currentSong.title);
     const yearIsWrong = parseInt(year, 10) !== currentSong.year;
 
-    const canBesserwiss = artistIsWrong || titleIsWrong;
+    // ENDRET: Strammere regler
+    const canBesserwiss = artistIsWrong && titleIsWrong;
     const canHijack = yearIsWrong;
 
     if (canBesserwiss || canHijack) {
         startAttackPhase(canBesserwiss, canHijack);
     } else {
-        // Ingen angrep mulig, gå rett til fasit
-        showFasit(feedbackText, ""); // Tom streng for attackResults
+        showFasit();
     }
 }
 
-// NY: Evaluerer den aktive spillerens svar
 function evaluatePlayerAnswer(player, answer) {
     const { artist, title, year } = answer;
     const artistGuess = normalizeString(artist);
@@ -385,7 +357,6 @@ function evaluatePlayerAnswer(player, answer) {
     const correctYear = currentSong.year;
 
     let roundSp = 0, roundCredits = 0, feedbackMessages = [];
-
     const artistIsCorrect = artistGuess !== '' && artistGuess === correctArtistNorm;
     const titleIsCorrect = titleGuess !== '' && titleGuess === correctTitleNorm;
 
@@ -411,75 +382,99 @@ function evaluatePlayerAnswer(player, answer) {
     } else {
         receivedYearRange.textContent = 'Ikke besvart';
     }
-
     return { roundSp, roundCredits, feedbackMessages };
 }
 
-// NY: Starter første del av angrepsfasen (10s beslutning)
 function startAttackPhase(canBesserwiss, canHijack) {
     hostTurnIndicator.textContent = "Angrepsfase! Andre spillere kan nå angripe...";
     const currentPlayerName = players[currentPlayerIndex].name;
     potentialAttackers = players.filter(p => p.name !== currentPlayerName).map(p => p.name);
     
-    gameChannel.send({
-        type: 'broadcast',
-        event: 'attack_phase_start',
-        payload: { canBesserwiss, canHijack, attacker: currentPlayerName }
-    });
-
-    attackPhaseTimer = setTimeout(startAttackExecutionPhase, 10000); // 10 sekunder
-}
-
-// NY: Starter andre del av angrepsfasen (60s utførelse)
-function startAttackExecutionPhase() {
-    console.log("Attack declaration phase over. Declared attackers:", declaredAttackers);
-    hostTurnIndicator.textContent = "Venter på at angrepene skal fullføres...";
-
-    const hasBesserwisser = declaredAttackers.besserwisser.length > 0;
-    const hasHijack = declaredAttackers.hijack.length > 0;
-
-    if (!hasBesserwisser && !hasHijack) {
-        console.log("No attackers declared. Resolving phase.");
+    if (potentialAttackers.length === 0) {
         resolveAttackPhase();
         return;
     }
 
-    // Send melding kun til de som har erklært angrep
-    if (hasBesserwisser) {
-        gameChannel.send({ type: 'broadcast', event: 'execute_besserwisser', payload: { players: declaredAttackers.besserwisser } });
-    }
-    if (hasHijack) {
-        gameChannel.send({ type: 'broadcast', event: 'execute_hijack', payload: { players: declaredAttackers.hijack } });
-    }
-
-    executionPhaseTimer = setTimeout(resolveAttackPhase, 60000); // 60 sekunder
+    gameChannel.send({ type: 'broadcast', event: 'attack_phase_start', payload: { canBesserwiss, canHijack, attacker: currentPlayerName } });
+    attackPhaseTimer = setTimeout(startAttackExecutionPhase, 10000);
 }
 
+// ENDRET: Sjekker om alle har erklært angrep
+function checkAttackDeclarations() {
+    const totalDeclarations = [...new Set([...declaredAttackers.besserwisser, ...declaredAttackers.hijack])].length;
+    if (totalDeclarations === potentialAttackers.length) {
+        clearTimeout(attackPhaseTimer);
+        startAttackExecutionPhase();
+    }
+}
 
-// NY: Evaluerer angrepene og avslutter runden
+function startAttackExecutionPhase() {
+    hostTurnIndicator.textContent = "Venter på at angrepene skal fullføres...";
+    const hasBesserwisser = declaredAttackers.besserwisser.length > 0;
+    const hasHijack = declaredAttackers.hijack.length > 0;
+
+    if (!hasBesserwisser && !hasHijack) { resolveAttackPhase(); return; }
+
+    if (hasBesserwisser) { gameChannel.send({ type: 'broadcast', event: 'execute_besserwisser', payload: { players: declaredAttackers.besserwisser } }); }
+    if (hasHijack) { gameChannel.send({ type: 'broadcast', event: 'execute_hijack', payload: { players: declaredAttackers.hijack } }); }
+
+    executionPhaseTimer = setTimeout(resolveAttackPhase, 60000);
+}
+
+// ENDRET: Sjekker om alle som erklærte har sendt inn svar
+function checkAttackSubmissions() {
+    const totalSubmissions = besserwisserAnswers.length + hijackBids.length;
+    const totalDeclarations = declaredAttackers.besserwisser.length + declaredAttackers.hijack.length;
+    if (totalSubmissions === totalDeclarations) {
+        clearTimeout(executionPhaseTimer);
+        resolveAttackPhase();
+    }
+}
+
 function resolveAttackPhase() {
-    console.log("Resolving attack phase...");
     hostTurnIndicator.textContent = "Angrepene evalueres...";
-    
-    // TODO: Implementer logikk for å evaluere Besserwisser og Hijack her.
-    // For nå, går vi bare videre.
-    let attackResultsHTML = "<h3>Angrepsresultater:</h3>";
-    if (besserwisserAnswers.length > 0) {
-        attackResultsHTML += "<p>Besserwissere har svart.</p>";
-    }
-     if (hijackBids.length > 0) {
-        attackResultsHTML += "<p>Hijackere har bydd.</p>";
-    }
-    if (besserwisserAnswers.length === 0 && hijackBids.length === 0) {
-        attackResultsHTML += "<p>Ingen vellykkede angrep.</p>"
-    }
+    let attackResults = [];
 
-    showFasit("Runden er ferdig.", attackResultsHTML);
+    // Evaluer Besserwisser
+    besserwisserAnswers.forEach(answer => {
+        const attacker = players.find(p => p.name === answer.name);
+        if (!attacker) return;
+
+        const artistCorrect = normalizeString(answer.artist) === normalizeString(currentSong.artist);
+        const titleCorrect = normalizeString(answer.title) === normalizeString(currentSong.title);
+
+        if (artistCorrect && titleCorrect) {
+            attacker.sp += 2;
+            attackResults.push(`<div class="attack-result success">${attacker.name} klarte Besserwisser! +2 SP</div>`);
+        } else {
+            attacker.credits = Math.max(0, attacker.credits - 1);
+            attackResults.push(`<div class="attack-result fail">${attacker.name} feilet Besserwisser. -1 Credit</div>`);
+        }
+    });
+
+    // Evaluer Hijack
+    if (hijackBids.length > 0) {
+        hijackBids.sort((a, b) => b.bid - a.bid); // Sorter etter høyeste bud
+        const winningBid = hijackBids[0];
+        const winner = players.find(p => p.name === winningBid.name);
+        
+        if (winner) {
+            winner.credits = Math.max(0, winner.credits - winningBid.bid);
+            if (parseInt(winningBid.year, 10) === currentSong.year) {
+                winner.sp += 1;
+                attackResults.push(`<div class="attack-result success">${winner.name} vant Hijack med bud på ${winningBid.bid}! +1 SP</div>`);
+            } else {
+                attackResults.push(`<div class="attack-result fail">${winner.name} vant Hijack, men svarte feil år. Mistet ${winningBid.bid} credits.</div>`);
+            }
+        }
+        // Andre som bød mister ingenting
+    }
+    
+    roundFeedback.attack = attackResults.length > 0 ? attackResults.join('') : "<h3>Angrep</h3><p>Ingen vellykkede angrep.</p>";
+    showFasit();
 }
 
-
-// NY: Viser fasit og sender resultat til klienter
-function showFasit(mainFeedback, attackResultsHTML) {
+function showFasit() {
     fasitAlbumArt.src = currentSong.albumarturl || '';
     fasitArtist.textContent = currentSong.artist;
     fasitTitle.textContent = currentSong.title;
@@ -493,14 +488,13 @@ function showFasit(mainFeedback, attackResultsHTML) {
         event: 'round_result', 
         payload: { 
             players: players, 
-            feedback: mainFeedback, 
+            feedback: roundFeedback.main, 
             song: currentSong,
-            attackResultsHTML: attackResultsHTML
+            attackResultsHTML: roundFeedback.attack
         } 
     });
     updateHud();
 }
-
 
 function handleBuyHandicap(payload) {
     const playerName = payload.payload.name;
@@ -522,7 +516,7 @@ async function handleSkipSong(payload) {
         hostTurnIndicator.textContent = `${playerName} brukte 1 credit for å skippe sangen.`;
         gameChannel.send({ type: 'broadcast', event: 'player_update', payload: { players: players } });
         updateHud();
-        await pauseTrack();
+        // await pauseTrack(); // Ikke lenger nødvendig
         await new Promise(resolve => setTimeout(resolve, 1500));
         await startTurn();
     }
@@ -535,28 +529,23 @@ async function advanceToNextTurn() {
 
 
 // === SPOTIFY PLAYBACK ===
-
 async function fetchWithFreshToken(url, options = {}) {
     const token = await getValidSpotifyToken();
     if (!token) { return null; }
     const newOptions = { ...options, headers: { ...options.headers, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
     return fetch(url, newOptions);
 }
-
 async function playTrack(spotifyTrackId) {
     if (!deviceId) return false;
-    await pauseTrack();
+    await fetchWithFreshToken(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, { method: 'PUT' });
     await new Promise(resolve => setTimeout(resolve, 100));
     const trackUri = `spotify:track:${spotifyTrackId}`;
     const url = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
     const response = await fetchWithFreshToken(url, { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }) });
     return response && response.ok;
 }
+// Fjernet pauseTrack() da den ikke lenger kalles direkte
 
-async function pauseTrack() {
-    if (!deviceId) return;
-    await fetchWithFreshToken(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, { method: 'PUT' });
-}
 
 async function fetchRandomSong() {
     if (totalSongsInDb > 0 && songHistory.length >= totalSongsInDb) { songHistory = []; }
@@ -567,7 +556,6 @@ async function fetchRandomSong() {
 
 
 // === MAIN ENTRY POINT ===
-
 document.addEventListener('DOMContentLoaded', async () => {
     hostLobbyView = document.getElementById('host-lobby-view');
     gameCodeDisplay = document.getElementById('game-code-display');
@@ -600,19 +588,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (spotifyCode) {
         const success = await fetchSpotifyAccessToken(spotifyCode);
         window.history.replaceState(null, '', window.location.pathname);
-
         if (success) {
             gameCode = sessionStorage.getItem('mquiz_gamecode');
             const storedPlayers = sessionStorage.getItem('mquiz_players');
             if (storedPlayers) players = JSON.parse(storedPlayers);
-            
             if (gameCode) {
+                // VIKTIG: Hent frem spillkoden i UI
+                gameCodeDisplay.textContent = gameCode;
+                gameCodeDisplayPermanent.textContent = gameCode;
+
                 const channelName = `game-${gameCode}`;
                 gameChannel = supabaseClient.channel(channelName);
                 setupChannelListeners();
                 gameChannel.subscribe();
             }
-
             loadSpotifySdk();
             hostLobbyView.classList.add('hidden');
             spotifyConnectView.classList.add('hidden');
@@ -627,7 +616,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initializeLobby();
         spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
     }
-    
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
 });
-/* Version: #408 */
+/* Version: #411 */
