@@ -1,4 +1,4 @@
-/* Version: #420 */
+/* Version: #421 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -14,7 +14,7 @@ let hostLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn,
     skipPlayerBtn;
 
 // === STATE ===
-let user = null; // NY: For å holde på innlogget bruker
+let user = null;
 let players = [];
 let gameCode = '';
 let gameChannel = null;
@@ -38,7 +38,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 // === DATABASE INTERACTIONS ===
 
-// NY: Oppdaterer hele spilltilstanden i databasen
 async function updateDatabaseGameState(newState) {
     const currentState = {
         players,
@@ -48,37 +47,27 @@ async function updateDatabaseGameState(newState) {
         currentSong,
         isSkipTurn,
     };
-
     const finalState = { ...currentState, ...newState };
 
     const { error } = await supabaseClient
         .from('games')
-        .update({ game_state: finalState })
+        .update({ game_state: finalState, updated_at: new Date().toISOString() })
         .eq('game_code', gameCode);
 
-    if (error) {
-        console.error("Error updating game state in DB:", error);
-    }
+    if (error) console.error("Error updating game state in DB:", error);
 }
 
-// NY: Sjekker om det finnes et aktivt spill for denne hosten
 async function checkForActiveGame() {
     const localGameCode = localStorage.getItem('mquiz_host_gamecode');
     const localHostId = localStorage.getItem('mquiz_host_id');
 
     if (!user || !localGameCode || localHostId !== user.id) {
-        // Ingen aktivt spill funnet, eller det tilhører en annen bruker
         await initializeLobby();
         return;
     }
 
     console.log(`Found active game ${localGameCode} for host ${localHostId}. Attempting to resume...`);
-
-    const { data, error } = await supabaseClient
-        .from('games')
-        .select('*')
-        .eq('game_code', localGameCode)
-        .single();
+    const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
 
     if (error || !data) {
         console.error("Could not fetch active game, starting a new one.", error);
@@ -91,12 +80,9 @@ async function checkForActiveGame() {
     }
 }
 
-// NY: Gjenopptar et spill fra databasen
 async function resumeGame(gameData) {
     gameCode = gameData.game_code;
     const gameState = gameData.game_state;
-
-    // Gjenopprett lokal state fra databasen
     players = gameState.players || [];
     currentPlayerIndex = gameState.currentPlayerIndex || 0;
     isGameRunning = gameState.isGameRunning || false;
@@ -107,99 +93,84 @@ async function resumeGame(gameData) {
     gameCodeDisplay.textContent = gameCode;
     gameCodeDisplayPermanent.textContent = gameCode;
 
-    const channelName = `game-${gameCode}`;
-    gameChannel = supabaseClient.channel(channelName);
-    setupChannelListeners();
-    gameChannel.subscribe();
+    await setupChannel(); // Koble til og sett opp lyttere
 
-    // Vis riktig skjerm
     if (gameData.status === 'in_progress') {
         hostLobbyView.classList.add('hidden');
         spotifyConnectView.classList.add('hidden');
-        await handleStartFirstRoundClick(true); // true for å indikere at det er en resume
-    } else { // 'lobby'
+        readyToPlayView.classList.remove('hidden'); // Gå alltid til "klar"-skjermen
+    } else {
         hostLobbyView.classList.remove('hidden');
         updatePlayerLobby();
     }
 }
-
 
 // === LOBBY & GAME SETUP ===
 
 async function initializeLobby() {
     console.log("Initializing new lobby...");
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
-    gameCodeDisplay.textContent = gameCode;
-    gameCodeDisplayPermanent.textContent = gameCode;
     
-    // Initial state
-    const initialGameState = {
-        players: [],
-        currentPlayerIndex: 0,
-        isGameRunning: false,
-        songHistory: [],
-        currentSong: null,
-        isSkipTurn: false
-    };
+    const initialGameState = { players: [], currentPlayerIndex: 0, isGameRunning: false, songHistory: [], currentSong: null, isSkipTurn: false };
 
-    const { data, error } = await supabaseClient
+    const { error } = await supabaseClient
         .from('games')
-        .insert({
-            game_code: gameCode,
-            host_id: user.id,
-            game_state: initialGameState,
-            status: 'lobby'
-        })
-        .select()
-        .single();
+        .insert({ game_code: gameCode, host_id: user.id, game_state: initialGameState, status: 'lobby' });
 
     if (error) {
+        if (error.code === '23505') { // Unik nøkkel-feil (koden finnes allerede)
+            console.log("Generated game code already exists. Retrying...");
+            await initializeLobby(); // Prøv på nytt med en ny kode
+            return;
+        }
         console.error("FATAL: Could not create new game in database.", error);
         alert("Kunne ikke starte et nytt spill. Prøv å laste siden på nytt.");
         return;
     }
     
-    // Lagre i localStorage for reconnect
     localStorage.setItem('mquiz_host_gamecode', gameCode);
     localStorage.setItem('mquiz_host_id', user.id);
-
-    players = []; // Start med tom spillerliste
+    players = [];
+    gameCodeDisplay.textContent = gameCode;
+    gameCodeDisplayPermanent.textContent = gameCode;
     
-    const channelName = `game-${gameCode}`;
-    gameChannel = supabaseClient.channel(channelName);
-    setupChannelListeners();
-    gameChannel.subscribe();
+    await setupChannel(); // Koble til og sett opp lyttere
     
     hostLobbyView.classList.remove('hidden');
+    updatePlayerLobby();
 }
 
+// NY: Sentralisert funksjon for å koble til kanal og sette lyttere
+async function setupChannel() {
+    const channelName = `game-${gameCode}`;
+    gameChannel = supabaseClient.channel(channelName);
 
-function setupChannelListeners() {
-    if (gameChannel.state === 'joined') {
-        // Unngå å feste lyttere flere ganger på samme kanal-objekt
-        return;
-    }
     gameChannel
         .on('broadcast', { event: 'player_join' }, (payload) => {
             const newPlayerName = payload.payload.name;
             if (!players.find(p => p.name === newPlayerName)) {
-                players.push({
-                    name: newPlayerName, sp: 0, credits: 3, handicap: 5,
-                    roundHandicap: 0, stats: {}
-                });
+                console.log(`Player '${newPlayerName}' joined.`);
+                players.push({ name: newPlayerName, sp: 0, credits: 3, handicap: 5, roundHandicap: 0, stats: {} });
                 updatePlayerLobby();
-                updateDatabaseGameState({ players: players }); // Oppdater DB
+                updateDatabaseGameState({ players: players });
             }
         })
-        // Midlertidig fjernet angrepslyttere
         .on('broadcast', { event: 'submit_answer' }, () => console.log("Answer received, logic to be re-implemented"))
         .on('broadcast', { event: 'buy_handicap' }, () => console.log("Buy handicap received, logic to be re-implemented"))
         .on('broadcast', { event: 'skip_song' }, () => console.log("Skip song received, logic to be re-implemented"));
+    
+    return new Promise(resolve => {
+        gameChannel.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`Successfully subscribed to channel: ${channelName}`);
+                resolve();
+            }
+        });
+    });
 }
 
+
 function handleStartGameClick() {
-    // Viser Spotify-connect, men selve spillstart-logikken
-    // er nå i handleStartFirstRoundClick
     hostLobbyView.classList.add('hidden');
     spotifyConnectView.classList.remove('hidden');
 }
@@ -207,19 +178,11 @@ function handleStartGameClick() {
 
 // === GAME START & CORE LOOP ===
 
-// Endret til å håndtere resume
-async function handleStartFirstRoundClick(isResume = false) {
-    if (!isResume) {
-        // Oppdater status i DB bare hvis det er en fersk start
-        const { error } = await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
-        if (error) {
-            console.error("Could not update game status to in_progress", error);
-            return;
-        }
-    }
+async function handleStartFirstRoundClick() {
+    // Oppdater status i DB
+    await supabaseClient.from('games').update({ status: 'in_progress' }).eq('game_code', gameCode);
 
     readyToPlayView.classList.add('hidden');
-    spotifyConnectView.classList.add('hidden'); // Sørg for at denne er skjult
     hostGameView.classList.remove('hidden');
     gameHeader.classList.remove('hidden');
     hostTurnIndicator.textContent = "Laster Spotify-spiller...";
@@ -227,13 +190,12 @@ async function handleStartFirstRoundClick(isResume = false) {
     await spotifySdkReadyPromise;
     await initializeSpotifyPlayer();
     
-    if (isResume && currentSong) {
-        // Hvis vi gjenopptar midt i en sang
+    if (isGameRunning && currentSong) {
         updateHud();
         hostTurnIndicator.textContent = `Venter på svar fra ${players[currentPlayerIndex].name}...`;
         hostSongDisplay.innerHTML = '<h2>Sangen spilles...</h2>';
         hostSongDisplay.classList.remove('hidden');
-        playTrack(currentSong.spotifyid); // Start sangen på nytt
+        playTrack(currentSong.spotifyid);
     } else {
         await startGameLoop();
     }
@@ -260,17 +222,13 @@ async function startTurn() {
     currentSong = await fetchRandomSong();
     if (currentSong) {
         songHistory.push(currentSong.id);
-        await updateDatabaseGameState({ currentSong, songHistory }); // Lagre ny sang i DB
+        await updateDatabaseGameState({ currentSong, songHistory });
 
         const playbackSuccess = await playTrack(currentSong.spotifyid);
         if (playbackSuccess) {
             hostSongDisplay.innerHTML = '<h2>Sangen spilles...</h2>';
             gameChannel.send({ type: 'broadcast', event: 'new_turn', payload: { name: currentPlayer.name } });
-        } else {
-            // Håndter avspillingsfeil
         }
-    } else {
-        // Håndter feil ved henting av sang
     }
 }
 
@@ -283,8 +241,7 @@ async function advanceToNextTurn() {
 }
 
 
-// === SPOTIFY & OTHER HELPERS (for det meste uendret) ===
-
+// === SPOTIFY & OTHER HELPERS (uendret) ===
 function loadSpotifySdk() {
     if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
     const script = document.createElement('script');
@@ -292,7 +249,6 @@ function loadSpotifySdk() {
     script.async = true;
     document.body.appendChild(script);
 }
-
 async function initializeSpotifyPlayer() {
     return new Promise(resolve => {
         spotifyPlayer = new Spotify.Player({
@@ -356,6 +312,25 @@ async function generateCodeChallenge(codeVerifier) {
     const digest = await window.crypto.subtle.digest('SHA-256', data);
     return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
+async function fetchSpotifyAccessToken(code) {
+    const codeVerifier = localStorage.getItem('spotify_code_verifier');
+    if (!codeVerifier) return false;
+    const redirectUri = window.location.href.split('?')[0];
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ client_id: SPOTIFY_CLIENT_ID, grant_type: 'authorization_code', code: code, redirect_uri: redirectUri, code_verifier: codeVerifier, }),
+    });
+    if (response.ok) {
+        const data = await response.json();
+        const expiresAt = Date.now() + data.expires_in * 1000;
+        localStorage.setItem('spotify_access_token', data.access_token);
+        localStorage.setItem('spotify_refresh_token', data.refresh_token);
+        localStorage.setItem('spotify_token_expires_at', expiresAt);
+        return true;
+    }
+    return false;
+}
 
 // === MAIN ENTRY POINT ===
 document.addEventListener('DOMContentLoaded', async () => {
@@ -373,42 +348,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     hostTurnIndicator = document.getElementById('host-turn-indicator');
     gameHeader = document.getElementById('game-header');
     gameCodeDisplayPermanent = document.getElementById('game-code-display-permanent');
-    hostSongDisplay = document.getElementById('host-song-display');
-    // ... resten av DOM-elementene
+    // ...
     nextTurnBtn = document.getElementById('next-turn-btn');
     skipPlayerBtn = document.getElementById('skip-player-btn');
 
-    // Lytter for auth-endringer for å få tak i bruker-objektet
-    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        if (session?.user) {
-            user = session.user;
-            console.log("User is logged in:", user.email);
-            // Nå som vi har bruker, kan vi sjekke etter et aktivt spill
-            await checkForActiveGame();
-        } else {
-            user = null;
-            // Hvis brukeren logger ut, tving start på nytt
-            localStorage.removeItem('mquiz_host_gamecode');
-            localStorage.removeItem('mquiz_host_id');
-            // Vis en "logg inn"-melding eller omdiriger
-        }
-    });
+    // Felles lyttere
+    startGameBtn.addEventListener('click', handleStartGameClick);
+    spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
+    startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
+    nextTurnBtn.addEventListener('click', advanceToNextTurn);
+    // skipPlayerBtn lytter mangler fortsatt, legges til når logikken er tilbake
 
     const spotifyCode = new URLSearchParams(window.location.search).get('code');
     if (spotifyCode) {
         await fetchSpotifyAccessToken(spotifyCode);
         window.history.replaceState(null, '', window.location.pathname);
-        // Håndter visning av ready-to-play-view
-        hostLobbyView.classList.add('hidden');
-        spotifyConnectView.classList.add('hidden');
-        readyToPlayView.classList.remove('hidden');
     }
-
-    // Felles lyttere
-    startGameBtn.addEventListener('click', handleStartGameClick);
-    spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
-    startFirstRoundBtn.addEventListener('click', () => handleStartFirstRoundClick(false));
-    nextTurnBtn.addEventListener('click', advanceToNextTurn);
-    // skipPlayerBtn-lytter er fjernet herfra, da den krever mer logikk
+    
+    // Hovedflyt styres nå av auth state
+    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+        const spotifyTokenExists = localStorage.getItem('spotify_access_token');
+        if (session?.user) {
+            user = session.user;
+            console.log("User is logged in:", user.email);
+            if (spotifyTokenExists) {
+                // Bruker er logget inn OG har koblet til spotify
+                hostLobbyView.classList.add('hidden');
+                spotifyConnectView.classList.add('hidden');
+                readyToPlayView.classList.remove('hidden');
+                loadSpotifySdk();
+            }
+            await checkForActiveGame();
+        } else {
+            user = null;
+            // Omdiriger til index.html hvis bruker ikke er logget inn
+            // (eller vis en innloggings-prompt)
+            console.log("User is not logged in. Redirecting or showing login...");
+            window.location.href = 'index.html';
+        }
+    });
 });
-/* Version: #420 */
+/* Version: #421 */
