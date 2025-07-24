@@ -1,4 +1,4 @@
-/* Version: #409 */
+/* Version: #437 */
 // === INITIALIZATION ===
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -18,10 +18,28 @@ let joinView, gameView, myTurnView, waitingForOthersView, roundSummaryView,
 let gameChannel = null, myName = '', players = [], currentPlayerName = '', attackInterval = null;
 
 // === FUNKSJONER ===
-function populateAutocompleteLists(artistList, titleList) { if (artistList) { artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); } if (titleList) { titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); } }
-function updateHud() { if (!playerHud) return; playerHud.innerHTML = ''; players.forEach(player => { const playerInfoDiv = document.createElement('div'); playerInfoDiv.className = 'player-info'; if (player.name === currentPlayerName) { playerInfoDiv.classList.add('active-player'); } playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; playerHud.appendChild(playerInfoDiv); }); }
+function populateAutocompleteLists(artistList, titleList) { 
+    if (artistList) { 
+        artistDataList.innerHTML = artistList.map(artist => `<option value="${artist}"></option>`).join(''); 
+    } 
+    if (titleList) { 
+        titleDataList.innerHTML = titleList.map(title => `<option value="${title}"></option>`).join(''); 
+    } 
+}
+function updateHud() { 
+    if (!playerHud) return; 
+    playerHud.innerHTML = ''; 
+    players.forEach(player => { 
+        const playerInfoDiv = document.createElement('div'); 
+        playerInfoDiv.className = 'player-info'; 
+        if (player.name === currentPlayerName) { 
+            playerInfoDiv.classList.add('active-player'); 
+        } 
+        playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">SP: ${player.sp} | Credits: ${player.credits}</div>`; 
+        playerHud.appendChild(playerInfoDiv); 
+    }); 
+}
 
-// Skjul alle hovedvisninger for å unngå overlapp
 function hideAllViews() {
     myTurnView.classList.add('hidden');
     waitingForOthersView.classList.add('hidden');
@@ -41,7 +59,6 @@ function submitAnswer() {
 function buyHandicap() { gameChannel.send({ type: 'broadcast', event: 'buy_handicap', payload: { name: myName } }); }
 function skipSong() { gameChannel.send({ type: 'broadcast', event: 'skip_song', payload: { name: myName } }); }
 
-// ENDRET: Sender nå 'declare' melding, ikke 'choose'
 function declareAttack(choice) {
     hideAllViews();
     if (choice === 'besserwisser') {
@@ -101,7 +118,7 @@ async function joinGame(code, name) {
         gameView.classList.remove('hidden');
         const { players: newPlayers, artistList, titleList } = payload.payload;
         players = newPlayers;
-        populateAutocompleteLists(artistList, titleList);
+        populateAutocompleteLists(artistList, titleList); // Gjeninnført
         updateHud();
     });
 
@@ -120,9 +137,7 @@ async function joinGame(code, name) {
         }
     });
 
-    // NY: Lytter for starten på angrepsfasen (10s beslutning)
     gameChannel.on('broadcast', { event: 'attack_phase_start' }, (payload) => {
-        // Gjelder ikke for spilleren som nettopp svarte
         if (myName === payload.payload.attacker) return;
         
         hideAllViews();
@@ -145,7 +160,6 @@ async function joinGame(code, name) {
         }, 1000);
     });
 
-    // NYE: Lyttere for utførelsesfasen
     gameChannel.on('broadcast', { event: 'execute_besserwisser' }, (payload) => {
         if (payload.payload.players.includes(myName)) {
             clearInterval(attackInterval);
@@ -161,8 +175,6 @@ async function joinGame(code, name) {
         }
     });
 
-
-    // OPPDATERT: Lytter for det endelige resultatet
     gameChannel.on('broadcast', { event: 'round_result' }, (payload) => {
         clearInterval(attackInterval);
         hideAllViews();
@@ -276,4 +288,4 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBesserwisserBtn.addEventListener('click', submitBesserwisser);
     submitHijackBtn.addEventListener('click', submitHijack);
 });
-/* Version: #409 */
+/* Version: #437 */
