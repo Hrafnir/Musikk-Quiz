@@ -1,4 +1,4 @@
-/* Version: #423 */
+/* Version: #424 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -62,21 +62,26 @@ async function checkForActiveGame() {
     const localHostId = localStorage.getItem('mquiz_host_id');
 
     if (!user || !localGameCode || localHostId !== user.id) {
-        await initializeLobby();
+        await initializeLobby(); // ENDRET: Sikrer at vi venter her.
         return;
     }
 
     console.log(`Found active game ${localGameCode} for host ${localHostId}. Attempting to resume...`);
-    const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
+    try {
+        const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
 
-    if (error || !data) {
-        console.error("Could not fetch active game, starting a new one.", error);
-        localStorage.removeItem('mquiz_host_gamecode');
-        localStorage.removeItem('mquiz_host_id');
-        await initializeLobby();
-    } else {
+        if (error || !data) {
+            throw new Error(error?.message || "Game not found");
+        }
+        
         console.log("Successfully fetched game state. Resuming session.");
         await resumeGame(data);
+
+    } catch (e) {
+        console.error("Could not fetch active game, starting a new one.", e.message);
+        localStorage.removeItem('mquiz_host_gamecode');
+        localStorage.removeItem('mquiz_host_id');
+        await initializeLobby(); // ENDRET: Sikrer at vi venter her også.
     }
 }
 
@@ -112,33 +117,42 @@ async function resumeGame(gameData) {
 
 async function initializeLobby() {
     console.log("Initializing new lobby...");
-    // Tømmer gammel info for å sikre en ren start
     localStorage.removeItem('mquiz_host_gamecode');
     localStorage.removeItem('mquiz_host_id');
 
-    gameCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    const initialGameState = { players: [], currentPlayerIndex: 0, isGameRunning: false, songHistory: [], currentSong: null, isSkipTurn: false };
+    let success = false;
+    let attempts = 0;
 
-    const { error } = await supabaseClient
-        .from('games')
-        .insert({ game_code: gameCode, host_id: user.id, game_state: initialGameState, status: 'lobby' });
+    while (!success && attempts < 5) { // Prøv maks 5 ganger å finne en unik kode
+        attempts++;
+        gameCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const initialGameState = { players: [], currentPlayerIndex: 0, isGameRunning: false, songHistory: [], currentSong: null, isSkipTurn: false };
 
-    if (error) {
-        if (error.code === '23505') { 
-            console.log("Generated game code already exists. Retrying...");
-            await initializeLobby();
-            return;
+        const { error } = await supabaseClient
+            .from('games')
+            .insert({ game_code: gameCode, host_id: user.id, game_state: initialGameState, status: 'lobby' });
+
+        if (error) {
+            if (error.code === '23505') { 
+                console.log(`Generated game code ${gameCode} already exists. Retrying...`);
+                continue; // Gå til neste iterasjon i while-løkken
+            }
+            console.error("FATAL: Could not create new game in database.", error);
+            alert("Kunne ikke starte et nytt spill. Prøv å laste siden på nytt.");
+            return; // Avbryt helt hvis det er en annen feil
         }
-        console.error("FATAL: Could not create new game in database.", error);
-        alert("Kunne ikke starte et nytt spill. Prøv å laste siden på nytt.");
+        success = true; // Kom ut av løkken
+    }
+
+    if (!success) {
+        alert("Klarte ikke å opprette et unikt spill. Prøv igjen.");
         return;
     }
     
     localStorage.setItem('mquiz_host_gamecode', gameCode);
     localStorage.setItem('mquiz_host_id', user.id);
     players = [];
-    gameCodeDisplay.textContent = gameCode;
+    gameCodeDisplay.textContent = gameCode; // Denne skal nå ha en gyldig verdi
     gameCodeDisplayPermanent.textContent = gameCode;
     
     await setupChannel(); 
@@ -367,7 +381,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
     nextTurnBtn.addEventListener('click', advanceToNextTurn);
     
-    // ENDRET: Forenklet og mer robust oppstartslogikk
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
             user = session.user;
@@ -379,17 +392,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (spotifyCode) {
                 console.log("Spotify code found in URL, processing...");
                 await fetchSpotifyAccessToken(spotifyCode);
-                // Last siden på nytt uten URL-parametere for en ren tilstand
                 window.location.replace(window.location.pathname);
             } else {
-                // Ingen spotify-kode, fortsett med normal sjekk
                 await checkForActiveGame();
             }
         } else {
             user = null;
             console.log("No user session. Redirecting to index.html...");
-            window.location.href = 'index.html';
+            if (!window.location.search.includes('code=')) {
+                window.location.href = 'index.html';
+            }
         }
     });
 });
-/* Version: #423 */
+/* Version: #424 */
