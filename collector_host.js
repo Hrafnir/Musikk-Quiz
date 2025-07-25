@@ -1,4 +1,4 @@
-/* Version: #480 */
+/* Version: #481 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -190,17 +190,11 @@ async function forceNewGame() {
     }
 }
 
-// ENDRET: Mer robust logikk for sletting av svar
 async function startRound() {
     const newRoundNumber = (gameState.currentRound || 0) + 1;
     
-    // Kun slett svar fra forrige runde hvis det ikke er første runde
     if (newRoundNumber > 1) {
-        const { error: deleteError } = await supabaseClient.from('round_answers').delete().eq('game_code', gameCode).eq('round_number', newRoundNumber - 1);
-        if (deleteError) {
-            console.error("Kunne ikke slette svar fra forrige runde:", deleteError);
-            // Vi fortsetter likevel, det er ikke kritisk
-        }
+        await supabaseClient.from('round_answers').delete().eq('game_code', gameCode).eq('round_number', newRoundNumber - 1);
     }
 
     const { data: song, error: songError } = await supabaseClient.rpc('get_random_song', { excluded_ids: [] });
@@ -214,7 +208,6 @@ async function startRound() {
     const newState = { ...gameState, currentRound: newRoundNumber, currentSong, roundEndsAt: roundEndsAt.toISOString() };
     await supabaseClient.from('games').update({ status: 'in_progress', game_state: newState }).eq('game_code', gameCode);
 }
-
 
 async function endRound() {
     clearInterval(roundTimerInterval);
@@ -369,4 +362,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #480 */
+/* Version: #481 */
