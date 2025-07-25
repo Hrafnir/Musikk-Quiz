@@ -1,0 +1,64 @@
+<!-- Version: #440 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz Collector</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="game.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="app-container">
+        
+        <!-- FASE 1: BLI MED I SPILL -->
+        <div id="collector-join-view">
+            <h1>Bli med i Song Collector</h1>
+            <input type="number" id="game-code-input" placeholder="Spillkode..." style="margin-bottom: 10px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
+            <input type="text" id="player-name-input" placeholder="Ditt navn..." style="margin-bottom: 20px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
+            <button id="join-btn">Bli med</button>
+            <p id="join-status" style="margin-top: 15px;"></p>
+        </div>
+
+        <!-- FASE 2: SPILLVISNING -->
+        <div id="collector-game-view" class="hidden">
+            <div id="player-hud">
+                <!-- Viser poeng og antall sanger for alle spillere -->
+            </div>
+
+            <div id="game-status-display">
+                <h2 id="game-status-text">Venter på at spillet skal starte...</h2>
+                <p>Du er med som: <strong id="display-player-name"></strong></p>
+            </div>
+
+            <!-- Område for å sende inn svar -->
+            <div id="answer-submission-view" class="hidden">
+                <div class="guess-area">
+                    <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off">
+                    <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
+                    <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
+                    <button id="submit-answer-btn">Send Svar</button>
+                    <p id="submit-status"></p>
+                </div>
+            </div>
+
+            <!-- Vises etter en runde er ferdig -->
+            <div id="round-summary-view" class="hidden">
+                <h3 id="summary-title">Runden er over!</h3>
+                <div id="client-round-winner"></div>
+                <button id="next-song-btn">Klar for neste sang</button>
+            </div>
+
+            <div id="client-actions" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
+                <a href="#" id="new-game-link" style="color: #b3b3b3; font-size: 0.9em;">Forlat spillet</a>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="config.js"></script>
+    <script src="collector_client.js"></script>
+</body>
+</html>
+<!-- Version: #440 -->
