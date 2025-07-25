@@ -1,4 +1,4 @@
-<!-- Version: #440 -->
+<!-- Version: #450 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -15,31 +15,44 @@
         <!-- FASE 1: BLI MED I SPILL -->
         <div id="collector-join-view">
             <h1>Bli med i Song Collector</h1>
-            <input type="number" id="game-code-input" placeholder="Spillkode..." style="margin-bottom: 10px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
-            <input type="text" id="player-name-input" placeholder="Ditt navn..." style="margin-bottom: 20px; width: 100%; padding: 15px; font-size: 16px; text-align: center; background-color: #333; border: 1px solid #555; border-radius: 5px; color: #fff;">
+            <input type="number" id="game-code-input" placeholder="Spillkode..." style="margin-bottom: 10px; width: 100%; padding: 15px; font-size: 16px; text-align: center;">
+            <input type="text" id="player-name-input" placeholder="Ditt navn..." style="margin-bottom: 20px; width: 100%; padding: 15px; font-size: 16px; text-align: center;">
             <button id="join-btn">Bli med</button>
             <p id="join-status" style="margin-top: 15px;"></p>
         </div>
 
         <!-- FASE 2: SPILLVISNING -->
         <div id="collector-game-view" class="hidden">
-            <div id="player-hud">
-                <!-- Viser poeng og antall sanger for alle spillere -->
-            </div>
+            <div id="player-hud"></div>
 
             <div id="game-status-display">
                 <h2 id="game-status-text">Venter på at spillet skal starte...</h2>
                 <p>Du er med som: <strong id="display-player-name"></strong></p>
             </div>
 
-            <!-- Område for å sende inn svar -->
+            <!-- ENDRET: Område for å sende inn svar -->
             <div id="answer-submission-view" class="hidden">
-                <div class="guess-area">
-                    <input type="text" id="artist-guess-input" placeholder="Gjett artist..." autocomplete="off">
-                    <input type="text" id="title-guess-input" placeholder="Gjett tittel..." autocomplete="off">
-                    <input type="number" id="year-guess-input" placeholder="Gjett årstall...">
-                    <button id="submit-answer-btn">Send Svar</button>
-                    <p id="submit-status"></p>
+                <div class="guess-area-collector">
+                    <!-- Artist -->
+                    <div class="input-with-button">
+                        <input type="text" id="artist-guess-input" placeholder="Artist...">
+                        <button id="submit-artist-btn">Send</button>
+                    </div>
+                    <p class="submit-status" id="artist-submit-status"></p>
+
+                    <!-- Tittel -->
+                    <div class="input-with-button">
+                        <input type="text" id="title-guess-input" placeholder="Tittel...">
+                        <button id="submit-title-btn">Send</button>
+                    </div>
+                    <p class="submit-status" id="title-submit-status"></p>
+
+                    <!-- Årstall -->
+                    <div class="input-with-button">
+                        <input type="number" id="year-guess-input" placeholder="Årstall...">
+                        <button id="submit-year-btn">Send</button>
+                    </div>
+                    <p class="submit-status" id="year-submit-status"></p>
                 </div>
             </div>
 
@@ -57,8 +70,40 @@
         
     </div>
 
+    <!-- Ny CSS for den nye input-stilen -->
+    <style>
+        .guess-area-collector {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+        }
+        .input-with-button {
+            display: flex;
+            gap: 10px;
+        }
+        .input-with-button input {
+            flex-grow: 1;
+            padding: 15px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .input-with-button button {
+            flex-shrink: 0;
+            width: auto;
+            padding: 15px 20px;
+        }
+        .submit-status {
+            min-height: 1.2em;
+            font-size: 0.8em;
+            color: #1DB954;
+            text-align: right;
+            padding-right: 5px;
+        }
+    </style>
+
     <script src="config.js"></script>
     <script src="collector_client.js"></script>
 </body>
 </html>
-<!-- Version: #440 -->
+<!-- Version: #450 -->
