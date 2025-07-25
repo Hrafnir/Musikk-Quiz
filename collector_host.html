@@ -1,0 +1,91 @@
+<!-- Version: #435 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQuiz Collector (Host)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="game.css"> <!-- Gjenbruker game.css for nå -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="game-container">
+
+        <div id="game-header" class="hidden">
+            <span>Spillkode:</span>
+            <strong id="game-code-display-permanent">...</strong>
+        </div>
+
+        <!-- FASE 1: LOBBY -->
+        <div id="collector-lobby-view">
+            <h1>Song Collector</h1>
+            <div id="lobby-info">
+                <p>Be spillerne gå til <strong>[DIN NETTADRESSE]/collector_client.html</strong> og taste inn koden:</p>
+                <h2 id="game-code-display">Laster...</h2>
+            </div>
+            
+            <div class="game-setting">
+                <label for="songs-to-win-input">Sanger for å vinne:</label>
+                <input type="number" id="songs-to-win-input" value="10" min="1" max="50">
+            </div>
+
+            <div id="player-lobby-container">
+                <h3>Spillere:</h3>
+                <ul id="player-lobby-list"></ul>
+            </div>
+            <button id="start-game-btn" disabled>Venter på spillere...</button>
+        </div>
+
+        <!-- FASE 2: SPILLVISNING -->
+        <div id="collector-game-view" class="hidden">
+            <div id="player-hud">
+                <!-- Spillerinfo (navn og antall sanger) genereres her av JS -->
+            </div>
+
+            <h2 id="round-timer">--:--</h2>
+
+            <!-- Vises etter runden er ferdig -->
+            <div id="round-result-container" class="hidden">
+                <div id="song-fasit-display">
+                    <img id="fasit-album-art" src="" alt="Album Cover">
+                    <div id="fasit-info">
+                        <p><strong>Artist:</strong> <span id="fasit-artist"></span></p>
+                        <p><strong>Tittel:</strong> <span id="fasit-title"></span></p>
+                        <p><strong>År:</strong> <span id="fasit-year"></span></p>
+                    </div>
+                </div>
+
+                <div id="round-summary-display">
+                    <h3>Resultater for runden</h3>
+                    <div id="round-points-list"></div>
+                    <h4 id="round-winner"></h4>
+                </div>
+
+                 <div id="host-controls">
+                    <p id="next-song-status">Venter på at spillerne skal bli klare...</p>
+                    <button id="next-song-btn">Start Neste Sang</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FASE 3: SEIERSSKJERM -->
+        <div id="collector-victory-view" class="hidden">
+            <h1>Spillet er over!</h1>
+            <h2 id="winner-announcement"></h2>
+            <div id="victory-stats-container">
+                <!-- Sluttstilling genereres her av JS -->
+            </div>
+            <div class="victory-actions">
+                <button id="play-again-btn">Spill igjen med samme spillere</button>
+                <button id="new-game-btn">Tilbake til lobby</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="config.js"></script>
+    <script src="collector_host.js"></script>
+</body>
+</html>
+<!-- Version: #435 -->
