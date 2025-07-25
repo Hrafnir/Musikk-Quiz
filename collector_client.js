@@ -1,4 +1,4 @@
-/* Version: #468 (Diagnostic) */
+/* Version: #471 (Diagnostic) */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -77,6 +77,22 @@ function setupSubscriptions() {
         .subscribe();
 }
 
+// ENDRET: Mer robust måte å sende ping på
+async function sendPing(payload) {
+    const channel = supabaseClient.channel(`game-${gameCode}`);
+    await new Promise(resolve => {
+        channel.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`[BROADCAST SEND] (Client) Kanal er SUBSCRIBED. Sender ping:`, payload);
+                channel.send({ type: 'broadcast', event: 'ping', payload });
+                supabaseClient.removeChannel(channel);
+                resolve();
+            }
+        });
+    });
+}
+
+
 async function handleJoinGame() {
     gameCode = gameCodeInput.value.trim();
     myName = playerNameInput.value.trim();
@@ -100,14 +116,8 @@ async function handleJoinGame() {
         if (updateError) throw new Error("Kunne ikke legge deg til i spillet.");
         console.log(`[DB WRITE] (Client) Vellykket oppdatering av spillere.`);
         
-        const channel = supabaseClient.channel(`game-${gameCode}`);
-        channel.subscribe(status => {
-            if (status === 'SUBSCRIBED') {
-                console.log("[BROADCAST SEND] (Client) Kanal er SUBSCRIBED. Sender 'ping'...");
-                channel.send({ type: 'broadcast', event: 'ping', payload: { message: 'player_joined' } });
-                supabaseClient.removeChannel(channel);
-            }
-        });
+        // ENDRET: Kaller den nye, robuste ping-funksjonen
+        await sendPing({ message: 'player_joined' });
 
         joinStatus.textContent = 'Koblet til!';
         localStorage.setItem('mquiz_collector_client_gamecode', gameCode);
@@ -137,13 +147,7 @@ async function submitAnswerPart(part, value, statusElement) {
     if (error) {
         statusElement.textContent = 'Feil!';
     } else {
-        const channel = supabaseClient.channel(`game-${gameCode}`);
-        channel.subscribe(status => {
-            if (status === 'SUBSCRIBED') {
-                channel.send({ type: 'broadcast', event: 'ping', payload: { message: 'player_answered', player: myName, part: part } });
-                supabaseClient.removeChannel(channel);
-            }
-        });
+        await sendPing({ message: 'player_answered', player: myName, part: part });
     }
 }
 
@@ -204,4 +208,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* Version: #468 (Diagnostic) */
+/* Version: #471 (Diagnostic) */
