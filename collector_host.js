@@ -1,4 +1,4 @@
-/* Version: #446 */
+/* Version: #449 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -6,11 +6,12 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === DOM ELEMENTS ===
 let collectorLobbyView, gameCodeDisplay, playerLobbyList, startGameBtn, songsToWinInput,
+    spotifyConnectView, spotifyLoginBtn,
+    readyToPlayView, startFirstRoundBtn, forceNewGameBtn,
     collectorGameView, playerHud, roundTimer, realtimeAnswerStatus, songPlayingDisplay,
     roundResultContainer, nextSongBtn, nextSongStatus,
     collectorVictoryView, winnerAnnouncement,
-    gameHeader, gameCodeDisplayPermanent,
-    spotifyConnectView, spotifyLoginBtn; // NYTT for Spotify
+    gameHeader, gameCodeDisplayPermanent;
 
 // === STATE ===
 let user = null;
@@ -18,8 +19,8 @@ let gameCode = '';
 let gameState = {};
 let gameChannel = null;
 let answersChannel = null;
-let spotifyPlayer = null; // NYTT
-let deviceId = null; // NYTT
+let spotifyPlayer = null;
+let deviceId = null;
 
 // === Promise for Spotify SDK ===
 let resolveSpotifySdkReady;
@@ -36,7 +37,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 function renderGame(gameData) {
     if (!gameData) return;
-
     console.log("LOG (Host): Mottok ny game state. Status:", gameData.status);
     gameState = gameData.game_state;
     
@@ -44,6 +44,7 @@ function renderGame(gameData) {
     collectorGameView.classList.add('hidden');
     collectorVictoryView.classList.add('hidden');
     spotifyConnectView.classList.add('hidden');
+    readyToPlayView.classList.add('hidden');
     gameHeader.classList.remove('hidden');
 
     gameCodeDisplayPermanent.textContent = gameCode;
@@ -59,7 +60,6 @@ function renderGame(gameData) {
             collectorGameView.classList.remove('hidden');
             roundResultContainer.classList.add('hidden');
             songPlayingDisplay.classList.remove('hidden');
-            // TODO: Start timer her
             break;
         case 'round_summary':
             collectorGameView.classList.remove('hidden');
@@ -82,14 +82,8 @@ function updatePlayerLobby() {
         li.textContent = player.name;
         playerLobbyList.appendChild(li);
     });
-
-    if (players.length > 0) {
-        startGameBtn.disabled = false;
-        startGameBtn.textContent = `Start Spill (${players.length} spillere)`;
-    } else {
-        startGameBtn.disabled = true;
-        startGameBtn.textContent = 'Venter på spillere...';
-    }
+    startGameBtn.disabled = players.length === 0;
+    startGameBtn.textContent = players.length > 0 ? `Start Spill (${players.length} spillere)` : 'Venter på spillere...';
 }
 
 function updateHud() {
@@ -118,7 +112,6 @@ function setupSubscriptions() {
             }
         )
         .subscribe();
-
     answersChannel = supabaseClient
         .channel(`answers-${gameCode}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
@@ -148,7 +141,6 @@ async function initializeLobby() {
             game_state: initialGameState,
             status: 'lobby'
         }).select().single();
-        
         if (!error) {
             success = true;
             gameState = newGame.game_state;
@@ -170,11 +162,9 @@ async function handleStartGameClick() {
     console.log("LOG (Host): Start Spill-knapp trykket.");
     const token = await getValidSpotifyToken();
     if (token) {
-        console.log("LOG (Host): Gyldig Spotify-token funnet. Starter spillet.");
         collectorLobbyView.classList.add('hidden');
-        readyToPlayView.classList.remove('hidden'); // Gå via "Klar"-skjermen
+        readyToPlayView.classList.remove('hidden');
     } else {
-        console.log("LOG (Host): Ingen gyldig Spotify-token. Viser Spotify-innlogging.");
         collectorLobbyView.classList.add('hidden');
         spotifyConnectView.classList.remove('hidden');
     }
@@ -183,7 +173,6 @@ async function handleStartGameClick() {
 async function handleStartFirstRoundClick() {
     console.log("LOG (Host): Start Første Runde-knapp trykket.");
     readyToPlayView.classList.add('hidden');
-    collectorGameView.classList.remove('hidden');
     
     console.log("LOG (Host): Laster Spotify SDK...");
     loadSpotifySdk();
@@ -194,6 +183,14 @@ async function handleStartFirstRoundClick() {
     await startRound();
 }
 
+async function forceNewGame() {
+    if (confirm("Er du sikker på at du vil avslutte dette spillet og starte et nytt?")) {
+        // Vi sletter ikke fra databasen, bare fra lokal lagring
+        localStorage.removeItem('mquiz_collector_host_gamecode');
+        localStorage.removeItem('mquiz_collector_host_id');
+        window.location.reload();
+    }
+}
 
 async function startRound() {
     console.log("LOG (Host): Starter ny runde...");
@@ -202,11 +199,11 @@ async function startRound() {
         .update({ status: 'in_progress' })
         .eq('game_code', gameCode);
     if (error) console.error("Could not start round:", error);
-    // Resten av logikken for å hente sang etc. kommer her.
+    // Logikk for å hente sang etc. kommer her.
 }
 
 
-// === SPOTIFY-FUNKSJONER ===
+// === SPOTIFY-FUNKSJONER (uendret) ===
 function loadSpotifySdk() {
     if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
     const script = document.createElement('script');
@@ -214,7 +211,6 @@ function loadSpotifySdk() {
     script.async = true;
     document.body.appendChild(script);
 }
-
 async function initializeSpotifyPlayer() {
     return new Promise(resolve => {
         spotifyPlayer = new Spotify.Player({ name: 'MQuiz Collector', getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); }, volume: 0.5 });
@@ -226,7 +222,6 @@ async function initializeSpotifyPlayer() {
         spotifyPlayer.connect();
     });
 }
-
 async function getValidSpotifyToken() {
     const expiresAt = localStorage.getItem('spotify_token_expires_at');
     const accessToken = localStorage.getItem('spotify_access_token');
@@ -235,7 +230,6 @@ async function getValidSpotifyToken() {
     }
     return accessToken;
 }
-
 async function refreshSpotifyToken() {
     const refreshToken = localStorage.getItem('spotify_refresh_token');
     if (!refreshToken) return null;
@@ -251,7 +245,6 @@ async function refreshSpotifyToken() {
     localStorage.setItem('spotify_token_expires_at', Date.now() + data.expires_in * 1000);
     return data.access_token;
 }
-
 async function redirectToSpotifyLogin() {
     const codeVerifier = generateRandomString(128);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -260,13 +253,11 @@ async function redirectToSpotifyLogin() {
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SPOTIFY_SCOPES.join(' '))}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
     window.location = authUrl;
 }
-
 async function generateCodeChallenge(codeVerifier) {
     const data = new TextEncoder().encode(codeVerifier);
     const digest = await window.crypto.subtle.digest('SHA-256', data);
     return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
-
 async function fetchSpotifyAccessToken(code) {
     const codeVerifier = localStorage.getItem('spotify_code_verifier');
     if (!codeVerifier) return false;
@@ -295,7 +286,6 @@ async function main() {
         return;
     }
     
-    // Sjekk for et eksisterende spill *etter* at vi har håndtert en potensiell Spotify-retur
     const localGameCode = localStorage.getItem('mquiz_collector_host_gamecode');
     const localHostId = localStorage.getItem('mquiz_collector_host_id');
 
@@ -304,13 +294,7 @@ async function main() {
         if (gameData && !error) {
             gameCode = localGameCode;
             setupSubscriptions();
-            // Hvis vi har en token, gå til "klar"-skjermen
-            if (await getValidSpotifyToken()) {
-                readyToPlayView.classList.remove('hidden');
-                collectorLobbyView.classList.add('hidden');
-            } else {
-                renderGame(gameData);
-            }
+            renderGame(gameData);
         } else {
             await initializeLobby();
         }
@@ -327,6 +311,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     playerLobbyList = document.getElementById('player-lobby-list');
     startGameBtn = document.getElementById('start-game-btn');
     songsToWinInput = document.getElementById('songs-to-win-input');
+    spotifyConnectView = document.getElementById('spotify-connect-view');
+    spotifyLoginBtn = document.getElementById('spotify-login-btn');
+    readyToPlayView = document.getElementById('ready-to-play-view');
+    startFirstRoundBtn = document.getElementById('start-first-round-btn');
+    forceNewGameBtn = document.getElementById('force-new-game-btn');
     collectorGameView = document.getElementById('collector-game-view');
     playerHud = document.getElementById('player-hud');
     roundTimer = document.getElementById('round-timer');
@@ -339,18 +328,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     winnerAnnouncement = document.getElementById('winner-announcement');
     gameHeader = document.getElementById('game-header');
     gameCodeDisplayPermanent = document.getElementById('game-code-display-permanent');
-    spotifyConnectView = document.getElementById('spotify-connect-view');
-    spotifyLoginBtn = document.getElementById('spotify-login-btn');
-    readyToPlayView = document.getElementById('ready-to-play-view');
     
     // Felles lyttere
     startGameBtn.addEventListener('click', handleStartGameClick);
     spotifyLoginBtn.addEventListener('click', redirectToSpotifyLogin);
-    // Vi trenger en lytter for den nye "Start Første Runde"-knappen i collector_host.html
-    // Denne mangler i HTML-filen, så vi legger den til her i logikken
-    const startFirstRoundBtn = document.createElement('button'); // Placeholder
-    startFirstRoundBtn.id = 'start-first-round-btn';
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
+    forceNewGameBtn.addEventListener('click', forceNewGame);
     
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user) {
@@ -360,4 +343,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #446 */
+/* Version: #449 */
