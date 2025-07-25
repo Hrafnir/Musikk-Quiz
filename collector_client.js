@@ -1,4 +1,4 @@
-/* Version: #451 */
+/* Version: #462 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -43,7 +43,6 @@ function renderGame(gameData) {
         case 'in_progress':
             gameStatusText.textContent = `Runde ${gameState.currentRound} pågår!`;
             answerSubmissionView.classList.remove('hidden');
-            // Nullstill status for ny runde
             artistSubmitStatus.textContent = '';
             titleSubmitStatus.textContent = '';
             yearSubmitStatus.textContent = '';
@@ -91,9 +90,7 @@ function setupSubscriptions() {
         .channel(`answers-${gameCode}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
             (payload) => {
-                console.log("LOG (Client): Mottok svar-oppdatering fra databasen:", payload.new);
                 if (payload.new.player_id === myName) {
-                    // Gi spesifikk tilbakemelding basert på hva som ble sendt
                     if (payload.new.artist_answer) artistSubmitStatus.textContent = '✓ Artist lagret';
                     if (payload.new.title_answer) titleSubmitStatus.textContent = '✓ Tittel lagret';
                     if (payload.new.year_answer) yearSubmitStatus.textContent = '✓ År lagret';
@@ -132,6 +129,17 @@ async function handleJoinGame() {
             .from('games').update({ game_state: { ...gameData.game_state, players: updatedPlayers } }).eq('game_code', gameCode);
 
         if (updateError) throw new Error("Kunne ikke legge deg til i spillet.");
+        
+        // ENDRET: Sender en broadcast-melding for å varsle hosten
+        const tempChannel = supabaseClient.channel(`game-${gameCode}`);
+        tempChannel.subscribe(() => {
+            tempChannel.send({
+                type: 'broadcast',
+                event: 'player_joined',
+                payload: { name: myName }
+            });
+        });
+
 
         joinStatus.textContent = 'Koblet til!';
         localStorage.setItem('mquiz_collector_client_gamecode', gameCode);
@@ -149,37 +157,27 @@ async function handleJoinGame() {
     }
 }
 
-// NY: Generell funksjon for å sende inn deler av svaret
 async function submitAnswerPart(part, value, statusElement) {
     if (!value) return;
-
     statusElement.textContent = 'Sender...';
-    
     const answerData = {
         game_code: gameCode,
         round_number: gameState.currentRound,
         player_id: myName,
-        [`${part}_answer`]: value, // f.eks. 'artist_answer': 'Queen'
+        [`${part}_answer`]: value,
         submitted_at: new Date().toISOString()
     };
-
     const { error } = await supabaseClient
         .from('round_answers')
         .upsert(answerData, { onConflict: 'game_code,round_number,player_id' });
-
     if (error) {
-        console.error(`Error submitting ${part}:`, error);
         statusElement.textContent = 'Feil!';
-    } else {
-        console.log(`LOG (Client): Sendte svar for ${part}: ${value}`);
-        // Kvitteringen kommer via sanntids-abonnementet
     }
 }
 
-
 function handleLeaveGame(event) {
     event.preventDefault();
-    if (confirm("Er du sikker på at du vil forlate spillet?")) {
+    if (confirm("Er du sikker?")) {
         localStorage.removeItem('mquiz_collector_client_gamecode');
         localStorage.removeItem('mquiz_collector_playername');
         window.location.reload();
@@ -203,8 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
     answerSubmissionView = document.getElementById('answer-submission-view');
     roundSummaryView = document.getElementById('round-summary-view');
     newGameLink = document.getElementById('new-game-link');
-    
-    // Nye elementer for separate svar
     artistGuessInput = document.getElementById('artist-guess-input');
     submitArtistBtn = document.getElementById('submit-artist-btn');
     artistSubmitStatus = document.getElementById('artist-submit-status');
@@ -218,19 +214,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Lyttere
     joinBtn.addEventListener('click', handleJoinGame);
     newGameLink.addEventListener('click', handleLeaveGame);
-    
     submitArtistBtn.addEventListener('click', () => submitAnswerPart('artist', artistGuessInput.value, artistSubmitStatus));
     submitTitleBtn.addEventListener('click', () => submitAnswerPart('title', titleGuessInput.value, titleSubmitStatus));
     submitYearBtn.addEventListener('click', () => submitAnswerPart('year', yearGuessInput.value, yearSubmitStatus));
 
-    // Sjekk for reconnect
+    // Reconnect
     const savedCode = localStorage.getItem('mquiz_collector_client_gamecode');
     const savedName = localStorage.getItem('mquiz_collector_playername');
     if (savedCode && savedName) {
         gameCode = savedCode;
         myName = savedName;
         displayPlayerName.textContent = myName;
-        
         supabaseClient.from('games').select('*').eq('game_code', gameCode).single().then(({data, error}) => {
             if (data && !error) {
                 setupSubscriptions();
@@ -242,4 +236,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* Version: #451 */
+/* Version: #462 */
