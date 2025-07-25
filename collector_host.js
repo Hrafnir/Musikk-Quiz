@@ -1,4 +1,4 @@
-/* Version: #456 */
+/* Version: #458 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -37,10 +37,9 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 function renderGame(gameData) {
     if (!gameData) return;
-    console.log("LOG (Host): Mottok ny game state. Status:", gameData.status);
+    console.log("LOG (Host): Mottok ny game state. Status:", gameData.status, "Spillere:", gameData.game_state.players.length);
     gameState = gameData.game_state;
     
-    // Skjul alle hovedvisninger som standard
     [collectorLobbyView, collectorGameView, collectorVictoryView, spotifyConnectView, readyToPlayView].forEach(view => view.classList.add('hidden'));
     gameHeader.classList.remove('hidden');
 
@@ -64,7 +63,6 @@ function renderGame(gameData) {
             collectorGameView.classList.remove('hidden');
             roundResultContainer.classList.remove('hidden');
             songPlayingDisplay.classList.add('hidden');
-            // TODO: Vis resultater her
             break;
         case 'finished':
             collectorVictoryView.classList.remove('hidden');
@@ -103,21 +101,31 @@ function updateHud() {
 // === DATABASE & REALTIME ===
 
 function setupSubscriptions() {
+    console.log(`LOG (Host): Setter opp abonnement for game_code ${gameCode}`);
+    // ENDRET: Lytter nå på alle hendelser ('*') for å være mer robust.
     gameChannel = supabaseClient
         .channel(`game-${gameCode}`)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
-            (payload) => renderGame(payload.new)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
+            (payload) => {
+                // Håndterer både nye spill (INSERT) og oppdateringer (UPDATE)
+                if (payload.new) {
+                    renderGame(payload.new);
+                }
+            }
         )
         .subscribe();
     answersChannel = supabaseClient
         .channel(`answers-${gameCode}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
-            (payload) => console.log("LOG (Host): Mottok nytt svar fra databasen:", payload.new)
+            (payload) => {
+                console.log("LOG (Host): Mottok nytt svar fra databasen:", payload.new);
+            }
         )
         .subscribe();
 }
 
 async function initializeLobby() {
+    console.log("LOG (Host): Initialiserer ny lobby.");
     localStorage.removeItem('mquiz_collector_host_gamecode');
     localStorage.removeItem('mquiz_collector_host_id');
     let success = false;
@@ -134,17 +142,14 @@ async function initializeLobby() {
     localStorage.setItem('mquiz_collector_host_id', user.id);
     gameCodeDisplay.textContent = gameCode;
     setupSubscriptions();
-    renderGame({ status: 'lobby', game_state: gameState });
+    renderGame({ status: 'lobby', game_state: gameState, game_code: gameCode }); // Pass på at gameCode er med
 }
 
-// ENDRET: Forenklet reconnect-logikk
 async function resumeGame(gameData) {
     gameCode = gameData.game_code;
-    await setupChannel(); 
-
+    await setupSubscriptions();
     if (gameData.status === 'in_progress' || gameData.status === 'round_summary') {
         console.log("LOG (Host): Resuming mid-game. Forcing to summary screen for stability.");
-        // Gå alltid til en trygg "mellom rundene"-tilstand ved reconnect
         await supabaseClient.from('games').update({ status: 'round_summary' }).eq('game_code', gameCode);
     } else {
         renderGame(gameData);
@@ -192,46 +197,30 @@ async function startRound() {
     if (!playbackSuccess) { console.error("Kunne ikke spille av sang!"); return; }
 
     const roundEndsAt = new Date(Date.now() + 180 * 1000);
-
     const newState = { ...gameState, currentRound: newRoundNumber, currentSong, roundEndsAt: roundEndsAt.toISOString() };
     await supabaseClient.from('games').update({ status: 'in_progress', game_state: newState }).eq('game_code', gameCode);
 }
 
-// NY FUNKSJON
 async function endRound() {
     clearInterval(roundTimerInterval);
     console.log("LOG (Host): Runden er over. Henter svar og beregner poeng...");
-
-    // 1. Hent alle svar for runden
-    const { data: answers, error } = await supabaseClient
-        .from('round_answers')
-        .select('*')
-        .eq('game_code', gameCode)
-        .eq('round_number', gameState.currentRound);
-    
+    const { data: answers, error } = await supabaseClient.from('round_answers').select('*').eq('game_code', gameCode).eq('round_number', gameState.currentRound);
     if (error) { console.error("Kunne ikke hente svar:", error); return; }
-
-    // 2. Logikk for poengberegning (placeholder)
     console.log("Svar mottatt:", answers);
-    // ... her kommer den komplekse poenglogikken ...
-    
-    // 3. Oppdater databasen med ny status
     await supabaseClient.from('games').update({ status: 'round_summary' }).eq('game_code', gameCode);
 }
-
 
 function startRoundTimer(endTime) {
     clearInterval(roundTimerInterval);
     if (!endTime) { roundTimer.textContent = "--:--"; return; }
     const end = new Date(endTime).getTime();
-
     roundTimerInterval = setInterval(() => {
         const now = new Date().getTime();
         const distance = end - now;
         if (distance < 0) {
             clearInterval(roundTimerInterval);
             roundTimer.textContent = "00:00";
-            endRound(); // Avslutt runden når tiden er ute
+            endRound();
             return;
         }
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -241,7 +230,7 @@ function startRoundTimer(endTime) {
 }
 
 
-// === SPOTIFY-FUNKSJONER (uendret) ===
+// === SPOTIFY-FUNKSJONER (uendret, forkortet for lesbarhet) ===
 function loadSpotifySdk() { if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; } const script = document.createElement('script'); script.src = 'https://sdk.scdn.co/spotify-player.js'; script.async = true; document.body.appendChild(script); }
 async function initializeSpotifyPlayer() { return new Promise(resolve => { spotifyPlayer = new Spotify.Player({ name: 'MQuiz Collector', getOAuthToken: async cb => { const token = await getValidSpotifyToken(); if (token) cb(token); }, volume: 0.5 }); spotifyPlayer.addListener('ready', ({ device_id }) => { deviceId = device_id; resolve(); }); spotifyPlayer.connect(); }); }
 async function getValidSpotifyToken() { const expiresAt = localStorage.getItem('spotify_token_expires_at'); const accessToken = localStorage.getItem('spotify_access_token'); if (!accessToken || !expiresAt || Date.now() > parseInt(expiresAt) - 300000) { return await refreshSpotifyToken(); } return accessToken; }
@@ -261,7 +250,6 @@ async function main() {
     }
     const localGameCode = localStorage.getItem('mquiz_collector_host_gamecode');
     const localHostId = localStorage.getItem('mquiz_collector_host_id');
-
     if (localGameCode && localHostId === user.id) {
         const { data: gameData, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
         if (gameData && !error) {
@@ -308,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     startFirstRoundBtn.addEventListener('click', handleStartFirstRoundClick);
     forceNewGameBtn.addEventListener('click', forceNewGame);
     forceNewGameFromSummaryBtn.addEventListener('click', forceNewGame);
-    nextSongBtn.addEventListener('click', startRound); // Neste sang starter bare en ny runde
+    nextSongBtn.addEventListener('click', startRound);
     
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user) {
@@ -318,4 +306,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #456 */
+/* Version: #458 */
