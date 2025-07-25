@@ -1,4 +1,4 @@
-/* Version: #441 */
+/* Version: #443 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -153,8 +153,9 @@ function setupSubscriptions() {
  */
 async function initializeLobby() {
     console.log("Initializing new lobby...");
-    localStorage.removeItem('mquiz_host_gamecode');
-    localStorage.removeItem('mquiz_host_id');
+    // ENDRET: Bruker unik nøkkel
+    localStorage.removeItem('mquiz_collector_host_gamecode');
+    localStorage.removeItem('mquiz_collector_host_id');
 
     let success = false;
     while (!success) {
@@ -175,8 +176,9 @@ async function initializeLobby() {
         if (!error) success = true;
     }
     
-    localStorage.setItem('mquiz_host_gamecode', gameCode);
-    localStorage.setItem('mquiz_host_id', user.id);
+    // ENDRET: Bruker unik nøkkel
+    localStorage.setItem('mquiz_collector_host_gamecode', gameCode);
+    localStorage.setItem('mquiz_collector_host_id', user.id);
     
     gameCodeDisplay.textContent = gameCode;
     setupSubscriptions();
@@ -190,8 +192,6 @@ async function handleStartGameClick() {
     console.log("Start game button clicked.");
     // TODO: Legg til Spotify-sjekk her senere
     
-    // Oppdater status i databasen. Dette vil trigge sanntids-meldingen
-    // som starter spillet for alle.
     const { error } = await supabaseClient
         .from('games')
         .update({ status: 'in_progress' })
@@ -235,8 +235,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user) {
         user = session.user;
-        const localGameCode = localStorage.getItem('mquiz_host_gamecode');
-        const localHostId = localStorage.getItem('mquiz_host_id');
+        // ENDRET: Bruker unik nøkkel
+        const localGameCode = localStorage.getItem('mquiz_collector_host_gamecode');
+        const localHostId = localStorage.getItem('mquiz_collector_host_id');
 
         if (localGameCode && localHostId === user.id) {
             // Prøv å gjenoppta
@@ -252,8 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await initializeLobby();
         }
     } else {
-        // Hvis ingen er logget inn, send til forsiden
         window.location.href = 'index.html';
     }
 });
-/* Version: #441 */
+/* Version: #443 */
