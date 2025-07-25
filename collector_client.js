@@ -1,4 +1,4 @@
-/* Version: #462 */
+/* Version: #464 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -25,35 +25,17 @@ let gameState = {};
 
 function renderGame(gameData) {
     if (!gameData) return;
-    console.log("LOG (Client): Mottok ny game state:", gameData);
     gameState = gameData.game_state;
-
     collectorJoinView.classList.add('hidden');
     collectorGameView.classList.remove('hidden');
-    
     answerSubmissionView.classList.add('hidden');
     roundSummaryView.classList.add('hidden');
-
     updateHud();
-
     switch (gameData.status) {
-        case 'lobby':
-            gameStatusText.textContent = "Venter på at hosten skal starte spillet...";
-            break;
-        case 'in_progress':
-            gameStatusText.textContent = `Runde ${gameState.currentRound} pågår!`;
-            answerSubmissionView.classList.remove('hidden');
-            artistSubmitStatus.textContent = '';
-            titleSubmitStatus.textContent = '';
-            yearSubmitStatus.textContent = '';
-            break;
-        case 'round_summary':
-            gameStatusText.textContent = `Runde ${gameState.currentRound} er ferdig.`;
-            roundSummaryView.classList.remove('hidden');
-            break;
-        case 'finished':
-            gameStatusText.textContent = "Spillet er over!";
-            break;
+        case 'lobby': gameStatusText.textContent = "Venter på at hosten skal starte spillet..."; break;
+        case 'in_progress': gameStatusText.textContent = `Runde ${gameState.currentRound} pågår!`; answerSubmissionView.classList.remove('hidden'); artistSubmitStatus.textContent = ''; titleSubmitStatus.textContent = ''; yearSubmitStatus.textContent = ''; break;
+        case 'round_summary': gameStatusText.textContent = `Runde ${gameState.currentRound} er ferdig.`; roundSummaryView.classList.remove('hidden'); break;
+        case 'finished': gameStatusText.textContent = "Spillet er over!"; break;
     }
 }
 
@@ -65,9 +47,7 @@ function updateHud() {
         const songsCollected = player.songsCollected || 0;
         const playerInfoDiv = document.createElement('div');
         playerInfoDiv.className = 'player-info'; 
-        if (player.name === myName) {
-            playerInfoDiv.classList.add('active-player');
-        }
+        if (player.name === myName) playerInfoDiv.classList.add('active-player');
         playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">Sanger: ${songsCollected}</div>`;
         playerHud.appendChild(playerInfoDiv);
     });
@@ -76,18 +56,15 @@ function updateHud() {
 // === DATABASE & REALTIME ===
 
 function setupSubscriptions() {
-    console.log(`LOG (Client): Setter opp abonnement for game_code ${gameCode}`);
-    gameChannel = supabaseClient
-        .channel(`game-${gameCode}`)
+    gameChannel = supabaseClient.channel(`game-${gameCode}`);
+    gameChannel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
-            (payload) => {
-                renderGame(payload.new);
-            }
+            (payload) => renderGame(payload.new)
         )
         .subscribe();
 
-    answersChannel = supabaseClient
-        .channel(`answers-${gameCode}`)
+    answersChannel = supabaseClient.channel(`answers-${gameCode}`);
+    answersChannel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
             (payload) => {
                 if (payload.new.player_id === myName) {
@@ -103,19 +80,12 @@ function setupSubscriptions() {
 async function handleJoinGame() {
     gameCode = gameCodeInput.value.trim();
     myName = playerNameInput.value.trim();
-
-    if (!gameCode || !myName) {
-        joinStatus.textContent = 'Du må fylle ut både spillkode og navn.';
-        return;
-    }
-
+    if (!gameCode || !myName) { joinStatus.textContent = 'Du må fylle ut både spillkode og navn.'; return; }
     joinBtn.disabled = true;
     joinStatus.textContent = 'Sjekker spillkode...';
 
     try {
-        const { data: gameData, error: gameError } = await supabaseClient
-            .from('games').select('game_state, status').eq('game_code', gameCode).single();
-
+        const { data: gameData, error: gameError } = await supabaseClient.from('games').select('game_state, status').eq('game_code', gameCode).single();
         if (gameError || !gameData) throw new Error("Fant ikke noe spill med den koden.");
         if (gameData.status !== 'lobby') throw new Error("Det spillet har allerede startet.");
         
@@ -125,21 +95,16 @@ async function handleJoinGame() {
         const newPlayer = { name: myName, songsCollected: 0 };
         const updatedPlayers = [...currentPlayers, newPlayer];
         
-        const { error: updateError } = await supabaseClient
-            .from('games').update({ game_state: { ...gameData.game_state, players: updatedPlayers } }).eq('game_code', gameCode);
-
+        const { error: updateError } = await supabaseClient.from('games').update({ game_state: { ...gameData.game_state, players: updatedPlayers } }).eq('game_code', gameCode);
         if (updateError) throw new Error("Kunne ikke legge deg til i spillet.");
         
-        // ENDRET: Sender en broadcast-melding for å varsle hosten
-        const tempChannel = supabaseClient.channel(`game-${gameCode}`);
-        tempChannel.subscribe(() => {
-            tempChannel.send({
-                type: 'broadcast',
-                event: 'player_joined',
-                payload: { name: myName }
-            });
+        // ENDRET: Sender broadcast ETTER vellykket databaseoppdatering
+        const channel = supabaseClient.channel(`game-${gameCode}`);
+        channel.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                channel.send({ type: 'broadcast', event: 'player_joined', payload: { name: myName } });
+            }
         });
-
 
         joinStatus.textContent = 'Koblet til!';
         localStorage.setItem('mquiz_collector_client_gamecode', gameCode);
@@ -147,10 +112,8 @@ async function handleJoinGame() {
         
         displayPlayerName.textContent = myName;
         gameState = { ...gameData.game_state, players: updatedPlayers };
-        
         setupSubscriptions();
         renderGame({ status: 'lobby', game_state: gameState });
-
     } catch (error) {
         joinStatus.textContent = `Feil: ${error.message}`;
         joinBtn.disabled = false;
@@ -167,12 +130,8 @@ async function submitAnswerPart(part, value, statusElement) {
         [`${part}_answer`]: value,
         submitted_at: new Date().toISOString()
     };
-    const { error } = await supabaseClient
-        .from('round_answers')
-        .upsert(answerData, { onConflict: 'game_code,round_number,player_id' });
-    if (error) {
-        statusElement.textContent = 'Feil!';
-    }
+    const { error } = await supabaseClient.from('round_answers').upsert(answerData, { onConflict: 'game_code,round_number,player_id' });
+    if (error) statusElement.textContent = 'Feil!';
 }
 
 function handleLeaveGame(event) {
@@ -186,9 +145,7 @@ function handleLeaveGame(event) {
 
 
 // === MAIN ENTRY POINT ===
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Tildel DOM-elementer
     collectorJoinView = document.getElementById('collector-join-view');
     gameCodeInput = document.getElementById('game-code-input');
     playerNameInput = document.getElementById('player-name-input');
@@ -211,14 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
     submitYearBtn = document.getElementById('submit-year-btn');
     yearSubmitStatus = document.getElementById('year-submit-status');
 
-    // Lyttere
     joinBtn.addEventListener('click', handleJoinGame);
     newGameLink.addEventListener('click', handleLeaveGame);
     submitArtistBtn.addEventListener('click', () => submitAnswerPart('artist', artistGuessInput.value, artistSubmitStatus));
     submitTitleBtn.addEventListener('click', () => submitAnswerPart('title', titleGuessInput.value, titleSubmitStatus));
     submitYearBtn.addEventListener('click', () => submitAnswerPart('year', yearGuessInput.value, yearSubmitStatus));
 
-    // Reconnect
     const savedCode = localStorage.getItem('mquiz_collector_client_gamecode');
     const savedName = localStorage.getItem('mquiz_collector_playername');
     if (savedCode && savedName) {
@@ -236,4 +191,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* Version: #462 */
+/* Version: #464 */
