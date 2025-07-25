@@ -1,4 +1,4 @@
-/* Version: #443 */
+/* Version: #445 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -32,7 +32,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 /**
  * Tar imot et spillobjekt fra databasen og oppdaterer hele UI-en for å matche.
- * Dette er den sentrale render-funksjonen.
  * @param {object} gameData - Hele raden fra 'games'-tabellen.
  */
 function renderGame(gameData) {
@@ -55,17 +54,18 @@ function renderGame(gameData) {
     switch (gameData.status) {
         case 'lobby':
             collectorLobbyView.classList.remove('hidden');
-            gameHeader.classList.add('hidden'); // Skjul permanent kode i lobby
+            gameHeader.classList.add('hidden');
             updatePlayerLobby();
             break;
         case 'in_progress':
             collectorGameView.classList.remove('hidden');
-            // TODO: Logikk for å vise timer, sanginfo etc.
+            roundResultContainer.classList.add('hidden');
+            songPlayingDisplay.classList.remove('hidden');
             break;
         case 'round_summary':
             collectorGameView.classList.remove('hidden');
             roundResultContainer.classList.remove('hidden');
-            // TODO: Logikk for å vise resultater
+            songPlayingDisplay.classList.add('hidden');
             break;
         case 'finished':
             collectorVictoryView.classList.remove('hidden');
@@ -80,6 +80,7 @@ function renderGame(gameData) {
 function updatePlayerLobby() {
     if (!playerLobbyList) return;
     const players = gameState.players || [];
+    console.log(`Updating lobby with ${players.length} players.`);
     playerLobbyList.innerHTML = '';
     players.forEach(player => {
         const li = document.createElement('li');
@@ -107,7 +108,6 @@ function updateHud() {
         const songsCollected = player.songsCollected || 0;
         const playerInfoDiv = document.createElement('div');
         playerInfoDiv.className = 'player-info';
-        // TODO: Legg til 'active-player' logikk hvis vi trenger det
         playerInfoDiv.innerHTML = `<div class="player-name">${player.name}</div><div class="player-stats">Sanger: ${songsCollected}</div>`;
         playerHud.appendChild(playerInfoDiv);
     });
@@ -120,29 +120,24 @@ function updateHud() {
  * Setter opp sanntids-abonnementer for spillet.
  */
 function setupSubscriptions() {
-    // Abonner på endringer i hoved-spillobjektet
     gameChannel = supabaseClient
         .channel(`game-${gameCode}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
             (payload) => {
-                console.log('Game state change received:', payload);
+                console.log('Game state UPDATE received:', payload.new);
+                // ENDRET: Oppdater den lokale staten og kall render-funksjonen
+                gameState = payload.new.game_state;
                 renderGame(payload.new);
             }
         )
         .subscribe();
 
-    // Abonner på nye svar som kommer inn
     answersChannel = supabaseClient
         .channel(`answers-${gameCode}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
             (payload) => {
                 console.log('New answer received:', payload);
                 // TODO: Oppdater UI for å vise at en spiller har svart
-                const answer = payload.new;
-                const statusEl = document.getElementById(`player-status-${answer.player_id}`);
-                if (statusEl) {
-                    statusEl.textContent = '✓';
-                }
             }
         )
         .subscribe();
@@ -153,7 +148,6 @@ function setupSubscriptions() {
  */
 async function initializeLobby() {
     console.log("Initializing new lobby...");
-    // ENDRET: Bruker unik nøkkel
     localStorage.removeItem('mquiz_collector_host_gamecode');
     localStorage.removeItem('mquiz_collector_host_id');
 
@@ -167,22 +161,25 @@ async function initializeLobby() {
             currentSong: null,
             roundWinner: null
         };
-        const { error } = await supabaseClient.from('games').insert({
+        const { data: newGame, error } = await supabaseClient.from('games').insert({
             game_code: gameCode,
             host_id: user.id,
             game_state: initialGameState,
             status: 'lobby'
-        });
-        if (!error) success = true;
+        }).select().single();
+        
+        if (!error) {
+            success = true;
+            gameState = newGame.game_state; // Sett den initielle staten
+        }
     }
     
-    // ENDRET: Bruker unik nøkkel
     localStorage.setItem('mquiz_collector_host_gamecode', gameCode);
     localStorage.setItem('mquiz_collector_host_id', user.id);
     
     gameCodeDisplay.textContent = gameCode;
     setupSubscriptions();
-    renderGame({ status: 'lobby', game_state: { players: [] } }); // Manuell første render
+    renderGame({ status: 'lobby', game_state: gameState });
 }
 
 
@@ -235,12 +232,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user) {
         user = session.user;
-        // ENDRET: Bruker unik nøkkel
         const localGameCode = localStorage.getItem('mquiz_collector_host_gamecode');
         const localHostId = localStorage.getItem('mquiz_collector_host_id');
 
         if (localGameCode && localHostId === user.id) {
-            // Prøv å gjenoppta
             const { data: gameData, error } = await supabaseClient.from('games').select('*').eq('game_code', localGameCode).single();
             if (gameData && !error) {
                 gameCode = localGameCode;
@@ -256,4 +251,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #443 */
+/* Version: #445 */
