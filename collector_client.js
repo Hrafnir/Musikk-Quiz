@@ -1,4 +1,4 @@
-/* Version: #442 */
+/* Version: #444 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -160,7 +160,8 @@ async function handleJoinGame() {
 
         // 3. Alt gikk bra, fortsett inn i spillet
         joinStatus.textContent = 'Koblet til!';
-        localStorage.setItem('mquiz_collector_gamecode', gameCode);
+        // ENDRET: Bruker unike nøkler
+        localStorage.setItem('mquiz_collector_client_gamecode', gameCode);
         localStorage.setItem('mquiz_collector_playername', myName);
         
         displayPlayerName.textContent = myName;
@@ -179,7 +180,8 @@ function handleLeaveGame(event) {
     event.preventDefault();
     if (confirm("Er du sikker på at du vil forlate spillet?")) {
         // TODO: Legg til logikk for å fjerne spilleren fra databasen
-        localStorage.removeItem('mquiz_collector_gamecode');
+        // ENDRET: Bruker unike nøkler
+        localStorage.removeItem('mquiz_collector_client_gamecode');
         localStorage.removeItem('mquiz_collector_playername');
         window.location.reload();
     }
@@ -212,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
     newGameLink.addEventListener('click', handleLeaveGame);
 
     // Sjekk om vi kan gjenoppta en økt
-    const savedCode = localStorage.getItem('mquiz_collector_gamecode');
+    // ENDRET: Bruker unike nøkler
+    const savedCode = localStorage.getItem('mquiz_collector_client_gamecode');
     const savedName = localStorage.getItem('mquiz_collector_playername');
     if (savedCode && savedName) {
         // TODO: Implementer full reconnect-logikk. For nå, bare koble til kanalen.
@@ -233,4 +236,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* Version: #442 */
+/* Version: #444 */
