@@ -1,4 +1,4 @@
-<!-- Version: #439 -->
+<!-- Version: #447 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -36,16 +36,31 @@
             </div>
             <button id="start-game-btn" disabled>Venter på spillere...</button>
         </div>
+        
+        <!-- NY: FASE 1.5: SPOTIFY CONNECT -->
+        <div id="spotify-connect-view" class="hidden">
+            <h1>Koble til Spotify</h1>
+            <p>For å spille musikk, må du koble til en Spotify Premium-konto.</p>
+            <button id="spotify-login-btn">Koble til Spotify</button>
+        </div>
+
+        <!-- NY: FASE 1.6: KLAR TIL START -->
+        <div id="ready-to-play-view" class="hidden">
+            <h1 style="color: #1DB954;">✓ Spotify er tilkoblet!</h1>
+            <p>Spillerne venter. Trykk for å starte første runde.</p>
+            <button id="start-first-round-btn">Start Første Runde</button>
+        </div>
+
 
         <!-- FASE 2: SPILLVISNING -->
         <div id="collector-game-view" class="hidden">
             <div id="player-hud">
-                <!-- Spillerinfo (navn og sanger samlet) genereres her -->
+                <!-- Spillerinfo genereres her -->
             </div>
 
             <h2 id="round-timer">--:--</h2>
             <div id="realtime-answer-status">
-                <!-- Viser hvem som har svart, f.eks. "Truls har svart på artist..." -->
+                <!-- Viser hvem som har svart -->
             </div>
             
             <div id="song-playing-display">
@@ -53,12 +68,9 @@
                 <p>Sangen spilles...</p>
             </div>
 
-            <!-- Vises etter runden er ferdig -->
             <div id="round-result-container" class="hidden">
                 <h3>Resultater for runden</h3>
-                <div id="round-points-list">
-                    <!-- Poeng for hver spiller genereres her -->
-                </div>
+                <div id="round-points-list"></div>
                 <h4 id="round-winner"></h4>
                 <div id="host-controls">
                     <p id="next-song-status">Venter på at spillerne skal bli klare...</p>
@@ -84,4 +96,4 @@
     <script src="collector_host.js"></script>
 </body>
 </html>
-<!-- Version: #439 -->
+<!-- Version: #447 -->
