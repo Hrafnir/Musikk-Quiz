@@ -1,4 +1,4 @@
-/* Version: #453 */
+/* Version: #454 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -64,7 +64,12 @@ function renderGame(gameData) {
             if (gameState.currentSong) {
                 playingAlbumArt.src = gameState.currentSong.albumarturl || '';
             }
-            startRoundTimer(gameState.roundEndsAt);
+            // ENDRET: Sjekker at roundEndsAt eksisterer før vi starter timeren
+            if (gameState.roundEndsAt) {
+                startRoundTimer(gameState.roundEndsAt);
+            } else {
+                roundTimer.textContent = "--:--";
+            }
             break;
         case 'round_summary':
             collectorGameView.classList.remove('hidden');
@@ -207,10 +212,10 @@ async function startRound() {
     const playbackSuccess = await playTrack(currentSong.spotifyid);
     if (!playbackSuccess) {
         console.error("Kunne ikke spille av sang!");
-        // TODO: Vis feilmelding i UI
         return;
     }
 
+    // ENDRET: Setter roundEndsAt før vi oppdaterer databasen
     const roundEndsAt = new Date(Date.now() + 180 * 1000); // 3 minutter totalt
 
     const newState = {
@@ -230,6 +235,10 @@ async function startRound() {
 
 function startRoundTimer(endTime) {
     clearInterval(roundTimerInterval);
+    if (!endTime) {
+        roundTimer.textContent = "--:--";
+        return;
+    }
     const end = new Date(endTime).getTime();
 
     roundTimerInterval = setInterval(() => {
@@ -250,7 +259,7 @@ function startRoundTimer(endTime) {
 }
 
 
-// === SPOTIFY-FUNKSJONER ===
+// === SPOTIFY-FUNKSJONER (uendret) ===
 function loadSpotifySdk() {
     if (window.Spotify) { window.onSpotifyWebPlaybackSDKReady(); return; }
     const script = document.createElement('script');
@@ -402,4 +411,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #453 */
+/* Version: #454 */
