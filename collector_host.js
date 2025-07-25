@@ -1,4 +1,4 @@
-/* Version: #467 */
+/* Version: #469 (Diagnostic) */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -36,6 +36,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 function renderGame(gameData) {
     if (!gameData) return;
+    console.log(`[UI RENDER] (Host) Kaller renderGame. Status: ${gameData.status}, Spillere: ${gameData.game_state.players.length}`);
     gameState = gameData.game_state;
     
     [collectorLobbyView, collectorGameView, collectorVictoryView, spotifyConnectView, readyToPlayView].forEach(view => view.classList.add('hidden'));
@@ -50,22 +51,10 @@ function renderGame(gameData) {
             gameHeader.classList.add('hidden');
             updatePlayerLobby();
             break;
-        case 'in_progress':
-            collectorGameView.classList.remove('hidden');
-            roundResultContainer.classList.add('hidden');
-            songPlayingDisplay.classList.remove('hidden');
-            if (gameState.currentSong) playingAlbumArt.src = gameState.currentSong.albumarturl || '';
-            startRoundTimer(gameState.roundEndsAt);
-            break;
-        case 'round_summary':
-            collectorGameView.classList.remove('hidden');
-            roundResultContainer.classList.remove('hidden');
-            songPlayingDisplay.classList.add('hidden');
-            break;
-        case 'finished':
-            collectorVictoryView.classList.remove('hidden');
-            winnerAnnouncement.textContent = `Vinneren er ${gameState.winner}!`;
-            break;
+        // ... (resten av casene forblir de samme)
+        case 'in_progress': collectorGameView.classList.remove('hidden'); roundResultContainer.classList.add('hidden'); songPlayingDisplay.classList.remove('hidden'); if (gameState.currentSong) playingAlbumArt.src = gameState.currentSong.albumarturl || ''; startRoundTimer(gameState.roundEndsAt); break;
+        case 'round_summary': collectorGameView.classList.remove('hidden'); roundResultContainer.classList.remove('hidden'); songPlayingDisplay.classList.add('hidden'); break;
+        case 'finished': collectorVictoryView.classList.remove('hidden'); winnerAnnouncement.textContent = `Vinneren er ${gameState.winner}!`; break;
     }
 }
 
@@ -99,28 +88,31 @@ function updateHud() {
 // === DATABASE & REALTIME ===
 
 async function forceGameStateSync() {
-    console.log("LOG (Host): Ping received, forcing state sync from DB...");
+    console.log("[DB READ] (Host) Ping mottatt. Henter fersk data fra DB...");
     const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', gameCode).single();
     if (error) {
-        console.error("Could not sync game state:", error);
+        console.error("[DB READ] (Host) Kunne ikke hente fersk data:", error);
     } else if (data) {
+        console.log("[DB READ] (Host) Fersk data hentet. Antall spillere:", data.game_state.players.length);
         renderGame(data);
     }
 }
 
 function setupSubscriptions() {
-    console.log(`LOG (Host): Setting up subscriptions for game_code ${gameCode}`);
     if (gameChannel) supabaseClient.removeChannel(gameChannel);
 
     gameChannel = supabaseClient.channel(`game-${gameCode}`);
     
-    // ENDRET: Lytter kun på broadcast "pings"
     gameChannel
         .on('broadcast', { event: 'ping' }, (payload) => {
-            console.log(`LOG (Host): Received ping. Reason: ${payload.payload.message}`);
+            console.log(`[BROADCAST RECV] (Host) Mottok ping. Årsak: ${payload.payload.message}`);
             forceGameStateSync();
         })
-        .subscribe();
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`[LISTENING] (Host) Lytter nå på broadcast-kanalen game-${gameCode}`);
+            }
+        });
 }
 
 async function initializeLobby() {
@@ -238,4 +230,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #467 */
+/* Version: #469 (Diagnostic) */
