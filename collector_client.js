@@ -1,4 +1,4 @@
-/* Version: #464 */
+/* Version: #466 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -98,11 +98,13 @@ async function handleJoinGame() {
         const { error: updateError } = await supabaseClient.from('games').update({ game_state: { ...gameData.game_state, players: updatedPlayers } }).eq('game_code', gameCode);
         if (updateError) throw new Error("Kunne ikke legge deg til i spillet.");
         
-        // ENDRET: Sender broadcast ETTER vellykket databaseoppdatering
+        // ENDRET: Sender "ping" etter vellykket databaseoppdatering
         const channel = supabaseClient.channel(`game-${gameCode}`);
         channel.subscribe(status => {
             if (status === 'SUBSCRIBED') {
-                channel.send({ type: 'broadcast', event: 'player_joined', payload: { name: myName } });
+                console.log("LOG (Client): Channel subscribed, sending ping.");
+                channel.send({ type: 'broadcast', event: 'ping', payload: { message: 'player_joined' } });
+                supabaseClient.removeChannel(channel); // Rydd opp
             }
         });
 
@@ -131,7 +133,18 @@ async function submitAnswerPart(part, value, statusElement) {
         submitted_at: new Date().toISOString()
     };
     const { error } = await supabaseClient.from('round_answers').upsert(answerData, { onConflict: 'game_code,round_number,player_id' });
-    if (error) statusElement.textContent = 'Feil!';
+    if (error) {
+        statusElement.textContent = 'Feil!';
+    } else {
+        // Ping for svar
+        const channel = supabaseClient.channel(`game-${gameCode}`);
+        channel.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                channel.send({ type: 'broadcast', event: 'ping', payload: { message: 'player_answered', player: myName, part: part } });
+                supabaseClient.removeChannel(channel);
+            }
+        });
+    }
 }
 
 function handleLeaveGame(event) {
@@ -191,4 +204,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* Version: #464 */
+/* Version: #466 */
