@@ -1,4 +1,4 @@
-<!-- Version: #448 -->
+<!-- Version: #455 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -24,12 +24,10 @@
                 <p>Be spillerne gå til <strong>collector_client.html</strong> og taste inn koden:</p>
                 <h2 id="game-code-display">Laster...</h2>
             </div>
-            
             <div class="game-setting">
                 <label for="songs-to-win-input">Sanger for å vinne:</label>
                 <input type="number" id="songs-to-win-input" value="10" min="1" max="50">
             </div>
-
             <div id="player-lobby-container">
                 <h3>Spillere:</h3>
                 <ul id="player-lobby-list"></ul>
@@ -49,7 +47,6 @@
             <h1 style="color: #1DB954;">✓ Spotify er tilkoblet!</h1>
             <p>Spillerne venter. Trykk for å starte første runde.</p>
             <button id="start-first-round-btn" style="margin-bottom: 15px;">Start Første Runde</button>
-            <!-- NY KNAPP -->
             <button id="force-new-game-btn" class="small-btn" style="background-color: #555;">Start et helt nytt spill</button>
         </div>
 
@@ -59,22 +56,26 @@
             <div id="player-hud"></div>
             <h2 id="round-timer">--:--</h2>
             <div id="realtime-answer-status"></div>
+            
             <div id="song-playing-display">
                 <img id="playing-album-art" src="" alt="Album Cover">
                 <p>Sangen spilles...</p>
             </div>
+
             <div id="round-result-container" class="hidden">
                 <h3>Resultater for runden</h3>
                 <div id="round-points-list"></div>
                 <h4 id="round-winner"></h4>
                 <div id="host-controls">
                     <p id="next-song-status">Venter på at spillerne skal bli klare...</p>
-                    <button id="next-song-btn">Start Neste Sang</button>
+                    <button id="next-song-btn" style="margin-bottom: 15px;">Start Neste Sang</button>
+                    <!-- NY KNAPP -->
+                    <button id="force-new-game-from-summary-btn" class="small-btn" style="background-color: #555;">Start et helt nytt spill</button>
                 </div>
             </div>
         </div>
 
-        <!-- FASE 3: SEIERSSKJERM -->
+        <!-- FASE 3: SEIERSSKJERM (uendret) -->
         <div id="collector-victory-view" class="hidden">
             <h1>Spillet er over!</h1>
             <h2 id="winner-announcement"></h2>
@@ -91,4 +92,4 @@
     <script src="collector_host.js"></script>
 </body>
 </html>
-<!-- Version: #448 -->
+<!-- Version: #455 -->
