@@ -1,4 +1,4 @@
-<!-- Version: #447 -->
+<!-- Version: #448 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -37,37 +37,32 @@
             <button id="start-game-btn" disabled>Venter på spillere...</button>
         </div>
         
-        <!-- NY: FASE 1.5: SPOTIFY CONNECT -->
+        <!-- FASE 1.5: SPOTIFY CONNECT -->
         <div id="spotify-connect-view" class="hidden">
             <h1>Koble til Spotify</h1>
             <p>For å spille musikk, må du koble til en Spotify Premium-konto.</p>
             <button id="spotify-login-btn">Koble til Spotify</button>
         </div>
 
-        <!-- NY: FASE 1.6: KLAR TIL START -->
+        <!-- FASE 1.6: KLAR TIL START -->
         <div id="ready-to-play-view" class="hidden">
             <h1 style="color: #1DB954;">✓ Spotify er tilkoblet!</h1>
             <p>Spillerne venter. Trykk for å starte første runde.</p>
-            <button id="start-first-round-btn">Start Første Runde</button>
+            <button id="start-first-round-btn" style="margin-bottom: 15px;">Start Første Runde</button>
+            <!-- NY KNAPP -->
+            <button id="force-new-game-btn" class="small-btn" style="background-color: #555;">Start et helt nytt spill</button>
         </div>
 
 
         <!-- FASE 2: SPILLVISNING -->
         <div id="collector-game-view" class="hidden">
-            <div id="player-hud">
-                <!-- Spillerinfo genereres her -->
-            </div>
-
+            <div id="player-hud"></div>
             <h2 id="round-timer">--:--</h2>
-            <div id="realtime-answer-status">
-                <!-- Viser hvem som har svart -->
-            </div>
-            
+            <div id="realtime-answer-status"></div>
             <div id="song-playing-display">
                 <img id="playing-album-art" src="" alt="Album Cover">
                 <p>Sangen spilles...</p>
             </div>
-
             <div id="round-result-container" class="hidden">
                 <h3>Resultater for runden</h3>
                 <div id="round-points-list"></div>
@@ -96,4 +91,4 @@
     <script src="collector_host.js"></script>
 </body>
 </html>
-<!-- Version: #447 -->
+<!-- Version: #448 -->
