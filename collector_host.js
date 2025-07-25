@@ -1,4 +1,4 @@
-/* Version: #460 */
+/* Version: #465 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -18,7 +18,6 @@ let user = null;
 let gameCode = '';
 let gameState = {};
 let gameChannel = null;
-let answersChannel = null;
 let spotifyPlayer = null;
 let deviceId = null;
 let roundTimerInterval = null;
@@ -37,7 +36,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 function renderGame(gameData) {
     if (!gameData) return;
-    console.log("LOG (Host): Mottok ny game state. Status:", gameData.status, "Spillere:", gameData.game_state.players.length);
     gameState = gameData.game_state;
     
     [collectorLobbyView, collectorGameView, collectorVictoryView, spotifyConnectView, readyToPlayView].forEach(view => view.classList.add('hidden'));
@@ -100,41 +98,32 @@ function updateHud() {
 
 // === DATABASE & REALTIME ===
 
-// ENDRET: Returnerer nå en Promise som fullføres når abonnementet er aktivt
+async function forceGameStateSync() {
+    console.log("LOG (Host): Broadcast received, forcing state sync from DB...");
+    const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', gameCode).single();
+    if (error) {
+        console.error("Could not sync game state:", error);
+    } else {
+        renderGame(data);
+    }
+}
+
 function setupSubscriptions() {
     console.log(`LOG (Host): Setter opp abonnement for game_code ${gameCode}`);
-    
-    return new Promise(resolve => {
-        gameChannel = supabaseClient
-            .channel(`game-${gameCode}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
-                (payload) => {
-                    if (payload.new) {
-                        renderGame(payload.new);
-                    }
-                }
-            )
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log(`LOG (Host): Abonnement på 'games' er aktivt.`);
-                    // Vi kan vurdere å bare resolve når BEGGE er klare, men dette er en god start.
-                    resolve();
-                }
-            });
+    if (gameChannel) supabaseClient.removeChannel(gameChannel);
 
-        answersChannel = supabaseClient
-            .channel(`answers-${gameCode}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
-                (payload) => {
-                    console.log("LOG (Host): Mottok nytt svar fra databasen:", payload.new);
-                }
-            )
-            .subscribe();
-    });
+    gameChannel = supabaseClient.channel(`game-${gameCode}`);
+    
+    // ENDRET: Enkel broadcast-lytter
+    gameChannel
+        .on('broadcast', { event: 'player_joined' }, (payload) => {
+            console.log(`LOG (Host): Received player_joined broadcast for ${payload.payload.name}`);
+            forceGameStateSync();
+        })
+        .subscribe();
 }
 
 async function initializeLobby() {
-    console.log("LOG (Host): Initialiserer ny lobby.");
     localStorage.removeItem('mquiz_collector_host_gamecode');
     localStorage.removeItem('mquiz_collector_host_id');
     let success = false;
@@ -148,33 +137,22 @@ async function initializeLobby() {
             newGameData = data;
         }
     }
-    
     localStorage.setItem('mquiz_collector_host_gamecode', gameCode);
     localStorage.setItem('mquiz_collector_host_id', user.id);
     gameCodeDisplay.textContent = gameCode;
     
-    // ENDRET: Venter på at abonnementet skal bli aktivt
-    await setupSubscriptions(); 
-    
-    // Nå som vi vet at vi lytter, kan vi trygt rendre den initielle tilstanden.
+    setupSubscriptions();
     renderGame(newGameData);
 }
 
 async function resumeGame(gameData) {
     gameCode = gameData.game_code;
-    
-    // ENDRET: Venter på at abonnementet skal bli aktivt
-    await setupSubscriptions();
-
-    if (gameData.status === 'in_progress' || gameData.status === 'round_summary') {
-        await supabaseClient.from('games').update({ status: 'round_summary' }).eq('game_code', gameCode);
-    } else {
-        renderGame(gameData);
-    }
+    setupSubscriptions();
+    renderGame(gameData);
 }
 
 
-// === SPILLFLYT-HANDLINGER (forkortet, ingen endringer) ===
+// === SPILLFLYT-HANDLINGER (forkortet, uendret) ===
 async function handleStartGameClick() { const token = await getValidSpotifyToken(); if (token) { collectorLobbyView.classList.add('hidden'); readyToPlayView.classList.remove('hidden'); } else { collectorLobbyView.classList.add('hidden'); spotifyConnectView.classList.remove('hidden'); } }
 async function handleStartFirstRoundClick() { readyToPlayView.classList.add('hidden'); loadSpotifySdk(); await spotifySdkReadyPromise; await initializeSpotifyPlayer(); await startRound(); }
 async function forceNewGame() { if (confirm("Er du sikker?")) { localStorage.removeItem('mquiz_collector_host_gamecode'); localStorage.removeItem('mquiz_collector_host_id'); window.location.reload(); } }
@@ -189,6 +167,7 @@ async function redirectToSpotifyLogin() { const codeVerifier = generateRandomStr
 async function generateCodeChallenge(codeVerifier) { const data = new TextEncoder().encode(codeVerifier); const digest = await window.crypto.subtle.digest('SHA-256', data); return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 async function fetchSpotifyAccessToken(code) { const codeVerifier = localStorage.getItem('spotify_code_verifier'); if (!codeVerifier) return false; const redirectUri = window.location.href.split('?')[0]; const response = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: SPOTIFY_CLIENT_ID, grant_type: 'authorization_code', code, redirect_uri: redirectUri, code_verifier: codeVerifier, }), }); if (response.ok) { const data = await response.json(); localStorage.setItem('spotify_access_token', data.access_token); localStorage.setItem('spotify_refresh_token', data.refresh_token); localStorage.setItem('spotify_token_expires_at', Date.now() + data.expires_in * 1000); return true; } return false; }
 async function playTrack(spotifyTrackId) { if (!deviceId) { console.error("Cannot play track: no deviceId"); return false; } const token = await getValidSpotifyToken(); if (!token) { console.error("Cannot play track: no token"); return false; } await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } }); await new Promise(resolve => setTimeout(resolve, 100)); const trackUri = `spotify:track:${spotifyTrackId}`; const url = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`; const response = await fetch(url, { method: 'PUT', body: JSON.stringify({ uris: [trackUri] }), headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }); return response.ok; }
+
 async function main() {
     const urlParams = new URLSearchParams(window.location.search);
     const spotifyCode = urlParams.get('code');
@@ -255,4 +234,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #460 */
+/* Version: #465 */
