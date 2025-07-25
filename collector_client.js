@@ -1,4 +1,4 @@
-/* Version: #444 */
+/* Version: #451 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -7,7 +7,10 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // === DOM ELEMENTS ===
 let collectorJoinView, gameCodeInput, playerNameInput, joinBtn, joinStatus,
     collectorGameView, playerHud, gameStatusText, displayPlayerName,
-    answerSubmissionView, submitStatus,
+    answerSubmissionView,
+    artistGuessInput, submitArtistBtn, artistSubmitStatus,
+    titleGuessInput, submitTitleBtn, titleSubmitStatus,
+    yearGuessInput, submitYearBtn, yearSubmitStatus,
     roundSummaryView,
     newGameLink;
 
@@ -20,27 +23,19 @@ let gameState = {};
 
 // === HOVEDFUNKSJONER ===
 
-/**
- * Tar imot et spillobjekt fra databasen og oppdaterer hele UI-en for å matche.
- * @param {object} gameData - Hele raden fra 'games'-tabellen.
- */
 function renderGame(gameData) {
     if (!gameData) return;
-    console.log("Client received new game state:", gameData);
+    console.log("LOG (Client): Mottok ny game state:", gameData);
     gameState = gameData.game_state;
 
-    // Skjul/vis hovedseksjoner
     collectorJoinView.classList.add('hidden');
     collectorGameView.classList.remove('hidden');
     
-    // Skjul under-seksjoner
     answerSubmissionView.classList.add('hidden');
     roundSummaryView.classList.add('hidden');
 
-    // Oppdater HUD
     updateHud();
 
-    // Vis riktig status/visning basert på spillstatus
     switch (gameData.status) {
         case 'lobby':
             gameStatusText.textContent = "Venter på at hosten skal starte spillet...";
@@ -48,6 +43,10 @@ function renderGame(gameData) {
         case 'in_progress':
             gameStatusText.textContent = `Runde ${gameState.currentRound} pågår!`;
             answerSubmissionView.classList.remove('hidden');
+            // Nullstill status for ny runde
+            artistSubmitStatus.textContent = '';
+            titleSubmitStatus.textContent = '';
+            yearSubmitStatus.textContent = '';
             break;
         case 'round_summary':
             gameStatusText.textContent = `Runde ${gameState.currentRound} er ferdig.`;
@@ -55,24 +54,18 @@ function renderGame(gameData) {
             break;
         case 'finished':
             gameStatusText.textContent = "Spillet er over!";
-            // TODO: Vis vinnerinfo
             break;
     }
 }
 
-/**
- * Oppdaterer HUD-en på klienten.
- */
 function updateHud() {
     if (!playerHud) return;
     const players = gameState.players || [];
-    playerHud.innerHTML = ''; // Tømmer HUD
+    playerHud.innerHTML = '';
     players.forEach(player => {
         const songsCollected = player.songsCollected || 0;
         const playerInfoDiv = document.createElement('div');
-        // Bruker 'player-info' som en generell klasse for styling
         playerInfoDiv.className = 'player-info'; 
-        // Marker egen spiller
         if (player.name === myName) {
             playerInfoDiv.classList.add('active-player');
         }
@@ -83,10 +76,8 @@ function updateHud() {
 
 // === DATABASE & REALTIME ===
 
-/**
- * Setter opp sanntids-abonnementer etter at man har blitt med i et spill.
- */
 function setupSubscriptions() {
+    console.log(`LOG (Client): Setter opp abonnement for game_code ${gameCode}`);
     gameChannel = supabaseClient
         .channel(`game-${gameCode}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, 
@@ -100,18 +91,18 @@ function setupSubscriptions() {
         .channel(`answers-${gameCode}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'round_answers', filter: `game_code=eq.${gameCode}` },
             (payload) => {
-                // Logikk for å vise hvem som har svart
+                console.log("LOG (Client): Mottok svar-oppdatering fra databasen:", payload.new);
                 if (payload.new.player_id === myName) {
-                    submitStatus.textContent = '✓ Svaret ditt er lagret!';
+                    // Gi spesifikk tilbakemelding basert på hva som ble sendt
+                    if (payload.new.artist_answer) artistSubmitStatus.textContent = '✓ Artist lagret';
+                    if (payload.new.title_answer) titleSubmitStatus.textContent = '✓ Tittel lagret';
+                    if (payload.new.year_answer) yearSubmitStatus.textContent = '✓ År lagret';
                 }
             }
         )
         .subscribe();
 }
 
-/**
- * Håndterer logikken for å bli med i et spill.
- */
 async function handleJoinGame() {
     gameCode = gameCodeInput.value.trim();
     myName = playerNameInput.value.trim();
@@ -125,42 +116,24 @@ async function handleJoinGame() {
     joinStatus.textContent = 'Sjekker spillkode...';
 
     try {
-        // 1. Sjekk at spillet finnes
         const { data: gameData, error: gameError } = await supabaseClient
-            .from('games')
-            .select('game_state, status')
-            .eq('game_code', gameCode)
-            .single();
+            .from('games').select('game_state, status').eq('game_code', gameCode).single();
 
-        if (gameError || !gameData) {
-            throw new Error("Fant ikke noe spill med den koden.");
-        }
-        if (gameData.status !== 'lobby') {
-            throw new Error("Det spillet har allerede startet.");
-        }
-
-        // 2. Legg til spilleren i spillets state
+        if (gameError || !gameData) throw new Error("Fant ikke noe spill med den koden.");
+        if (gameData.status !== 'lobby') throw new Error("Det spillet har allerede startet.");
+        
         const currentPlayers = gameData.game_state.players || [];
-        if (currentPlayers.some(p => p.name === myName)) {
-            // TODO: Håndter reconnect her senere
-            throw new Error("En spiller med det navnet er allerede med.");
-        }
+        if (currentPlayers.some(p => p.name === myName)) throw new Error("En spiller med det navnet er allerede med.");
         
         const newPlayer = { name: myName, songsCollected: 0 };
         const updatedPlayers = [...currentPlayers, newPlayer];
         
         const { error: updateError } = await supabaseClient
-            .from('games')
-            .update({ game_state: { ...gameData.game_state, players: updatedPlayers } })
-            .eq('game_code', gameCode);
+            .from('games').update({ game_state: { ...gameData.game_state, players: updatedPlayers } }).eq('game_code', gameCode);
 
-        if (updateError) {
-            throw new Error("Kunne ikke legge deg til i spillet.");
-        }
+        if (updateError) throw new Error("Kunne ikke legge deg til i spillet.");
 
-        // 3. Alt gikk bra, fortsett inn i spillet
         joinStatus.textContent = 'Koblet til!';
-        // ENDRET: Bruker unike nøkler
         localStorage.setItem('mquiz_collector_client_gamecode', gameCode);
         localStorage.setItem('mquiz_collector_playername', myName);
         
@@ -176,11 +149,37 @@ async function handleJoinGame() {
     }
 }
 
+// NY: Generell funksjon for å sende inn deler av svaret
+async function submitAnswerPart(part, value, statusElement) {
+    if (!value) return;
+
+    statusElement.textContent = 'Sender...';
+    
+    const answerData = {
+        game_code: gameCode,
+        round_number: gameState.currentRound,
+        player_id: myName,
+        [`${part}_answer`]: value, // f.eks. 'artist_answer': 'Queen'
+        submitted_at: new Date().toISOString()
+    };
+
+    const { error } = await supabaseClient
+        .from('round_answers')
+        .upsert(answerData, { onConflict: 'game_code,round_number,player_id' });
+
+    if (error) {
+        console.error(`Error submitting ${part}:`, error);
+        statusElement.textContent = 'Feil!';
+    } else {
+        console.log(`LOG (Client): Sendte svar for ${part}: ${value}`);
+        // Kvitteringen kommer via sanntids-abonnementet
+    }
+}
+
+
 function handleLeaveGame(event) {
     event.preventDefault();
     if (confirm("Er du sikker på at du vil forlate spillet?")) {
-        // TODO: Legg til logikk for å fjerne spilleren fra databasen
-        // ENDRET: Bruker unike nøkler
         localStorage.removeItem('mquiz_collector_client_gamecode');
         localStorage.removeItem('mquiz_collector_playername');
         window.location.reload();
@@ -197,43 +196,50 @@ document.addEventListener('DOMContentLoaded', () => {
     playerNameInput = document.getElementById('player-name-input');
     joinBtn = document.getElementById('join-btn');
     joinStatus = document.getElementById('join-status');
-    
     collectorGameView = document.getElementById('collector-game-view');
     playerHud = document.getElementById('player-hud');
     gameStatusText = document.getElementById('game-status-text');
     displayPlayerName = document.getElementById('display-player-name');
-    
     answerSubmissionView = document.getElementById('answer-submission-view');
-    submitStatus = document.getElementById('submit-status');
-    
     roundSummaryView = document.getElementById('round-summary-view');
     newGameLink = document.getElementById('new-game-link');
+    
+    // Nye elementer for separate svar
+    artistGuessInput = document.getElementById('artist-guess-input');
+    submitArtistBtn = document.getElementById('submit-artist-btn');
+    artistSubmitStatus = document.getElementById('artist-submit-status');
+    titleGuessInput = document.getElementById('title-guess-input');
+    submitTitleBtn = document.getElementById('submit-title-btn');
+    titleSubmitStatus = document.getElementById('title-submit-status');
+    yearGuessInput = document.getElementById('year-guess-input');
+    submitYearBtn = document.getElementById('submit-year-btn');
+    yearSubmitStatus = document.getElementById('year-submit-status');
 
     // Lyttere
     joinBtn.addEventListener('click', handleJoinGame);
     newGameLink.addEventListener('click', handleLeaveGame);
+    
+    submitArtistBtn.addEventListener('click', () => submitAnswerPart('artist', artistGuessInput.value, artistSubmitStatus));
+    submitTitleBtn.addEventListener('click', () => submitAnswerPart('title', titleGuessInput.value, titleSubmitStatus));
+    submitYearBtn.addEventListener('click', () => submitAnswerPart('year', yearGuessInput.value, yearSubmitStatus));
 
-    // Sjekk om vi kan gjenoppta en økt
-    // ENDRET: Bruker unike nøkler
+    // Sjekk for reconnect
     const savedCode = localStorage.getItem('mquiz_collector_client_gamecode');
     const savedName = localStorage.getItem('mquiz_collector_playername');
     if (savedCode && savedName) {
-        // TODO: Implementer full reconnect-logikk. For nå, bare koble til kanalen.
         gameCode = savedCode;
         myName = savedName;
         displayPlayerName.textContent = myName;
         
-        // Hent siste spilltilstand for å rendre UI-en korrekt
         supabaseClient.from('games').select('*').eq('game_code', gameCode).single().then(({data, error}) => {
             if (data && !error) {
                 setupSubscriptions();
                 renderGame(data);
             } else {
-                // Spillet finnes ikke lenger, nullstill
                 localStorage.clear();
                 window.location.reload();
             }
         });
     }
 });
-/* Version: #444 */
+/* Version: #451 */
