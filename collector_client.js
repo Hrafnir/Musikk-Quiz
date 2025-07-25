@@ -1,4 +1,4 @@
-/* Version: #466 */
+/* Version: #468 (Diagnostic) */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -95,16 +95,17 @@ async function handleJoinGame() {
         const newPlayer = { name: myName, songsCollected: 0 };
         const updatedPlayers = [...currentPlayers, newPlayer];
         
+        console.log(`[DB WRITE] (Client) Forsøker å oppdatere spillere for game_code ${gameCode}`);
         const { error: updateError } = await supabaseClient.from('games').update({ game_state: { ...gameData.game_state, players: updatedPlayers } }).eq('game_code', gameCode);
         if (updateError) throw new Error("Kunne ikke legge deg til i spillet.");
+        console.log(`[DB WRITE] (Client) Vellykket oppdatering av spillere.`);
         
-        // ENDRET: Sender "ping" etter vellykket databaseoppdatering
         const channel = supabaseClient.channel(`game-${gameCode}`);
         channel.subscribe(status => {
             if (status === 'SUBSCRIBED') {
-                console.log("LOG (Client): Channel subscribed, sending ping.");
+                console.log("[BROADCAST SEND] (Client) Kanal er SUBSCRIBED. Sender 'ping'...");
                 channel.send({ type: 'broadcast', event: 'ping', payload: { message: 'player_joined' } });
-                supabaseClient.removeChannel(channel); // Rydd opp
+                supabaseClient.removeChannel(channel);
             }
         });
 
@@ -136,7 +137,6 @@ async function submitAnswerPart(part, value, statusElement) {
     if (error) {
         statusElement.textContent = 'Feil!';
     } else {
-        // Ping for svar
         const channel = supabaseClient.channel(`game-${gameCode}`);
         channel.subscribe(status => {
             if (status === 'SUBSCRIBED') {
@@ -204,4 +204,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* Version: #466 */
+/* Version: #468 (Diagnostic) */
