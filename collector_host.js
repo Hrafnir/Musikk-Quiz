@@ -1,4 +1,4 @@
-/* Version: #475 */
+/* Version: #478 */
 
 // === INITIALIZATION ===
 const { createClient } = supabase;
@@ -28,14 +28,15 @@ const spotifySdkReadyPromise = new Promise(resolve => {
     resolveSpotifySdkReady = resolve;
 });
 window.onSpotifyWebPlaybackSDKReady = () => {
+    console.log("[LOG] window.onSpotifyWebPlaybackSDKReady has been called.");
     if (resolveSpotifySdkReady) resolveSpotifySdkReady();
 };
-
 
 // === HOVEDFUNKSJONER ===
 
 function renderGame(gameData) {
     if (!gameData) return;
+    console.log(`[UI RENDER] (Host) Kaller renderGame. Status: ${gameData.status}, Spillere: ${gameData.game_state.players?.length || 0}`);
     gameState = gameData.game_state;
     
     [collectorLobbyView, collectorGameView, collectorVictoryView, spotifyConnectView, readyToPlayView].forEach(view => view.classList.add('hidden'));
@@ -108,13 +109,16 @@ function displayRoundSummary() {
     roundWinner.textContent = summary.winner ? `${summary.winner} vant sangen!` : "Ingen vant sangen denne runden.";
 }
 
+
 // === DATABASE & REALTIME ===
 
 async function forceGameStateSync() {
+    console.log("[DB READ] (Host) Ping mottatt. Henter fersk data fra DB...");
     const { data, error } = await supabaseClient.from('games').select('*').eq('game_code', gameCode).single();
     if (error) {
-        console.error("Could not sync game state:", error);
+        console.error("[DB READ] (Host) Kunne ikke hente fersk data:", error);
     } else if (data) {
+        console.log("[DB READ] (Host) Fersk data hentet. Antall spillere:", data.game_state.players.length);
         renderGame(data);
     }
 }
@@ -123,12 +127,19 @@ function setupSubscriptions() {
     if (gameChannel) supabaseClient.removeChannel(gameChannel);
     gameChannel = supabaseClient.channel(`game-${gameCode}`);
     gameChannel
-        .on('broadcast', { event: 'ping' }, (payload) => forceGameStateSync())
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `game_code=eq.${gameCode}` }, (payload) => renderGame(payload.new))
-        .subscribe();
+        .on('broadcast', { event: 'ping' }, (payload) => {
+            console.log(`[BROADCAST RECV] (Host) Mottok ping. Årsak: ${payload.payload.message}`);
+            forceGameStateSync();
+        })
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`[LISTENING] (Host) Lytter nå på broadcast-kanalen game-${gameCode}`);
+            }
+        });
 }
 
 async function initializeLobby() {
+    console.log("[LOG] Initialiserer ny lobby.");
     localStorage.removeItem('mquiz_collector_host_gamecode');
     localStorage.removeItem('mquiz_collector_host_id');
     let success = false;
@@ -150,14 +161,18 @@ async function initializeLobby() {
 }
 
 async function resumeGame(gameData) {
+    console.log("[LOG] Gjenopptar spill.");
     gameCode = gameData.game_code;
     setupSubscriptions();
-    if (gameData.status === 'in_progress' || gameData.status === 'round_summary') {
-        await supabaseClient.from('games').update({ status: 'round_summary' }).eq('game_code', gameCode);
+    if (gameData.status === 'in_progress') {
+        console.log("[LOG] Spillet var i gang. Går til oppsummering for stabilitet.");
+        await supabaseClient.from('games').update({ status: 'round_summary', game_state: gameData.game_state }).eq('game_code', gameCode);
+        renderGame({ ...gameData, status: 'round_summary' });
     } else {
         renderGame(gameData);
     }
 }
+
 
 // === SPILLFLYT-HANDLINGER ===
 
@@ -181,7 +196,7 @@ async function handleStartFirstRoundClick() {
 }
 
 async function forceNewGame() {
-    if (confirm("Er du sikker?")) {
+    if (confirm("Er du sikker på at du vil avslutte dette spillet og starte et nytt?")) {
         localStorage.removeItem('mquiz_collector_host_gamecode');
         localStorage.removeItem('mquiz_collector_host_id');
         window.location.reload();
@@ -189,8 +204,10 @@ async function forceNewGame() {
 }
 
 async function startRound() {
+    console.log("[LOG] Starter ny runde...");
     const newRoundNumber = (gameState.currentRound || 0) + 1;
-    await supabaseClient.from('round_answers').delete().eq('game_code', gameCode).eq('round_number', newRoundNumber - 1); // Rydd opp forrige runde
+    await supabaseClient.from('round_answers').delete().eq('game_code', gameCode);
+    
     const { data: song, error: songError } = await supabaseClient.rpc('get_random_song', { excluded_ids: [] });
     if (songError || !song || !song[0]) { console.error("Kunne ikke hente sang!", songError); return; }
     
@@ -200,12 +217,13 @@ async function startRound() {
 
     const roundEndsAt = new Date(Date.now() + 180 * 1000);
     const newState = { ...gameState, currentRound: newRoundNumber, currentSong, roundEndsAt: roundEndsAt.toISOString() };
+    
     await supabaseClient.from('games').update({ status: 'in_progress', game_state: newState }).eq('game_code', gameCode);
 }
 
 async function endRound() {
     clearInterval(roundTimerInterval);
-    console.log("LOG (Host): Runden er over. Henter svar og beregner poeng...");
+    console.log("[LOG] Runden er over. Beregner poeng...");
 
     const { data: answers, error } = await supabaseClient.from('round_answers').select('*').eq('game_code', gameCode).eq('round_number', gameState.currentRound).order('submitted_at', { ascending: true });
     if (error) { console.error("Kunne ikke hente svar:", error); return; }
@@ -214,37 +232,28 @@ async function endRound() {
     let roundPoints = {};
     gameState.players.forEach(p => roundPoints[p.name] = 0);
 
-    // Artist
     const firstCorrectArtist = answers.find(a => normalizeString(a.artist_answer) === normalizeString(correctSong.artist));
     if (firstCorrectArtist) roundPoints[firstCorrectArtist.player_id] += 1;
 
-    // Tittel
     const firstCorrectTitle = answers.find(a => normalizeString(a.title_answer) === normalizeString(correctSong.title));
     if (firstCorrectTitle) roundPoints[firstCorrectTitle.player_id] += 1;
 
-    // Årstall
     const yearAnswers = answers.filter(a => a.year_answer !== null).map(a => ({ ...a, diff: Math.abs(a.year_answer - correctSong.year) }));
     if (yearAnswers.length > 0) {
-        const perfectYear = yearAnswers.find(a => a.diff === 0);
-        if (perfectYear) {
-            roundPoints[perfectYear.player_id] += 2;
+        const perfectYearAnswers = yearAnswers.filter(a => a.diff === 0);
+        if (perfectYearAnswers.length > 0) {
+            roundPoints[perfectYearAnswers[0].player_id] += 2;
         } else {
             yearAnswers.sort((a, b) => a.diff - b.diff);
-            const closest = yearAnswers[0];
-            roundPoints[closest.player_id] += 1;
+            roundPoints[yearAnswers[0].player_id] += 1;
         }
     }
 
-    // Finn rundevinner
     let maxPoints = 0;
     let winners = [];
     for (const [player, points] of Object.entries(roundPoints)) {
-        if (points > maxPoints) {
-            maxPoints = points;
-            winners = [player];
-        } else if (points === maxPoints && maxPoints > 0) {
-            winners.push(player);
-        }
+        if (points > maxPoints) { maxPoints = points; winners = [player]; } 
+        else if (points === maxPoints && maxPoints > 0) { winners.push(player); }
     }
     
     let roundWinner = null;
@@ -252,10 +261,9 @@ async function endRound() {
         roundWinner = winners[0];
     } else if (winners.length > 1) {
         const winnerAnswers = answers.filter(a => winners.includes(a.player_id));
-        roundWinner = winnerAnswers[0]?.player_id; // Den som svarte først av vinnerne
+        roundWinner = winnerAnswers[0]?.player_id;
     }
 
-    // Oppdater spillertilstand
     const updatedPlayers = gameState.players.map(p => {
         if (p.name === roundWinner) {
             if (!p.songsCollected) p.songsCollected = [];
@@ -266,14 +274,12 @@ async function endRound() {
 
     const lastRoundSummary = { points: roundPoints, winner: roundWinner };
     const gameWinner = updatedPlayers.find(p => p.songsCollected?.length >= gameState.songsToWin);
-
     const newState = { ...gameState, players: updatedPlayers, lastRoundSummary };
     const newStatus = gameWinner ? 'finished' : 'round_summary';
     if(gameWinner) newState.winner = gameWinner.name;
 
     await supabaseClient.from('games').update({ status: newStatus, game_state: newState }).eq('game_code', gameCode);
 }
-
 
 function startRoundTimer(endTime) {
     clearInterval(roundTimerInterval);
@@ -373,4 +379,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html';
     }
 });
-/* Version: #475 */
+/* Version: #478 */
